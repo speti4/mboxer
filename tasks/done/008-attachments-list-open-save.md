@@ -3,6 +3,7 @@ size: M
 origin: session 2026-10-17
 created: 2026-10-17
 started: 2026-10-17
+closed: 2026-10-17
 milestone: M2 Viewer MVP
 plan: folytassuk-a-008-taskkal-transient-dolphin.md
 ---
@@ -41,7 +42,7 @@ a nyers bájtokból transfer-dekódolva (bájtra pontos csv); nincs új crate.
    revoke message-váltáskor, height sync
 6. [x] Node stub-DOM check a pure helperekre; Chrome check: blob kép a srcdoc frame-ben
 7. [x] README reader bekezdés; Log, Deviations, Verification
-8. [ ] `cargo fmt`, `cargo clippy --all-targets -- -D warnings`, `cargo test` (kész); kézi kör a
+8. [x] `cargo fmt`, `cargo clippy --all-targets -- -D warnings`, `cargo test`; kézi kör a
    fixture-ön és a 14 GB-on (user); `tasks_check`; commit
 
 ## Log
@@ -71,6 +72,9 @@ a nyers bájtokból transfer-dekódolva (bájtra pontos csv); nincs új crate.
   CSP (`naturalWidth` 1), the unknown cid keeps its placeholder, no resource-timing entry
 - 2026-10-17 — `target\debug\mboxer.exe` on a scratchpad copy of `attachments.mbox`: index built in
   75 ms, 2 messages, window left open for the user's manual round
+- 2026-10-17 — implementation committed as `55291d3`
+- 2026-10-17 — user's manual round on the fixture and the 14 GB archive: "minden ok". Follow-ups:
+  none filed; the `img`-only cid filling stays an accepted limit under Deviations. Closed
 
 ## Deviations from the plan
 
@@ -106,11 +110,15 @@ a nyers bájtokból transfer-dekódolva (bájtra pontos csv); nincs új crate.
 - 2026-10-17 — the viewer on the fixture copy: `opened attachments.mbox: 2 messages, Built { build_secs:
   0, parse_failures: 0 }, 75 ms`, no panic. User's manual round (PDF open, csv save compared with
   `fc /b`, `report.exe` chip disabled, Save all with ` (2)`, inline image in HTML, Zone.Identifier
-  on a saved file, `%TEMP%\mboxer` empty after a restart) — pending.
+  on a saved file, `%TEMP%\mboxer` empty after a restart).
+- 2026-10-17 — user's manual round on the fixture copy and on the 14 GB archive: attachments open with
+  the default application, Save and Save all write the files, inline images show in the HTML view.
+  Reported as "minden ok". Done-when met: base64 and quoted-printable attachments open and save
+  correctly, cid-referenced inline images render.
 
 ## Closing checklist
 
-- [ ] every follow-up is a `backlog/` file (`/tasks add`) or deleted with a reason in the Log
-- [ ] Verification written, dated
-- [ ] `tasks_check` green, README index regenerated
-- [ ] moved to `done/` with `closed: YYYY-MM-DD`
+- [x] every follow-up is a `backlog/` file (`/tasks add`) or deleted with a reason in the Log — none filed, one accepted limit under Deviations
+- [x] Verification written, dated
+- [x] `tasks_check` green, README index regenerated
+- [x] moved to `done/` with `closed: 2026-10-17`
