@@ -11,7 +11,7 @@ Closing a task files every follow-up as a `backlog/` item now or deletes it with
 <!-- tasks:index:start -->
 _Generated 2026-10-17 — edit the files, not this section._
 
-**State:** 5 backlog (0 ready · 0 blocked · 0 waiting · 5 ideas) · 0 in progress · 10 done · 0 dropped · 4 decisions
+**State:** 7 backlog (0 ready · 0 blocked · 0 waiting · 7 ideas) · 0 in progress · 10 done · 0 dropped · 4 decisions
 
 ### Ready
 
@@ -36,6 +36,8 @@ _none_
 | 012 | [Portable release build for other users](backlog/012-portable-exe-release-build.md) | S | 2026-10-17 |
 | 014 | [Index fallback when the mbox folder is not writable](backlog/014-index-fallback-for-read-only-mbox-locations.md) | S | 2026-10-17 |
 | 015 | [Decode RFC 2047-encoded Gmail label names](backlog/015-decode-rfc2047-gmail-label-names.md) | S | 2026-10-17 |
+| 016 | [Open multiple mbox files](backlog/016-open-multiple-mbox-files.md) | M | 2026-10-17 |
+| 017 | [Dark mode toggle with OS default](backlog/017-dark-mode-toggle.md) | S | 2026-10-17 |
 
 ### In progress
 
