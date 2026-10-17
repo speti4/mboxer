@@ -35,6 +35,7 @@ panes: the Gmail label tree with counts, the message list (newest first, virtual
 Labels: the folder pane shows the Gmail labels as a tree (`Work/Clients` sits under `Work`, the
 Takeout `Category …` labels sit under *Categories*, the system labels come first), each with the
 number of messages carrying it; a parent that only groups sub-labels shows their total in italics.
+An RFC 2047 encoded label name (`=?UTF-8?Q?Sz=C3=A1ml=C3=A1k?=`) is decoded before it is indexed.
 Clicking a label narrows the list to that label *and* every label under it; a chevron (or
 `ArrowLeft` / `ArrowRight` on the selected node) folds and unfolds a branch.
 

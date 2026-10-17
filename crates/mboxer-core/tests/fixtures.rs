@@ -88,6 +88,24 @@ fn simple_lf_splits_on_envelopes_only() {
 }
 
 #[test]
+fn encoded_label_names_are_decoded_in_the_summary() {
+    let messages = read_all("labels-encoded.mbox");
+    assert_eq!(messages.len(), 3);
+    let labels: Vec<Vec<String>> = messages
+        .iter()
+        .map(|raw| summarize(raw, &parse(raw).unwrap()).labels)
+        .collect();
+    assert_eq!(
+        labels,
+        [
+            vec!["Számlák", "Inbox"],
+            vec!["Munka/Számlák", "Inbox"],
+            vec!["Számlák", "Inbox"],
+        ]
+    );
+}
+
+#[test]
 fn gmail_crlf_nested_mime_is_fully_decoded() {
     let messages = read_all("gmail-crlf.mbox");
     assert_eq!(messages.len(), 2);

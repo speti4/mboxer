@@ -3,11 +3,14 @@
 //! attachments with their decoded bytes (task 008).
 
 use std::borrow::Cow;
+use std::sync::LazyLock;
 
 use mail_parser::decoders::base64::base64_decode;
 use mail_parser::decoders::html::html_to_text;
 use mail_parser::decoders::quoted_printable::quoted_printable_decode;
-use mail_parser::{Address, Encoding, Message, MessageParser, MessagePart, MimeHeaders, PartType};
+use mail_parser::{
+    Address, Encoding, HeaderName, Message, MessageParser, MessagePart, MimeHeaders, PartType,
+};
 
 use crate::reader::RawMessage;
 
@@ -19,9 +22,38 @@ pub fn html_to_plain_text(html: &str) -> String {
     html_to_text(&html.replace('<', " <"))
 }
 
+/// The one configured parser. `mail-parser` uses its built-in header table
+/// only while no header is configured, so the table is spelled out here
+/// (`parsers/header.rs` of mail-parser 0.11) and `X-Gmail-Labels` is added as
+/// unstructured text: an RFC 2047 encoded-word label name is decoded instead
+/// of stored in its `=?UTF-8?Q?…?=` form (task 015). Every other unknown
+/// header stays raw, as before.
+static PARSER: LazyLock<MessageParser> = LazyLock::new(|| {
+    MessageParser::new()
+        .with_mime_headers()
+        .with_date_headers()
+        .with_address_headers()
+        .with_message_ids()
+        .header_text(HeaderName::Subject)
+        .header_text(HeaderName::Comments)
+        .header_address(HeaderName::ListArchive)
+        .header_address(HeaderName::ListHelp)
+        .header_address(HeaderName::ListId)
+        .header_address(HeaderName::ListOwner)
+        .header_address(HeaderName::ListPost)
+        .header_address(HeaderName::ListSubscribe)
+        .header_address(HeaderName::ListUnsubscribe)
+        .header_id(HeaderName::ReturnPath)
+        .header_comma_separated(HeaderName::Keywords)
+        .header_comma_separated(HeaderName::ContentLanguage)
+        .header_received(HeaderName::Received)
+        .header_raw(HeaderName::MimeVersion)
+        .header_text("X-Gmail-Labels")
+});
+
 /// Parses the raw bytes of a message. `None` means `mail-parser` found no message at all.
 pub fn parse(raw: &RawMessage) -> Option<Message<'_>> {
-    MessageParser::default().parse(&raw.bytes)
+    PARSER.parse(&raw.bytes)
 }
 
 /// One mailbox from an address header.
@@ -51,7 +83,7 @@ pub struct MessageSummary {
     pub message_id: Option<String>,
     /// Gmail's `X-GM-THRID` header.
     pub gmail_thread_id: Option<u64>,
-    /// Gmail's `X-Gmail-Labels` header, split on commas and trimmed.
+    /// Gmail's `X-Gmail-Labels` header, RFC 2047 decoded, split on commas and trimmed.
     pub labels: Vec<String>,
     /// The `Date` header as Unix seconds.
     pub date_unix: Option<i64>,

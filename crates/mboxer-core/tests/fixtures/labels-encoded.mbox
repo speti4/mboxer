@@ -1,0 +1,42 @@
+From 1111111111111111111@xxx Tue Jan 13 06:30:04 +0000 2026
+X-GM-THRID: 1111111111111111111
+X-Gmail-Labels: =?UTF-8?Q?Sz=C3=A1ml=C3=A1k?=,Inbox
+From: Anna <anna@example.com>
+To: bela@example.com
+Subject: Q-encoded label
+Date: Tue, 13 Jan 2026 07:30:04 +0100
+Message-ID: <enc1@mail.example.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: base64
+
+RWxzxZEgc3rDoW1sYS4NCg==
+
+From 2222222222222222222@xxx Wed Jan 14 06:30:04 +0000 2026
+X-GM-THRID: 2222222222222222222
+X-Gmail-Labels: =?UTF-8?B?TXVua2EvU3rDoW1sw6FrLEluYm94?=
+From: Anna <anna@example.com>
+To: bela@example.com
+Subject: B-encoded label with a comma inside
+Date: Wed, 14 Jan 2026 07:30:04 +0100
+Message-ID: <enc2@mail.example.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: base64
+
+TXVua2Egc3rDoW1sYS4NCg==
+
+From 3333333333333333333@xxx Thu Jan 15 06:30:04 +0000 2026
+X-GM-THRID: 3333333333333333333
+X-Gmail-Labels: Számlák,Inbox
+From: Anna <anna@example.com>
+To: bela@example.com
+Subject: Raw UTF-8 label
+Date: Thu, 15 Jan 2026 07:30:04 +0100
+Message-ID: <enc3@mail.example.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: base64
+
+SGFybWFkaWsgc3rDoW1sYS4NCg==
+

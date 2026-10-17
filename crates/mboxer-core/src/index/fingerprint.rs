@@ -14,8 +14,9 @@ use serde::{Deserialize, Serialize};
 
 use crate::error::{Error, Result};
 
-/// Bumped whenever the schema or the tokenizer changes; an older index is rebuilt.
-pub const FORMAT_VERSION: u32 = 1;
+/// Bumped whenever the schema, the tokenizer or a stored value changes; an
+/// older index is rebuilt. 2: label names are RFC 2047 decoded (task 015).
+pub const FORMAT_VERSION: u32 = 2;
 
 /// The metadata file inside the index directory (tantivy owns `meta.json`).
 pub const META_FILE: &str = "mboxer.json";

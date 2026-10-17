@@ -516,6 +516,64 @@ fn listing_holds_every_match_in_date_order_and_pages_by_slice() {
 }
 
 #[test]
+fn encoded_label_names_are_decoded_before_they_are_stored() {
+    let (_dir, _mbox, index) = built("labels-encoded.mbox");
+    assert_eq!(index.message_count(), 3);
+    // A Q-encoded, a B-encoded (comma and slash inside the encoded word) and a
+    // raw UTF-8 label name: decoded first, split on commas second, so the two
+    // spellings of `Számlák` land on one term.
+    let counts = index.label_counts().unwrap();
+    let counts: Vec<(&str, u64)> = counts
+        .iter()
+        .map(|(name, count)| (name.as_str(), *count))
+        .collect();
+    assert_eq!(counts, [("Inbox", 3), ("Munka/Számlák", 1), ("Számlák", 2)]);
+
+    let exact = index
+        .search(&SearchQuery {
+            labels: vec!["Számlák".to_owned()],
+            ..SearchQuery::default()
+        })
+        .unwrap();
+    assert_eq!(exact.total, 2);
+    assert!(
+        exact
+            .hits
+            .iter()
+            .all(|hit| hit.labels.contains(&"Számlák".to_owned()))
+    );
+    assert!(
+        exact
+            .hits
+            .iter()
+            .all(|hit| !hit.labels.iter().any(|l| l.contains("=?"))),
+        "an encoded form leaked into the stored labels: {:?}",
+        exact.hits.iter().map(|h| &h.labels).collect::<Vec<_>>()
+    );
+
+    let under_munka = index
+        .search(&SearchQuery {
+            any_labels: vec!["Munka".to_owned(), "Munka/Számlák".to_owned()],
+            ..SearchQuery::default()
+        })
+        .unwrap();
+    assert_eq!(under_munka.total, 1);
+    assert_eq!(
+        under_munka.hits[0].subject.as_deref(),
+        Some("B-encoded label with a comma inside")
+    );
+    assert_eq!(under_munka.hits[0].labels, ["Munka/Számlák", "Inbox"]);
+
+    let encoded_form = index
+        .search(&SearchQuery {
+            labels: vec!["=?UTF-8?Q?Sz=C3=A1ml=C3=A1k?=".to_owned()],
+            ..SearchQuery::default()
+        })
+        .unwrap();
+    assert_eq!(encoded_form.total, 0);
+}
+
+#[test]
 fn label_counts_follow_the_headers() {
     let (_dir, _mbox, index) = built("gmail-crlf.mbox");
     let counts = index.label_counts().unwrap();
