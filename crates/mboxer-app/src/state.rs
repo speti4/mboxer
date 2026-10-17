@@ -12,8 +12,8 @@ use mboxer_core::{
     status,
 };
 
-use crate::folders::ordered_labels;
-use crate::types::{IndexState, LabelCount, OpenSummary};
+use crate::folders::label_tree;
+use crate::types::{IndexState, LabelNode, OpenSummary};
 
 /// Managed by Tauri; one per process.
 #[derive(Default)]
@@ -56,7 +56,7 @@ pub struct OpenMbox {
     pub path: PathBuf,
     pub index: MboxIndex,
     pub index_state: IndexState,
-    pub labels: Vec<LabelCount>,
+    pub labels: Vec<LabelNode>,
     pub query: SearchQuery,
     pub listing: Listing,
     pub generation: u64,
@@ -64,16 +64,21 @@ pub struct OpenMbox {
 
 impl OpenMbox {
     /// Opens `path`: reuses its index when fresh, builds it otherwise
-    /// (reporting `progress`, stopping on `cancel`), then lists every message.
+    /// (reporting `progress`, stopping on `cancel`), then lists every message,
+    /// one row per conversation when `group_threads` is set.
     pub fn load(
         path: &Path,
         cancel: &AtomicBool,
         generation: u64,
+        group_threads: bool,
         progress: impl FnMut(Progress),
     ) -> mboxer_core::Result<Self> {
         let (index, index_state) = open_or_build(path, cancel, progress)?;
-        let labels = ordered_labels(index.label_counts()?);
-        let query = SearchQuery::default();
+        let labels = label_tree(index.label_counts()?);
+        let query = SearchQuery {
+            group_threads,
+            ..SearchQuery::default()
+        };
         let listing = index.list(&query)?;
         Ok(Self {
             path: path.to_path_buf(),
@@ -107,6 +112,8 @@ impl OpenMbox {
             index: self.index_state.clone(),
             generation: self.generation,
             total: self.listing.len(),
+            messages: self.listing.message_count(),
+            conversations: self.listing.group_count(),
         }
     }
 }
@@ -166,7 +173,7 @@ mod tests {
         let (_dir, mbox) = fixture_copy("gmail-crlf.mbox");
         let cancel = AtomicBool::new(false);
         let mut progress_calls = 0;
-        let open = OpenMbox::load(&mbox, &cancel, 1, |_| progress_calls += 1).unwrap();
+        let open = OpenMbox::load(&mbox, &cancel, 1, false, |_| progress_calls += 1).unwrap();
         assert!(progress_calls > 0);
         assert!(matches!(open.index_state, IndexState::Built { .. }));
         assert_eq!(open.listing.len(), 2);
@@ -175,8 +182,9 @@ mod tests {
         assert_eq!(summary.file_name, "gmail-crlf.mbox");
         assert_eq!(summary.total, 2);
         assert_eq!(summary.message_count, 2);
+        assert_eq!((summary.messages, summary.conversations), (2, 2));
 
-        let again = OpenMbox::load(&mbox, &cancel, 2, |_| {}).unwrap();
+        let again = OpenMbox::load(&mbox, &cancel, 2, false, |_| {}).unwrap();
         assert!(matches!(again.index_state, IndexState::Reused { .. }));
         assert_eq!(again.generation, 2);
     }
@@ -184,7 +192,7 @@ mod tests {
     #[test]
     fn query_changes_replace_the_listing() {
         let (_dir, mbox) = fixture_copy("gmail-crlf.mbox");
-        let mut open = OpenMbox::load(&mbox, &AtomicBool::new(false), 1, |_| {}).unwrap();
+        let mut open = OpenMbox::load(&mbox, &AtomicBool::new(false), 1, false, |_| {}).unwrap();
         let sent = SearchQuery {
             labels: vec!["Sent".to_owned()],
             ..SearchQuery::default()
@@ -198,14 +206,17 @@ mod tests {
     #[test]
     fn text_and_filters_combine_in_one_listing() {
         let (_dir, mbox) = fixture_copy("gmail-crlf.mbox");
-        let mut open = OpenMbox::load(&mbox, &AtomicBool::new(false), 1, |_| {}).unwrap();
+        let mut open = OpenMbox::load(&mbox, &AtomicBool::new(false), 1, false, |_| {}).unwrap();
         let all = open.listing.rows(0, 10).unwrap();
         assert_eq!(all.len(), 2);
         let first = all
             .iter()
-            .find(|hit| hit.offset == 0)
+            .find(|row| row.hit.offset == 0)
             .expect("the first message is listed");
-        let date = first.date.expect("the fixture's first message has a date");
+        let date = first
+            .hit
+            .date
+            .expect("the fixture's first message has a date");
 
         // Body word (accent-folded) + sender word + a one-day window around its date.
         let narrow = SearchQuery {
@@ -217,7 +228,7 @@ mod tests {
         };
         open.set_query(narrow, 2).unwrap();
         assert_eq!(open.listing.len(), 1);
-        assert_eq!(open.listing.rows(0, 1).unwrap()[0].offset, 0);
+        assert_eq!(open.listing.rows(0, 1).unwrap()[0].hit.offset, 0);
 
         // The same window with a sender that is not there: nothing.
         let wrong_sender = SearchQuery {
@@ -242,26 +253,63 @@ mod tests {
                 .rows(0, 10)
                 .unwrap()
                 .iter()
-                .all(|h| h.has_attachment),
+                .all(|row| row.hit.has_attachment),
             "every row has an attachment"
         );
+    }
+
+    #[test]
+    fn conversations_are_grouped_from_the_first_listing() {
+        let (_dir, mbox) = fixture_copy("threads.mbox");
+        let mut open = OpenMbox::load(&mbox, &AtomicBool::new(false), 1, true, |_| {}).unwrap();
+        assert_eq!(open.listing.len(), 3);
+        assert_eq!(open.listing.message_count(), 6);
+        let summary = open.summary();
+        assert_eq!(
+            (summary.total, summary.messages, summary.conversations),
+            (3, 6, 3)
+        );
+        assert_eq!(summary.message_count, 6);
+        // The label tree: Work carries its sub-labels, the Takeout category sits under Categories.
+        let work = summary
+            .labels
+            .iter()
+            .find(|node| node.name == "Work")
+            .expect("a Work node");
+        assert_eq!(work.labels, ["Work", "Work/Invoices", "Work/Invoices/2026"]);
+        assert!(summary.labels.iter().any(|node| node.name == "Categories"));
+
+        assert_eq!(open.listing.toggle(0), Some(6));
+        let any_work = SearchQuery {
+            any_labels: work.labels.clone(),
+            group_threads: true,
+            ..SearchQuery::default()
+        };
+        open.set_query(any_work, 2).unwrap();
+        assert_eq!(open.listing.len(), 2, "a new query starts collapsed");
+        assert_eq!(open.listing.message_count(), 4);
+        assert_eq!(open.summary().conversations, 2);
+
+        let flat = SearchQuery::default();
+        open.set_query(flat, 3).unwrap();
+        assert_eq!(open.listing.len(), 6);
     }
 
     #[test]
     fn a_cancelled_build_leaves_no_index() {
         let (_dir, mbox) = fixture_copy("gmail-crlf.mbox");
         let cancel = AtomicBool::new(true);
-        let err = OpenMbox::load(&mbox, &cancel, 1, |_| {}).unwrap_err();
+        let err = OpenMbox::load(&mbox, &cancel, 1, false, |_| {}).unwrap_err();
         assert!(matches!(err, Error::Cancelled), "{err}");
         assert!(matches!(status(&mbox).unwrap(), IndexStatus::Missing));
         cancel.store(false, Ordering::Relaxed);
-        OpenMbox::load(&mbox, &cancel, 2, |_| {}).unwrap();
+        OpenMbox::load(&mbox, &cancel, 2, false, |_| {}).unwrap();
     }
 
     #[test]
     fn a_text_file_is_not_an_mbox() {
         let (_dir, path) = fixture_copy("not-an-mbox.txt");
-        let err = OpenMbox::load(&path, &AtomicBool::new(false), 1, |_| {}).unwrap_err();
+        let err = OpenMbox::load(&path, &AtomicBool::new(false), 1, false, |_| {}).unwrap_err();
         assert!(matches!(err, Error::NotAnMbox { offset: 0 }), "{err}");
     }
 }

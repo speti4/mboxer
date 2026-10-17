@@ -79,7 +79,14 @@ pub struct SearchQuery {
     pub before: Option<i64>,
     /// Exact Gmail labels; every one must be present.
     pub labels: Vec<String>,
+    /// Exact Gmail labels; at least one must be present. The viewer sends a
+    /// label and its sub-labels (`Work`, `Work/Clients`, …) for a click on a
+    /// node of the label tree.
+    pub any_labels: Vec<String>,
     pub has_attachment: Option<bool>,
+    /// [`MboxIndex::list`] groups the matches by Gmail thread (`X-GM-THRID`);
+    /// `search` ignores it. The CLI leaves it off.
+    pub group_threads: bool,
     /// The last word of `text`, `from` and `to` is still being typed: it
     /// matches as a prefix (`szaml` finds `számla`) unless the text ends in
     /// whitespace, the word carries syntax, or a phrase is open before it.
@@ -99,7 +106,9 @@ impl Default for SearchQuery {
             after: None,
             before: None,
             labels: Vec::new(),
+            any_labels: Vec::new(),
             has_attachment: None,
+            group_threads: false,
             prefix_last_word: false,
             limit: 50,
             offset: 0,
@@ -187,6 +196,8 @@ pub struct Hit {
     pub labels: Vec<String>,
     pub has_attachment: bool,
     pub attachment_names: Vec<String>,
+    /// Gmail's `X-GM-THRID`; absent for mail that did not come from Gmail.
+    pub thread_id: Option<u64>,
     /// Present when sorted by relevance.
     pub score: Option<f32>,
 }
@@ -432,6 +443,19 @@ impl MboxIndex {
                 Box::new(TermQuery::new(term, IndexRecordOption::Basic)),
             ));
         }
+        if !query.any_labels.is_empty() {
+            let any: Vec<(Occur, Box<dyn Query>)> = query
+                .any_labels
+                .iter()
+                .map(|label| {
+                    let term = Term::from_field_text(f.labels, label);
+                    let query: Box<dyn Query> =
+                        Box::new(TermQuery::new(term, IndexRecordOption::Basic));
+                    (Occur::Should, query)
+                })
+                .collect();
+            clauses.push((Occur::Must, Box::new(BooleanQuery::new(any))));
+        }
         if let Some(flag) = query.has_attachment {
             let term = Term::from_field_bool(f.has_attachment, flag);
             clauses.push((
@@ -480,6 +504,7 @@ pub(crate) fn hit_from_address(
             .and_then(|v| v.as_bool())
             .unwrap_or(false),
         attachment_names: strings(f.attachment_names),
+        thread_id: doc.get_first(f.thread_id).and_then(|v| v.as_u64()),
         score,
     })
 }

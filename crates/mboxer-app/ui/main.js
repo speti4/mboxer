@@ -18,6 +18,7 @@
   const STORAGE_WIDTHS = "mboxer.paneWidths";
   const STORAGE_FILTERS_OPEN = "mboxer.filtersOpen";
   const STORAGE_BODY_MODE = "mboxer.bodyMode";
+  const STORAGE_GROUP_THREADS = "mboxer.groupThreads";
   const STATUS_FLASH_MS = 2000;
   // A saved path deserves a longer look.
   const SAVED_FLASH_MS = 6000;
@@ -25,7 +26,7 @@
   const el = {};
   for (const id of [
     "toolbar", "open-btn", "file-name", "search", "filters-btn", "filters-count", "filters",
-    "f-from", "f-after", "f-before", "f-att", "f-sort", "filters-clear", "panes", "folders",
+    "f-from", "f-after", "f-before", "f-att", "f-threads", "f-sort", "filters-clear", "panes", "folders",
     "list", "spacer", "rows", "list-empty", "reader", "reader-empty", "reader-content",
     "msg-subject", "msg-headers", "attachments", "attachment-list", "save-all-btn", "msg-body",
     "msg-html", "msg-parts-list", "view-html", "view-text",
@@ -37,14 +38,21 @@
     el[id.replace(/-([a-z])/g, (_, c) => c.toUpperCase())] = document.getElementById(id);
   }
 
+  // The sticky "Conversations" view mode; a setting, not a filter, so Clear
+  // leaves it alone.
+  function groupThreadsPref() {
+    return storageGet(STORAGE_GROUP_THREADS) !== "0";
+  }
+
   function defaultQuery() {
     return {
       text: "",
       from: "",
       after: "", // YYYY-MM-DD from the date input, or ""
       before: "",
-      label: null,
+      label: null, // key of the selected node of the label tree, or null for all mail
       hasAttachment: null, // true | false | null
+      groupThreads: groupThreadsPref(),
       sort: "dateDesc",
     };
   }
@@ -52,9 +60,14 @@
   const state = {
     file: null, // OpenSummary of the open file
     generation: 0,
-    total: 0,
+    total: 0, // visible rows
+    messages: 0, // matching messages behind the rows
+    conversations: 0, // groups behind the rows (= messages when not grouped)
+    layout: 0, // bumped when rows shift without a new generation (a thread opened or closed)
     blocks: new Map(), // block index -> Row[]
     pending: new Map(), // block index -> Promise
+    folderNodes: new Map(), // node key -> LabelNode of the rendered label tree
+    foldersCollapsed: new Set(), // node keys folded in the folder pane
     selected: -1, // row index
     selectedOffset: null,
     view: null, // MessageView shown in the reader
@@ -110,6 +123,13 @@
 
   function subjectText(subject) {
     return subject && subject.trim() ? subject : "(no subject)";
+  }
+
+  // "Re: Fwd: Vá: Offer" -> "Offer", for a conversation row; the member rows
+  // keep their own subjects.
+  function stripReplyPrefix(subject) {
+    const stripped = subject.replace(/^(\s*(re|fw|fwd|vá|v|aw|wg|továbbítás|tov)\s*(\[\d+\])?\s*:\s*)+/i, "");
+    return stripped.trim() ? stripped : subject;
   }
 
   function formatBytes(bytes) {
@@ -433,7 +453,11 @@
     const channel = new Channel();
     channel.onmessage = handleOpenEvent;
     try {
-      await invoke("open_mbox", { path: path || null, onEvent: channel });
+      await invoke("open_mbox", {
+        path: path || null,
+        groupThreads: groupThreadsPref(),
+        onEvent: channel,
+      });
     } catch (err) {
       showFailure(path || "", String(err));
     }
@@ -507,7 +531,10 @@
     el.statusLeft.title = summary.path;
     showWarnings([]);
     resetQueryModel();
+    state.foldersCollapsed.clear();
     renderFolders();
+    state.messages = summary.messages;
+    state.conversations = summary.conversations;
     resetListing(summary.generation, summary.total);
     setView("ready");
     // The panes had no height while hidden; lay the list out again now that they do.
@@ -537,6 +564,7 @@
     el.fAfter.value = "";
     el.fBefore.value = "";
     el.fAtt.value = "";
+    el.fThreads.checked = state.query.groupThreads;
     el.fSort.value = "dateDesc";
     el.search.disabled = false;
     el.filtersBtn.disabled = false;
@@ -558,7 +586,12 @@
   // finished, otherwise that word matches as a prefix while it is typed.
   function queryInput() {
     const q = state.query;
-    const input = { labels: q.label ? [q.label] : [], prefixLastWord: true };
+    const input = {
+      labels: [],
+      anyLabels: labelsUnder(q.label),
+      groupThreads: q.groupThreads,
+      prefixLastWord: true,
+    };
     const text = q.text.trim();
     if (text) input.text = q.text.trimStart();
     const from = q.from.trim();
@@ -620,6 +653,8 @@
       const info = await invoke("set_query", { query: input });
       if (token !== state.queryToken) return;
       state.highlightTerms = terms;
+      state.messages = info.messages;
+      state.conversations = info.conversations;
       showWarnings(info.warnings);
       await resetListing(info.generation, info.total, { keepSelection: true });
     } catch (err) {
@@ -710,6 +745,11 @@
     state.query.sort = el.fSort.value;
     applyQuery();
   });
+  el.fThreads.addEventListener("change", () => {
+    state.query.groupThreads = el.fThreads.checked;
+    storageSet(STORAGE_GROUP_THREADS, el.fThreads.checked ? "1" : "0");
+    applyQuery();
+  });
   el.filters.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
       event.preventDefault();
@@ -730,35 +770,80 @@
 
   // ---------- folders ----------
 
+  // The key of a node of the label tree: the label itself, or the path of a
+  // container (`Work` with only `Work/Invoices` present, the Categories node).
+  function nodeKey(node, parentKey) {
+    if (node.label != null) return node.label;
+    return `${parentKey == null ? "" : `${parentKey}/`}${node.name}#`;
+  }
+
+  // The exact labels a click on the node with `key` sends (`anyLabels`).
+  function labelsUnder(key) {
+    if (key == null) return [];
+    const node = state.folderNodes.get(key);
+    return node ? node.labels : [key];
+  }
+
   function renderFolders() {
     el.folders.replaceChildren();
-    el.folders.appendChild(folderItem("All mail", state.file.messageCount, null));
+    state.folderNodes.clear();
+    const allMail = { name: "All mail", label: null, count: state.file.messageCount, total: 0, labels: [], children: [] };
+    el.folders.appendChild(folderItem(allMail, null, 0));
     if (state.file.labels.length > 0) {
       const separator = document.createElement("div");
       separator.className = "folder-separator";
       el.folders.appendChild(separator);
     }
-    for (const label of state.file.labels) {
-      el.folders.appendChild(folderItem(label.name, label.count, label.name));
-    }
+    const walk = (nodes, parentKey, depth) => {
+      for (const node of nodes) {
+        const key = nodeKey(node, parentKey);
+        state.folderNodes.set(key, node);
+        el.folders.appendChild(folderItem(node, key, depth));
+        if (node.children.length > 0 && !state.foldersCollapsed.has(key)) {
+          walk(node.children, key, depth + 1);
+        }
+      }
+    };
+    walk(state.file.labels, null, 0);
     updateFolderSelection();
   }
 
-  function folderItem(name, count, label) {
+  function folderItem(node, key, depth) {
     const item = document.createElement("div");
     item.className = "folder";
+    if (node.label == null && key != null) item.classList.add("container");
     item.setAttribute("role", "option");
-    item.dataset.label = label == null ? "" : label;
-    item.title = name;
+    item.dataset.label = key == null ? "" : key;
+    item.style.setProperty("--depth", String(depth));
+    item.title = node.label == null ? node.name : node.label;
+    const twisty = document.createElement("span");
+    twisty.className = "twisty";
+    if (node.children.length > 0) {
+      twisty.textContent = state.foldersCollapsed.has(key) ? "▸" : "▾";
+      twisty.title = state.foldersCollapsed.has(key) ? "Show the sub-labels" : "Hide the sub-labels";
+      twisty.addEventListener("click", (event) => {
+        event.stopPropagation();
+        toggleFolder(key);
+      });
+    }
     const nameSpan = document.createElement("span");
     nameSpan.className = "folder-name";
-    nameSpan.textContent = name;
+    nameSpan.textContent = node.name;
     const countSpan = document.createElement("span");
     countSpan.className = "folder-count";
-    countSpan.textContent = fmt(count);
-    item.append(nameSpan, countSpan);
-    item.addEventListener("click", () => selectLabel(label));
+    // A label shows its own messages; a container the messages under it.
+    countSpan.textContent = fmt(node.label == null && key != null ? node.total : node.count);
+    item.append(twisty, nameSpan, countSpan);
+    item.addEventListener("click", () => selectLabel(key));
     return item;
+  }
+
+  function toggleFolder(key) {
+    if (state.foldersCollapsed.has(key)) state.foldersCollapsed.delete(key);
+    else state.foldersCollapsed.add(key);
+    renderFolders();
+    const item = folderItems().find((candidate) => candidate.dataset.label === key);
+    if (item) item.scrollIntoView({ block: "nearest" });
   }
 
   function updateFolderSelection() {
@@ -789,11 +874,23 @@
     const items = folderItems();
     if (items.length === 0) return;
     let index = folderIndexOf(state.query.label);
+    const node = state.query.label == null ? null : state.folderNodes.get(state.query.label);
+    const hasChildren = Boolean(node && node.children.length > 0);
+    const collapsed = hasChildren && state.foldersCollapsed.has(state.query.label);
     if (event.key === "ArrowDown") index = Math.min(items.length - 1, index + 1);
     else if (event.key === "ArrowUp") index = Math.max(0, index - 1);
     else if (event.key === "Home") index = 0;
     else if (event.key === "End") index = items.length - 1;
-    else if (event.key === "Enter" || event.key === "ArrowRight") {
+    else if (event.key === "ArrowRight" && collapsed) {
+      // Open the node first; a second press moves on to the list.
+      event.preventDefault();
+      toggleFolder(state.query.label);
+      return;
+    } else if (event.key === "ArrowLeft") {
+      event.preventDefault();
+      if (hasChildren && !collapsed) toggleFolder(state.query.label);
+      return;
+    } else if (event.key === "Enter" || event.key === "ArrowRight") {
       el.list.focus();
       event.preventDefault();
       return;
@@ -812,6 +909,7 @@
     const keepOffset = keepSelection ? state.selectedOffset : null;
     const token = state.queryToken;
     state.generation = generation;
+    state.layout++;
     state.total = total;
     state.blocks.clear();
     state.pending.clear();
@@ -823,12 +921,18 @@
 
     let position = null;
     if (keepOffset != null && total > 0) {
+      let info = null;
       try {
-        position = await invoke("position_of", { offset: keepOffset });
+        info = await invoke("position_of", { offset: keepOffset });
       } catch (_) {
-        position = null;
+        info = null;
       }
       if (token !== state.queryToken) return;
+      if (info && info.generation === state.generation) {
+        position = info.position;
+        // The lookup may have opened the conversation around the message.
+        if (info.total !== state.total) setTotal(info.total);
+      }
     }
     if (position == null) {
       state.selectedOffset = null;
@@ -842,14 +946,27 @@
     }
   }
 
+  // Rows shifted without a new listing: drop the cached pages and re-render.
+  function setTotal(total) {
+    state.layout++;
+    state.total = total;
+    state.blocks.clear();
+    state.pending.clear();
+    el.spacer.style.height = `${total * ROW_H}px`;
+    el.listEmpty.hidden = total > 0;
+  }
+
   function updateStatusCenter() {
     if (!state.file) {
       el.statusCenter.textContent = "";
       return;
     }
     const all = state.file.messageCount;
-    el.statusCenter.textContent =
-      state.total === all ? `${fmt(all)} messages` : `${fmt(state.total)} of ${fmt(all)} messages`;
+    const messages =
+      state.messages === all ? `${fmt(all)} messages` : `${fmt(state.messages)} of ${fmt(all)} messages`;
+    el.statusCenter.textContent = state.query.groupThreads
+      ? `${fmt(state.conversations)} conversations · ${messages}`
+      : messages;
   }
 
   function rowData(index) {
@@ -861,16 +978,18 @@
   function requestBlock(block) {
     if (state.blocks.has(block) || state.pending.has(block)) return;
     const generation = state.generation;
+    const layout = state.layout;
     const promise = invoke("list_rows", { start: block * BLOCK, count: BLOCK })
       .then((page) => {
-        state.pending.delete(block);
+        if (state.pending.get(block) === promise) state.pending.delete(block);
         if (page.generation !== state.generation || generation !== state.generation) return;
+        if (layout !== state.layout) return; // the rows moved under this page
         state.blocks.set(block, page.rows);
         evictBlocks();
         scheduleRender();
       })
       .catch((err) => {
-        state.pending.delete(block);
+        if (state.pending.get(block) === promise) state.pending.delete(block);
         console.error("list_rows failed", err);
       });
     state.pending.set(block, promise);
@@ -900,17 +1019,53 @@
     const row = document.createElement("div");
     row.className = "row";
     row.setAttribute("role", "option");
-    for (const cls of ["att", "from", "subject", "date"]) {
+    for (const cls of ["twisty", "att", "from", "subject", "count", "date"]) {
       const span = document.createElement("span");
       span.className = cls;
       row.appendChild(span);
     }
+    row.firstChild.addEventListener("click", (event) => {
+      const index = Number(row.dataset.index);
+      const data = Number.isNaN(index) ? null : rowData(index);
+      if (data && data.kind === "thread") {
+        event.stopPropagation();
+        toggleThread(index);
+        el.list.focus();
+      }
+    });
     row.addEventListener("click", () => {
       const index = Number(row.dataset.index);
       if (!Number.isNaN(index)) select(index, { scroll: false });
       el.list.focus();
     });
     return row;
+  }
+
+  // Opens or closes the conversation whose thread row is `row`; the rows
+  // below it shift, the selection follows.
+  async function toggleThread(row) {
+    const data = rowData(row);
+    if (!data || data.kind !== "thread") return;
+    const generation = state.generation;
+    let info;
+    try {
+      info = await invoke("toggle_thread", { generation, row });
+    } catch (err) {
+      console.error("toggle_thread failed", err);
+      return;
+    }
+    if (info.generation !== state.generation || generation !== state.generation) return;
+    const delta = info.total - state.total;
+    if (delta === 0) return;
+    setTotal(info.total);
+    if (state.selected > row) {
+      // Rows below move with the delta; a member of a closed conversation
+      // lands on its thread row, whose message the reader then shows.
+      state.selected = Math.max(row, state.selected + delta);
+    }
+    updateStatusCenter();
+    render();
+    scheduleRead();
   }
 
   function render() {
@@ -933,24 +1088,36 @@
       row.dataset.index = String(index);
       row.setAttribute("aria-selected", index === state.selected ? "true" : "false");
       const data = rowData(index);
-      const [att, from, subject, date] = row.children;
+      const [twisty, att, from, subject, count, date] = row.children;
       if (data) {
         row.classList.remove("placeholder");
+        const isThread = data.kind === "thread";
+        row.classList.toggle("thread", isThread);
+        row.classList.toggle("member", data.kind === "member");
+        twisty.textContent = isThread ? (data.expanded ? "▾" : "▸") : "";
+        twisty.title = isThread ? (data.expanded ? "Close the conversation" : "Open the conversation") : "";
         att.textContent = data.hasAttachment ? "📎" : "";
         renderHighlighted(from, senderName(data.from), terms);
         from.title = data.from.join(", ");
-        const subjectLine = subjectText(data.subject);
+        const subjectLine = isThread ? stripReplyPrefix(subjectText(data.subject)) : subjectText(data.subject);
         renderHighlighted(subject, subjectLine, terms);
-        subject.title = subjectLine;
+        subject.title = subjectText(data.subject);
+        count.textContent = isThread ? fmt(data.threadCount) : "";
+        count.title = isThread ? `${fmt(data.threadCount)} messages in this conversation` : "";
         date.textContent = listDate(data.date);
         date.title = fullDate(data.date);
       } else {
         row.classList.add("placeholder");
+        row.classList.remove("thread", "member");
+        twisty.textContent = "";
+        twisty.title = "";
         att.textContent = "";
         from.textContent = "…";
         from.title = "";
         subject.textContent = "";
         subject.title = "";
+        count.textContent = "";
+        count.title = "";
         date.textContent = "";
         date.title = "";
         requestBlock(Math.floor(index / BLOCK));
@@ -1038,15 +1205,34 @@
       case "End":
         next = state.total - 1;
         break;
+      case "ArrowRight": {
+        // A closed conversation opens first; anything else moves to the reader.
+        event.preventDefault();
+        const data = current >= 0 ? rowData(current) : null;
+        if (data && data.kind === "thread" && !data.expanded) toggleThread(current);
+        else if (state.selected >= 0) el.reader.focus();
+        return;
+      }
       case "Enter":
-      case "ArrowRight":
         if (state.selected >= 0) el.reader.focus();
         event.preventDefault();
         return;
-      case "ArrowLeft":
-        el.folders.focus();
+      case "ArrowLeft": {
+        // An open conversation closes (from its thread row or a member);
+        // anything else moves to the folders.
         event.preventDefault();
+        const data = current >= 0 ? rowData(current) : null;
+        if (data && data.kind === "member") {
+          const threadRow = current - data.threadIndex - 1;
+          select(threadRow);
+          toggleThread(threadRow);
+        } else if (data && data.kind === "thread" && data.expanded) {
+          toggleThread(current);
+        } else {
+          el.folders.focus();
+        }
         return;
+      }
       default:
         return;
     }

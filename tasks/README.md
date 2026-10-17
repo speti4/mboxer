@@ -11,7 +11,7 @@ Closing a task files every follow-up as a `backlog/` item now or deletes it with
 <!-- tasks:index:start -->
 _Generated 2026-10-17 — edit the files, not this section._
 
-**State:** 5 backlog (0 ready · 0 blocked · 0 waiting · 5 ideas) · 0 in progress · 9 done · 0 dropped · 4 decisions
+**State:** 5 backlog (0 ready · 0 blocked · 0 waiting · 5 ideas) · 1 in progress · 9 done · 0 dropped · 4 decisions
 
 ### Ready
 
@@ -31,15 +31,19 @@ _none_
 
 | # | Task | Size | Created |
 |---|---|---|---|
-| 009 | [Gmail labels and conversation threads](backlog/009-gmail-labels-and-threads.md) | M | 2026-10-17 |
 | 010 | [Gmail-style query syntax in the search field](backlog/010-gmail-style-query-syntax.md) | S | 2026-10-17 |
 | 011 | [Export a message: .eml, PDF, print](backlog/011-export-eml-pdf-print.md) | M | 2026-10-17 |
 | 012 | [Portable release build for other users](backlog/012-portable-exe-release-build.md) | S | 2026-10-17 |
 | 014 | [Index fallback when the mbox folder is not writable](backlog/014-index-fallback-for-read-only-mbox-locations.md) | S | 2026-10-17 |
+| 015 | [Decode RFC 2047-encoded Gmail label names](backlog/015-decode-rfc2047-gmail-label-names.md) | S | 2026-10-17 |
 
 ### In progress
 
-_none_
+#### M3 Comfort
+
+| # | Task | Started | Plan |
+|---|---|---|---|
+| 009 | [Gmail labels and conversation threads](wip/009-gmail-labels-and-threads.md) | 2026-10-17 | `folytassuk-a-009-taskkal-peaceful-sunbeam.md` |
 
 ### Closed – do not reopen
 

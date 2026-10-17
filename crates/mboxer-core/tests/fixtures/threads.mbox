@@ -1,0 +1,83 @@
+From 111@xxx Sat Jan 10 08:00:00 +0000 2026
+X-GM-THRID: 111
+X-Gmail-Labels: Inbox,Work
+From: Anna <anna@example.com>
+To: Bela <bela@example.com>
+Subject: =?UTF-8?Q?Aj=C3=A1nlat?=
+Date: Sat, 10 Jan 2026 09:00:00 +0100
+Message-ID: <a1@mail.example.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+aj=C3=A1nlat egy
+
+From 222@xxx Sun Jan 11 08:00:00 +0000 2026
+X-GM-THRID: 222
+X-Gmail-Labels: Inbox,Work/Invoices
+From: Cili <cili@example.com>
+To: Bela <bela@example.com>
+Subject: =?UTF-8?Q?Sz=C3=A1mla?=
+Date: Sun, 11 Jan 2026 09:00:00 +0100
+Message-ID: <b1@mail.example.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+sz=C3=A1mla egy
+
+From 111@xxx Mon Jan 12 08:00:00 +0000 2026
+X-GM-THRID: 111
+X-Gmail-Labels: Sent,Work
+From: Bela <bela@example.com>
+To: Anna <anna@example.com>
+Subject: =?UTF-8?Q?Re:_Aj=C3=A1nlat?=
+Date: Mon, 12 Jan 2026 09:00:00 +0100
+Message-ID: <a2@mail.example.com>
+In-Reply-To: <a1@mail.example.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+aj=C3=A1nlat kett=C5=91
+
+From none@xxx Tue Jan 13 08:00:00 +0000 2026
+X-Gmail-Labels: Inbox,Workshop,Category updates
+From: News <news@example.com>
+To: Bela <bela@example.com>
+Subject: =?UTF-8?Q?H=C3=ADrlev=C3=A9l?=
+Date: Tue, 13 Jan 2026 09:00:00 +0100
+Message-ID: <n@mail.example.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+h=C3=ADrlev=C3=A9l
+
+From 222@xxx Wed Jan 14 08:00:00 +0000 2026
+X-GM-THRID: 222
+X-Gmail-Labels: Inbox,Work/Invoices/2026
+From: Cili <cili@example.com>
+To: Bela <bela@example.com>
+Subject: =?UTF-8?Q?Re:_Sz=C3=A1mla?=
+Date: Wed, 14 Jan 2026 09:00:00 +0100
+Message-ID: <b2@mail.example.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+sz=C3=A1mla kett=C5=91
+
+From 222@xxx Fri Jan  9 08:00:00 +0000 2026
+X-GM-THRID: 222
+X-Gmail-Labels: Sent,Work-archive,Bin
+From: Bela <bela@example.com>
+To: Cili <cili@example.com>
+Subject: =?UTF-8?Q?Sz=C3=A1mla_k=C3=A9rd=C3=A9s?=
+Date: Fri, 9 Jan 2026 09:00:00 +0100
+Message-ID: <b3@mail.example.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+sz=C3=A1mla k=C3=A9rd=C3=A9s

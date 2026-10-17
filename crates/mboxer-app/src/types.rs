@@ -1,6 +1,6 @@
 //! The IPC types: what the webview sends and receives, camel-cased on the wire.
 
-use mboxer_core::{Attachment, Hit, PartInfo, SearchQuery, Sort};
+use mboxer_core::{Attachment, ListRow, PartInfo, RowKind, SearchQuery, Sort};
 use serde::{Deserialize, Serialize};
 
 use crate::attachments::{open_blocked, safe_file_name};
@@ -39,12 +39,16 @@ pub struct OpenSummary {
     pub path: String,
     pub file_name: String,
     pub message_count: u64,
-    pub labels: Vec<LabelCount>,
+    /// The label tree of the folder pane, in display order.
+    pub labels: Vec<LabelNode>,
     pub index: IndexState,
     /// Identifies the current listing; rows of an older generation are stale.
     pub generation: u64,
-    /// Rows in the current listing (every message right after an open).
+    /// Rows in the current listing (every conversation right after an open).
     pub total: usize,
+    /// Matching messages and conversations behind those rows.
+    pub messages: usize,
+    pub conversations: usize,
 }
 
 /// Whether the open reused the sidecar index or built it.
@@ -64,11 +68,24 @@ pub enum IndexState {
     },
 }
 
+/// One node of the label tree: a Gmail label (`label` set) or a container
+/// that only groups sub-labels (`label` absent: `Work` when only
+/// `Work/Invoices` exists, or the synthetic `Categories` node).
 #[derive(Debug, Clone, Serialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct LabelCount {
+pub struct LabelNode {
+    /// The last path segment, for display.
     pub name: String,
+    /// The exact label, when messages carry this node itself.
+    pub label: Option<String>,
+    /// Messages carrying this label itself.
     pub count: u64,
+    /// Messages carrying this label or any label under it (not de-duplicated).
+    pub total: u64,
+    /// This label and every label under it: what a click on the node sends
+    /// as `anyLabels`.
+    pub labels: Vec<String>,
+    pub children: Vec<LabelNode>,
 }
 
 /// The query behind the list; every field optional, so `{}` is "all mail".
@@ -81,9 +98,13 @@ pub struct QueryInput {
     pub after: Option<i64>,
     pub before: Option<i64>,
     pub labels: Vec<String>,
+    /// At least one of these labels: a node of the label tree and its sub-labels.
+    pub any_labels: Vec<String>,
     pub has_attachment: Option<bool>,
     /// The last word is still being typed and matches as a prefix.
     pub prefix_last_word: bool,
+    /// One row per conversation, expandable.
+    pub group_threads: bool,
     pub sort: SortInput,
 }
 
@@ -104,8 +125,10 @@ impl From<QueryInput> for SearchQuery {
             after: input.after,
             before: input.before,
             labels: input.labels,
+            any_labels: input.any_labels,
             has_attachment: input.has_attachment,
             prefix_last_word: input.prefix_last_word,
+            group_threads: input.group_threads,
             sort: match input.sort {
                 SortInput::DateDesc => Sort::DateDesc,
                 SortInput::Relevance => Sort::Relevance,
@@ -119,8 +142,22 @@ impl From<QueryInput> for SearchQuery {
 #[serde(rename_all = "camelCase")]
 pub struct ListInfo {
     pub generation: u64,
+    /// Visible rows: conversations plus the members of the expanded ones.
     pub total: usize,
+    /// Matching messages and conversations behind those rows.
+    pub messages: usize,
+    pub conversations: usize,
     pub warnings: Vec<String>,
+}
+
+/// Where a message sits in the current listing; `total` may have grown when
+/// the lookup expanded the conversation around it.
+#[derive(Debug, Clone, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct PositionInfo {
+    pub generation: u64,
+    pub position: Option<usize>,
+    pub total: usize,
 }
 
 /// One line of the message list.
@@ -134,10 +171,32 @@ pub struct Row {
     pub subject: Option<String>,
     pub has_attachment: bool,
     pub labels: Vec<String>,
+    pub kind: RowKindView,
+    /// Matching messages of the conversation; 1 for a single message.
+    pub thread_count: u32,
+    /// A thread row that shows its members.
+    pub expanded: bool,
+    /// A member's position in its conversation, oldest first; the thread row
+    /// is `threadIndex + 1` rows up.
+    pub thread_index: u32,
 }
 
-impl From<Hit> for Row {
-    fn from(hit: Hit) -> Self {
+#[derive(Debug, Clone, Copy, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub enum RowKindView {
+    Message,
+    Thread,
+    Member,
+}
+
+impl From<ListRow> for Row {
+    fn from(row: ListRow) -> Self {
+        let (kind, thread_count, expanded, thread_index) = match row.kind {
+            RowKind::Message => (RowKindView::Message, 1, false, 0),
+            RowKind::Thread { count, expanded } => (RowKindView::Thread, count, expanded, 0),
+            RowKind::Member { index, count } => (RowKindView::Member, count, false, index),
+        };
+        let hit = row.hit;
         Row {
             offset: hit.offset,
             len: hit.len,
@@ -146,6 +205,10 @@ impl From<Hit> for Row {
             subject: hit.subject,
             has_attachment: hit.has_attachment,
             labels: hit.labels,
+            kind,
+            thread_count,
+            expanded,
+            thread_index,
         }
     }
 }
@@ -309,9 +372,105 @@ mod tests {
         assert_eq!(query.labels, vec!["Inbox".to_owned()]);
         assert_eq!(query.has_attachment, Some(false));
         assert_eq!(query.sort, Sort::DateDesc);
+        assert!(!query.group_threads);
+        assert!(query.any_labels.is_empty());
         // The CLI-only paging fields keep their defaults.
         assert_eq!(query.limit, SearchQuery::default().limit);
         assert_eq!(query.offset, 0);
+
+        let json: QueryInput =
+            serde_json::from_str(r#"{"anyLabels":["Work","Work/Invoices"],"groupThreads":true}"#)
+                .unwrap();
+        let query: SearchQuery = json.into();
+        assert_eq!(query.any_labels, ["Work", "Work/Invoices"]);
+        assert!(query.group_threads);
+        assert!(query.labels.is_empty());
+    }
+
+    #[test]
+    fn list_rows_carry_their_kind_camel_cased() {
+        let hit = mboxer_core::Hit {
+            offset: 10,
+            len: 20,
+            date: Some(5),
+            from: vec!["A <a@x>".to_owned()],
+            to: vec![],
+            subject: Some("Re: x".to_owned()),
+            labels: vec!["Inbox".to_owned()],
+            has_attachment: false,
+            attachment_names: vec![],
+            thread_id: Some(9_000_000_000_000_000_000),
+            score: None,
+        };
+        let thread = Row::from(ListRow {
+            hit: hit.clone(),
+            kind: RowKind::Thread {
+                count: 3,
+                expanded: true,
+            },
+        });
+        let json = serde_json::to_value(&thread).unwrap();
+        assert_eq!(json["kind"], "thread");
+        assert_eq!(json["threadCount"], 3);
+        assert_eq!(json["expanded"], true);
+        assert_eq!(json["threadIndex"], 0);
+        assert_eq!(json["offset"], 10);
+        assert!(
+            json.get("threadId").is_none(),
+            "u64 ids do not fit a JS number"
+        );
+
+        let member = Row::from(ListRow {
+            hit: hit.clone(),
+            kind: RowKind::Member { index: 2, count: 3 },
+        });
+        assert_eq!(
+            (member.kind, member.thread_index, member.thread_count),
+            (RowKindView::Member, 2, 3)
+        );
+        assert!(!member.expanded);
+        let message = Row::from(ListRow {
+            hit,
+            kind: RowKind::Message,
+        });
+        assert_eq!(
+            (message.kind, message.thread_count),
+            (RowKindView::Message, 1)
+        );
+
+        let info = ListInfo {
+            generation: 3,
+            total: 4,
+            messages: 9,
+            conversations: 4,
+            warnings: vec![],
+        };
+        assert_eq!(
+            serde_json::to_value(&info).unwrap(),
+            serde_json::json!({"generation": 3, "total": 4, "messages": 9, "conversations": 4, "warnings": []})
+        );
+        let position = PositionInfo {
+            generation: 3,
+            position: Some(2),
+            total: 7,
+        };
+        assert_eq!(
+            serde_json::to_value(&position).unwrap(),
+            serde_json::json!({"generation": 3, "position": 2, "total": 7})
+        );
+        let node = LabelNode {
+            name: "Work".to_owned(),
+            label: Some("Work".to_owned()),
+            count: 2,
+            total: 3,
+            labels: vec!["Work".to_owned(), "Work/Invoices".to_owned()],
+            children: vec![],
+        };
+        assert_eq!(
+            serde_json::to_value(&node).unwrap(),
+            serde_json::json!({"name": "Work", "label": "Work", "count": 2, "total": 3,
+                "labels": ["Work", "Work/Invoices"], "children": []})
+        );
     }
 
     #[test]

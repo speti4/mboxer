@@ -18,7 +18,9 @@ use crate::attachments::{
     write_with_motw,
 };
 use crate::state::{AppState, OpenMbox};
-use crate::types::{ListInfo, MessageView, OpenEvent, QueryInput, RowsPage, SaveAllReport};
+use crate::types::{
+    ListInfo, MessageView, OpenEvent, PositionInfo, QueryInput, RowsPage, SaveAllReport,
+};
 use crate::view::read_message_view;
 
 /// The largest page `list_rows` serves.
@@ -38,6 +40,7 @@ pub async fn open_mbox(
     app: AppHandle,
     state: State<'_, AppState>,
     path: Option<String>,
+    group_threads: bool,
     on_event: Channel<OpenEvent>,
 ) -> Result<(), String> {
     if state
@@ -47,7 +50,7 @@ pub async fn open_mbox(
     {
         return Err("an open is already in progress".to_owned());
     }
-    let result = open_mbox_inner(app, &state, path, on_event).await;
+    let result = open_mbox_inner(app, &state, path, group_threads, on_event).await;
     state.busy.store(false, Ordering::Release);
     result
 }
@@ -56,6 +59,7 @@ async fn open_mbox_inner(
     app: AppHandle,
     state: &AppState,
     path: Option<String>,
+    group_threads: bool,
     on_event: Channel<OpenEvent>,
 ) -> Result<(), String> {
     let path = match path {
@@ -75,7 +79,7 @@ async fn open_mbox_inner(
     let generation = state.generation.fetch_add(1, Ordering::AcqRel) + 1;
     let progress = on_event.clone();
     let loaded = tauri::async_runtime::spawn_blocking(move || {
-        OpenMbox::load(&path, &cancel, generation, |p: Progress| {
+        OpenMbox::load(&path, &cancel, generation, group_threads, |p: Progress| {
             let _ = progress.send(OpenEvent::Building {
                 bytes: p.bytes,
                 total_bytes: p.total_bytes,
@@ -162,14 +166,38 @@ pub async fn set_query(app: AppHandle, query: QueryInput) -> Result<ListInfo, St
             open.listing.len(),
             started.elapsed().as_millis()
         );
-        Ok(ListInfo {
-            generation,
-            total: open.listing.len(),
-            warnings: open.listing.warnings().to_vec(),
-        })
+        Ok(list_info(open))
     })
     .await
     .map_err(|err| format!("the query task failed: {err}"))?
+}
+
+fn list_info(open: &OpenMbox) -> ListInfo {
+    ListInfo {
+        generation: open.generation,
+        total: open.listing.len(),
+        messages: open.listing.message_count(),
+        conversations: open.listing.group_count(),
+        warnings: open.listing.warnings().to_vec(),
+    }
+}
+
+/// Expands or collapses the conversation whose thread row is `row`. The
+/// listing must still be the one the webview sees (`generation`); any other
+/// row is a no-op that returns the unchanged counts.
+#[tauri::command]
+pub fn toggle_thread(
+    state: State<'_, AppState>,
+    generation: u64,
+    row: usize,
+) -> Result<ListInfo, String> {
+    let mut guard = state.open();
+    let open = guard.as_mut().ok_or("no mbox is open")?;
+    if open.generation != generation {
+        return Err("the listing has changed".to_owned());
+    }
+    open.listing.toggle(row);
+    Ok(list_info(open))
 }
 
 /// One page of the current listing.
@@ -265,14 +293,22 @@ pub fn allowed_link(url: &str) -> bool {
         .any(|scheme| lower.starts_with(scheme))
 }
 
-/// Row index of the message with this offset in the current listing.
+/// Row index of the message with this offset in the current listing; a
+/// member hidden in a collapsed conversation gets it expanded, so `total`
+/// comes back with the position.
 #[tauri::command]
-pub fn position_of(state: State<'_, AppState>, offset: u64) -> Result<Option<usize>, String> {
-    let guard = state.open();
-    let open = guard.as_ref().ok_or("no mbox is open")?;
-    open.listing
+pub fn position_of(state: State<'_, AppState>, offset: u64) -> Result<PositionInfo, String> {
+    let mut guard = state.open();
+    let open = guard.as_mut().ok_or("no mbox is open")?;
+    let position = open
+        .listing
         .position_of(offset)
-        .map_err(|err| err.to_string())
+        .map_err(|err| err.to_string())?;
+    Ok(PositionInfo {
+        generation: open.generation,
+        position,
+        total: open.listing.len(),
+    })
 }
 
 /// The decoded bytes of attachment part `index` of the message at

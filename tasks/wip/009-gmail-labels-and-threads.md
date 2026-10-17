@@ -1,0 +1,101 @@
+---
+size: M
+origin: session 2026-10-17
+created: 2026-10-17
+started: 2026-10-17
+milestone: M3 Comfort
+plan: folytassuk-a-009-taskkal-peaceful-sunbeam.md
+---
+
+# 009 — Gmail labels and conversation threads
+
+## Context
+
+A 005/006 óta a folders pane lapos címkelistát mutat számokkal és a kattintás exact `labels` szűrő; a
+`thread_id` (X-GM-THRID) indexelve + tárolva + FAST van, de senki nem olvassa vissza. A 009 két dolgot ad:
+beszélgetés-nézet a listában (egy sor = egy thread a legújabb üzenettel és darabszámmal, lenyitható, a
+csoportosítás a core `Listing`-ben, mert a tagok a dátum szerinti listában szétszórtak) és címkefa a
+folders pane-ben (`/` hierarchia + a Takeout `Category …` címkék egy *Categories* csomópont alatt).
+Why: a Takeout ingyen adja a Gmail-struktúrát, ettől lesz a lapos archívum navigálható.
+Done when: egy címkére kattintva szűkül a lista; egy válaszokkal bíró üzenet egy lenyitható
+beszélgetésként jelenik meg.
+
+User döntések 2026-10-17 (tervezési kör): grouping alapból be, *Conversations* kapcsoló a szűrősávon;
+szülő címke kattintása = szülő + minden alcímke (OR, `any_labels`); `Category *` → *Categories*
+csomópont; lenyitott threadben legrégebbi elöl. Az index formátuma nem változik (nincs újraépítés); nincs
+új crate (D-02). A valós archívum fejlécmintájában (600 MB) nincs `/`-es és nincs RFC 2047-kódolt címke.
+
+## Steps
+
+1. [x] Core `search.rs`: `SearchQuery.any_labels` (Should-klauzula), `group_threads`, `Hit.thread_id`
+2. [x] Core `listing.rs`: `Entry` collector (`date` + `thread_id` oszlop), `arrange` CSR, `Expanded` prefix-összeg,
+   `locate` / `row_of_group`, `ListRow` / `RowKind`, `rows` / `toggle` / `position_of` / `len` / `message_count` /
+   `group_count`; unit tesztek; exportok
+3. [x] Fixture `threads.mbox`; `tests/index.rs` esetek; `cargo test -p mboxer-core`
+4. [x] App `types.rs` (`QueryInput`, `Row` kind, `ListInfo`, `PositionInfo`, `LabelNode`), `folders.rs` (`label_tree`,
+   `Bin`), `state.rs` (`load` grouping-gal), `commands.rs` (`open_mbox`, `toggle_thread`, `position_of`), `lib.rs`; tesztek
+5. [x] UI `index.html` + `style.css`; `main.js` címkefa, thread sorok, toggle + layout token, billentyűk, státusz, kapcsoló
+6. [x] `node --check` + stub-DOM check (`stripReplyPrefix`, `labelsUnder`, fa-sorrend, kijelölés-eltolás)
+7. [x] README; Log / Deviations / Verification; backlog item az RFC 2047 címkenevekre
+8. [ ] `cargo fmt`, `cargo clippy --all-targets -- -D warnings`, `cargo test`; debug exe a fixture-másolaton és a 14 GB-on
+   (stderr `query:` idők); user kézi kör; `tasks_check`; commit
+
+## Log
+
+- 2026-10-17 — plan approved; 009 promoted to wip
+- 2026-10-17 — core: `SearchQuery.any_labels` (Should-TermQuery-k egy Must-klauzulában) és `group_threads`,
+  `Hit.thread_id`; `listing.rs` újraírva: az `AllMatches` collector `Entry`-ket gyűjt (`date` + `thread_id`
+  FAST oszlop, `NonZeroU64` niche), `arrange` CSR-be rendez (ungrouped ág bitre a mai sorrend), a sor-aritmetika
+  a `Layout` structban (`Expanded` prefix-összeg, `partition_point`), `ListRow`/`RowKind`, `toggle`,
+  `position_of` auto-kibontással. Fixture `threads.mbox` (6 üzenet, B3 a fájl végén de a legrégebbi,
+  `Workshop`/`Work-archive` negatív esetek). Első futás: egy unit-teszt várakozása volt rossz (a 2-es thread
+  legújabb tagja 14 > a thread nélküli 13 → a thread előz), a kód jó. 29 unit + 8 + 19 core zöld
+- 2026-10-17 — app: `LabelNode` fa (`folders.rs` `label_tree`: `/` szegmensek, `Category <x>` → `Categories`
+  csomópont, `Bin`/`Chat` a well-known listában), `QueryInput.anyLabels/groupThreads`, `Row.kind/threadCount/
+  expanded/threadIndex` (thread id nem megy ki: u64 > 2^53), `ListInfo.messages/conversations`, `PositionInfo`,
+  `open_mbox(groupThreads)` → `OpenMbox::load` grouping-gal, `toggle_thread(generation, row)`; a CLI literál
+  a két új mezővel. Egy tesztvárakozás javítva (a `Categories` csomópont a well-known blokk után, a user-címkék
+  előtt áll). `cargo test` 30 app + 4 + 5 CLI + 29 + 8 + 19 core zöld; fmt + clippy tiszta
+- 2026-10-17 — UI: `Conversations` checkbox (`#f-threads`, localStorage `mboxer.groupThreads`, a Clear nem bántja),
+  címkefa chevronnal és `--depth` behúzással (konténer: `total` dőlten; kulcs = exact címke vagy `<út>#`),
+  `labelsUnder(key)` → `anyLabels`; a lista 6 oszlopos sor (`twisty, att, from, subject, count, date`),
+  thread sor `stripReplyPrefix`-szel és darabszám-jelvénnyel, member sor behúzva; `toggleThread` a
+  `state.layout` tokennel (a `requestBlock` eldobja a régi layout lapjait, a `pending` csak a saját promise-át
+  törli), a kijelölés `max(row, selected + delta)`; ArrowRight nyit / ArrowLeft zár a listában és a fában;
+  `position_of` → `PositionInfo.total` átvétele. `node --check` tiszta; stub-DOM check 35 eset, 0 hiba
+- 2026-10-17 — `target\debug\mboxer.exe` a `threads.mbox` másolatán: `opened threads.mbox: 6 messages, Built
+  { build_secs: 0, parse_failures: 0 }, 92 ms`; a 14 GB-on hideg cache-sel 1352 ms, melegen 88 ms (a 005/006
+  ungrouped listingje ~60 ms volt ugyanebben a debug buildben → a 86 085 üzenet csoportosítása ~30 ms). Mindkét
+  ablak nyitva maradt a user kézi köréhez. Follow-up 015 (RFC 2047-kódolt címkenevek) felvéve a backlogba
+
+## Deviations from the plan
+
+- `setTotal` (toggle vagy `position_of` utáni sorszám-változás) minden cache-elt lapot eldob, nem csak a thread
+  sor blokkjától lefelé: egyszerűbb, és a látható ablak 1–3 lapja újratöltődik, ami 200 soros lapoknál nem látszik.
+- A `Layout` struct (sor-aritmetika index nélkül tesztelve) a terv "a listing mezői" helyett külön típus; a
+  `Listing` delegál rá. Az API a tervezett.
+
+## Verification
+
+- 2026-10-17 — `cargo fmt --check` clean, `cargo clippy --all-targets -- -D warnings` clean, `cargo test`: 30 app
+  (új: `label_tree` 5 eset — rendezés `Bin`-nel és a `Categories` csomóponttal, `/` hierarchia + `labels` +
+  `total`, konténer-szülő, Takeout-kategóriák, furcsa címkék; `QueryInput` `anyLabels`/`groupThreads`; `Row`
+  kind serde, `ListInfo`/`PositionInfo`/`LabelNode` alak; `conversations_are_grouped_from_the_first_listing`) +
+  4 + 5 CLI + 29 core unit (új: `arrange` 3 eset, `Layout` sor-aritmetika 1 000 csoporttal, member-sor kibontás,
+  ungrouped layout) + 8 fixtures + 19 index (új 7: ungrouped 6 sor, grouped 3 sor, toggle, `position_of`
+  auto-kibontás, csak találó tagok relevance alatt is, `any_labels`, dátum nélküli tag) pass.
+- 2026-10-17 — `node --check ui/main.js` clean; stub-DOM check (scratchpad `ui-check-009.js`, a `main.js`-ből
+  kiszelt függvényeken): `stripReplyPrefix` 8 eset, a címkefa renderelése (látható nevek, mélység, kulcsok,
+  konténer `total` vs saját count, chevronok, szeparátor), `labelsUnder` 5 eset, kijelölés a kulcsok szerint,
+  összezárás/kibontás kattintással és a twisty `stopPropagation`-je, a toggle kijelölés-szabálya 6 eset:
+  35 eset, 0 hiba.
+- 2026-10-17 — `target\debug\mboxer.exe` a fixture-másolaton: 6 üzenet, index 92 ms alatt épült; a 14 GB-on
+  újrahasznált index, hideg cache 1352 ms, meleg 88 ms (grouping ≈ 30 ms debug buildben, cél < 100 ms teljesül).
+- user kézi kör a fixture-ön és a 14 GB-on: pending.
+
+## Closing checklist
+
+- [ ] every follow-up is a `backlog/` file (`/tasks add`) or deleted with a reason in the Log
+- [ ] Verification written, dated
+- [ ] `tasks_check` green, README index regenerated
+- [ ] moved to `done/` with `closed: YYYY-MM-DD`

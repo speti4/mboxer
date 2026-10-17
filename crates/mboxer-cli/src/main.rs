@@ -314,11 +314,13 @@ fn search(args: &SearchArgs) -> Result<(), Box<dyn Error>> {
         after: args.after,
         before: args.before,
         labels: args.label.clone(),
+        any_labels: Vec::new(),
         has_attachment: match (args.has_attachment, args.no_attachment) {
             (true, _) => Some(true),
             (_, true) => Some(false),
             _ => None,
         },
+        group_threads: false,
         prefix_last_word: false,
         limit: if args.count { 0 } else { args.limit },
         offset: args.offset,

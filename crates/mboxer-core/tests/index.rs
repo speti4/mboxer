@@ -9,10 +9,61 @@ use std::sync::atomic::AtomicBool;
 
 use mboxer_core::index::fingerprint::{FORMAT_VERSION, META_FILE};
 use mboxer_core::{
-    BuildOptions, Error, IndexStatus, MboxIndex, Opened, SearchQuery, Sort, StaleReason, build,
-    index_dir, read_at, status,
+    BuildOptions, Error, Hit, IndexStatus, ListRow, Listing, MboxIndex, Opened, RowKind,
+    SearchQuery, Sort, StaleReason, build, index_dir, read_at, status,
 };
 use tempfile::TempDir;
+
+/// The hits of a page of list rows.
+fn hits(rows: Vec<ListRow>) -> Vec<Hit> {
+    rows.into_iter().map(|row| row.hit).collect()
+}
+
+/// `(subject, kind)` of every row of `listing`.
+fn outline(listing: &Listing) -> Vec<(String, RowKind)> {
+    listing
+        .rows(0, 100)
+        .unwrap()
+        .into_iter()
+        .map(|row| (row.hit.subject.unwrap_or_default(), row.kind))
+        .collect()
+}
+
+fn message() -> RowKind {
+    RowKind::Message
+}
+
+fn thread(count: u32, expanded: bool) -> RowKind {
+    RowKind::Thread { count, expanded }
+}
+
+fn member(index: u32, count: u32) -> RowKind {
+    RowKind::Member { index, count }
+}
+
+/// Offset of the message with `subject` in the fixture's index.
+fn offset_of(index: &MboxIndex, subject: &str) -> u64 {
+    index
+        .search(&SearchQuery {
+            limit: 100,
+            ..SearchQuery::default()
+        })
+        .unwrap()
+        .hits
+        .into_iter()
+        .find(|hit| hit.subject.as_deref() == Some(subject))
+        .unwrap_or_else(|| panic!("no message with subject {subject:?}"))
+        .offset
+}
+
+fn grouped(index: &MboxIndex, query: SearchQuery) -> Listing {
+    index
+        .list(&SearchQuery {
+            group_threads: true,
+            ..query
+        })
+        .unwrap()
+}
 
 fn fixture(name: &str) -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -360,7 +411,7 @@ fn every_message_is_reachable_even_when_it_does_not_parse() {
 
     // The listing agrees: the undated message is the last row.
     let listing = index.list(&SearchQuery::default()).unwrap();
-    let rows = listing.rows(0, 10).unwrap();
+    let rows = hits(listing.rows(0, 10).unwrap());
     assert_eq!(rows.len(), 2);
     assert!(rows[0].date.is_some());
     assert_eq!(rows[1].date, None);
@@ -370,8 +421,10 @@ fn every_message_is_reachable_even_when_it_does_not_parse() {
 #[test]
 fn listing_holds_every_match_in_date_order_and_pages_by_slice() {
     let (_dir, _mbox, index) = built("gmail-crlf.mbox");
-    let listing = index.list(&SearchQuery::default()).unwrap();
+    let mut listing = index.list(&SearchQuery::default()).unwrap();
     assert_eq!(listing.len() as u64, index.message_count());
+    assert_eq!(listing.message_count(), listing.len());
+    assert_eq!(listing.group_count(), listing.len());
     assert!(listing.warnings().is_empty());
     let count_only = index
         .search(&SearchQuery {
@@ -384,16 +437,17 @@ fn listing_holds_every_match_in_date_order_and_pages_by_slice() {
     let rows = listing.rows(0, 10).unwrap();
     assert_eq!(rows.len(), 2);
     assert!(
-        rows[0].date.unwrap() > rows[1].date.unwrap(),
+        rows[0].hit.date.unwrap() > rows[1].hit.date.unwrap(),
         "newest first"
     );
+    assert!(rows.iter().all(|row| row.kind == RowKind::Message));
     let first_page = index
         .search(&SearchQuery {
             limit: 1,
             ..SearchQuery::default()
         })
         .unwrap();
-    assert_eq!(rows[0], first_page.hits[0]);
+    assert_eq!(rows[0].hit, first_page.hits[0]);
 
     // Slices are clamped to the end and empty past it.
     assert_eq!(listing.rows(1, 10).unwrap().len(), 1);
@@ -404,20 +458,25 @@ fn listing_holds_every_match_in_date_order_and_pages_by_slice() {
 
     // Every row can be found again by its identity; an unknown offset cannot.
     for (position, row) in rows.iter().enumerate() {
-        assert_eq!(listing.position_of(row.offset).unwrap(), Some(position));
+        assert_eq!(listing.position_of(row.hit.offset).unwrap(), Some(position));
     }
     assert_eq!(listing.position_of(12_345).unwrap(), None);
+    assert_eq!(
+        listing.toggle(0),
+        None,
+        "a single message has no thread row"
+    );
 
     // Filters narrow the listing like they narrow a search.
-    let inbox = index
+    let mut inbox = index
         .list(&SearchQuery {
             labels: vec!["Inbox".into()],
             ..SearchQuery::default()
         })
         .unwrap();
     assert_eq!(inbox.len(), 1);
-    assert_eq!(inbox.rows(0, 1).unwrap()[0].offset, 0);
-    assert_eq!(inbox.position_of(rows[0].offset).unwrap(), None);
+    assert_eq!(inbox.rows(0, 1).unwrap()[0].hit.offset, 0);
+    assert_eq!(inbox.position_of(rows[0].hit.offset).unwrap(), None);
 
     // Relevance order lists the same matches.
     let relevance = index
@@ -450,10 +509,14 @@ fn label_counts_follow_the_headers() {
 
     let (_dir, _mbox, empty) = built("empty.mbox");
     assert!(empty.label_counts().unwrap().is_empty());
-    let listing = empty.list(&SearchQuery::default()).unwrap();
+    let mut listing = empty.list(&SearchQuery::default()).unwrap();
     assert!(listing.is_empty());
     assert!(listing.rows(0, 10).unwrap().is_empty());
     assert_eq!(listing.position_of(0).unwrap(), None);
+    let mut grouped = grouped(&empty, SearchQuery::default());
+    assert_eq!((grouped.len(), grouped.message_count()), (0, 0));
+    assert_eq!(grouped.toggle(0), None);
+    assert_eq!(grouped.position_of(0).unwrap(), None);
 }
 
 #[test]
@@ -502,5 +565,228 @@ fn the_word_being_typed_matches_as_a_prefix_when_asked() {
     // The listing behind the viewer goes through the same clause.
     let listing = index.list(&typing("szaml")).unwrap();
     assert_eq!(listing.len(), 1);
-    assert_eq!(listing.rows(0, 1).unwrap()[0].offset, 0);
+    assert_eq!(listing.rows(0, 1).unwrap()[0].hit.offset, 0);
+}
+
+#[test]
+fn an_ungrouped_listing_of_threads_is_one_row_per_message() {
+    let (_dir, _mbox, index) = built("threads.mbox");
+    assert_eq!(index.message_count(), 6);
+    let mut listing = index.list(&SearchQuery::default()).unwrap();
+    assert_eq!(listing.len(), 6);
+    assert_eq!(listing.message_count(), 6);
+    assert_eq!(listing.group_count(), 6);
+    let rows = listing.rows(0, 10).unwrap();
+    let subjects: Vec<_> = rows
+        .iter()
+        .map(|row| row.hit.subject.as_deref().unwrap())
+        .collect();
+    assert_eq!(
+        subjects,
+        [
+            "Re: Számla",
+            "Hírlevél",
+            "Re: Ajánlat",
+            "Számla",
+            "Ajánlat",
+            "Számla kérdés"
+        ]
+    );
+    assert!(rows.iter().all(|row| row.kind == RowKind::Message));
+    let threads: Vec<_> = rows.iter().map(|row| row.hit.thread_id).collect();
+    assert_eq!(
+        threads,
+        [Some(222), None, Some(111), Some(222), Some(111), Some(222)]
+    );
+    for (position, row) in rows.iter().enumerate() {
+        assert_eq!(listing.position_of(row.hit.offset).unwrap(), Some(position));
+    }
+    assert_eq!(listing.toggle(0), None);
+}
+
+#[test]
+fn a_grouped_listing_orders_conversations_by_their_newest_message() {
+    let (_dir, _mbox, index) = built("threads.mbox");
+    let listing = grouped(&index, SearchQuery::default());
+    assert_eq!(listing.len(), 3);
+    assert_eq!(listing.message_count(), 6);
+    assert_eq!(listing.group_count(), 3);
+    assert_eq!(
+        outline(&listing),
+        [
+            ("Re: Számla".to_owned(), thread(3, false)),
+            ("Hírlevél".to_owned(), message()),
+            ("Re: Ajánlat".to_owned(), thread(2, false)),
+        ]
+    );
+    let rows = listing.rows(0, 3).unwrap();
+    assert_eq!(rows[0].hit.thread_id, Some(222));
+    assert_eq!(rows[1].hit.thread_id, None);
+    assert_eq!(rows[2].hit.thread_id, Some(111));
+    assert!(listing.warnings().is_empty());
+}
+
+#[test]
+fn toggling_a_thread_row_inserts_its_members_oldest_first() {
+    let (_dir, _mbox, index) = built("threads.mbox");
+    let mut listing = grouped(&index, SearchQuery::default());
+    assert_eq!(listing.toggle(0), Some(6));
+    assert_eq!(
+        outline(&listing),
+        [
+            ("Re: Számla".to_owned(), thread(3, true)),
+            ("Számla kérdés".to_owned(), member(0, 3)),
+            ("Számla".to_owned(), member(1, 3)),
+            ("Re: Számla".to_owned(), member(2, 3)),
+            ("Hírlevél".to_owned(), message()),
+            ("Re: Ajánlat".to_owned(), thread(2, false)),
+        ]
+    );
+    assert_eq!(listing.toggle(5), Some(8));
+    assert_eq!(listing.toggle(0), Some(5), "collapsing B leaves A expanded");
+    assert_eq!(
+        outline(&listing),
+        [
+            ("Re: Számla".to_owned(), thread(3, false)),
+            ("Hírlevél".to_owned(), message()),
+            ("Re: Ajánlat".to_owned(), thread(2, true)),
+            ("Ajánlat".to_owned(), member(0, 2)),
+            ("Re: Ajánlat".to_owned(), member(1, 2)),
+        ]
+    );
+    assert_eq!(listing.toggle(1), None, "a single message");
+    assert_eq!(listing.toggle(4), None, "a member row");
+    assert_eq!(listing.toggle(99), None, "past the end");
+    assert_eq!(listing.len(), 5);
+    // A page in the middle of an expanded thread is sliced like any other.
+    let page = listing.rows(3, 10).unwrap();
+    assert_eq!(page.len(), 2);
+    assert_eq!(page[0].kind, member(0, 2));
+}
+
+#[test]
+fn position_of_expands_the_conversation_around_a_hidden_member() {
+    let (_dir, _mbox, index) = built("threads.mbox");
+    let mut listing = grouped(&index, SearchQuery::default());
+    let a2 = offset_of(&index, "Re: Ajánlat");
+    let b1 = offset_of(&index, "Számla");
+    let b2 = offset_of(&index, "Re: Számla");
+    let n = offset_of(&index, "Hírlevél");
+
+    assert_eq!(
+        listing.position_of(a2).unwrap(),
+        Some(2),
+        "the newest is the thread row"
+    );
+    assert_eq!(listing.len(), 3);
+    assert_eq!(
+        listing.position_of(b1).unwrap(),
+        Some(2),
+        "a hidden member expands B"
+    );
+    assert_eq!(listing.len(), 6);
+    assert_eq!(
+        listing.position_of(b2).unwrap(),
+        Some(3),
+        "expanded: the newest is a member row"
+    );
+    assert_eq!(listing.position_of(n).unwrap(), Some(4));
+    assert_eq!(listing.position_of(12_345).unwrap(), None);
+    assert_eq!(listing.len(), 6);
+}
+
+#[test]
+fn a_conversation_counts_only_the_matching_messages() {
+    let (_dir, _mbox, index) = built("threads.mbox");
+    let listing = grouped(&index, SearchQuery::text("kérdés"));
+    assert_eq!(listing.len(), 1);
+    let row = &listing.rows(0, 1).unwrap()[0];
+    assert_eq!(row.kind, RowKind::Message);
+    assert_eq!(row.hit.thread_id, Some(222));
+
+    let mut listing = grouped(
+        &index,
+        SearchQuery {
+            text: Some("számla".into()),
+            sort: Sort::Relevance,
+            ..SearchQuery::default()
+        },
+    );
+    assert_eq!(listing.len(), 1);
+    assert_eq!(listing.message_count(), 3);
+    assert_eq!(listing.toggle(0), Some(4));
+    assert_eq!(
+        outline(&listing),
+        [
+            ("Re: Számla".to_owned(), thread(3, true)),
+            ("Számla kérdés".to_owned(), member(0, 3)),
+            ("Számla".to_owned(), member(1, 3)),
+            ("Re: Számla".to_owned(), member(2, 3)),
+        ]
+    );
+}
+
+#[test]
+fn any_labels_matches_a_label_or_its_sub_labels() {
+    let (_dir, _mbox, index) = built("threads.mbox");
+    let count = |query: SearchQuery| index.list(&query).unwrap().len();
+    let any = |labels: &[&str]| SearchQuery {
+        any_labels: labels.iter().map(|l| (*l).to_owned()).collect(),
+        ..SearchQuery::default()
+    };
+    assert_eq!(
+        count(any(&["Work", "Work/Invoices", "Work/Invoices/2026"])),
+        4
+    );
+    assert_eq!(count(any(&["Work/Invoices", "Work/Invoices/2026"])), 2);
+    assert_eq!(
+        count(any(&["Work"])),
+        2,
+        "exact: not Workshop, not Work-archive"
+    );
+    assert_eq!(count(any(&["Nothing"])), 0);
+    assert_eq!(count(any(&["Category updates"])), 1);
+    assert_eq!(
+        count(SearchQuery {
+            labels: vec!["Sent".into()],
+            ..any(&["Work", "Work/Invoices", "Work/Invoices/2026"])
+        }),
+        1,
+        "AND-ed with the exact labels"
+    );
+    assert_eq!(
+        count(SearchQuery {
+            labels: vec!["Work".into()],
+            ..SearchQuery::default()
+        }),
+        2
+    );
+    let counts = index.label_counts().unwrap();
+    assert!(
+        counts
+            .iter()
+            .any(|(label, n)| label == "Work/Invoices/2026" && *n == 1)
+    );
+    assert!(counts.iter().any(|(label, n)| label == "Bin" && *n == 1));
+}
+
+#[test]
+fn an_undated_member_sorts_oldest_and_a_dated_one_stands_for_the_thread() {
+    let dir = tempfile::tempdir().unwrap();
+    let mbox = dir.path().join("thread.mbox");
+    let data = b"From a@example.com Mon Jan  5 09:00:00 2026\nX-GM-THRID: 5\nDate: Mon, 5 Jan 2026 09:00:00 +0000\nSubject: dated\n\nbody one\nFrom b@example.com Tue Jan  6 10:00:00 2026\nX-GM-THRID: 5\nSubject: undated\n\nbody two\n";
+    fs::write(&mbox, data).unwrap();
+    build_quiet(&mbox);
+    let index = open_ready(&mbox);
+    let mut listing = grouped(&index, SearchQuery::default());
+    assert_eq!(outline(&listing), [("dated".to_owned(), thread(2, false))]);
+    assert_eq!(listing.toggle(0), Some(3));
+    assert_eq!(
+        outline(&listing),
+        [
+            ("dated".to_owned(), thread(2, true)),
+            ("undated".to_owned(), member(0, 2)),
+            ("dated".to_owned(), member(1, 2)),
+        ]
+    );
 }

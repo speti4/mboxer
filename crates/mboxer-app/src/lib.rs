@@ -29,6 +29,7 @@ pub fn run() {
             commands::read_message,
             commands::read_source,
             commands::position_of,
+            commands::toggle_thread,
             commands::open_url,
             commands::read_part,
             commands::open_attachment,

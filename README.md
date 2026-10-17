@@ -29,8 +29,23 @@ target\release\mboxer-cli.exe search <file.mbox> [query words] [--from WORDS] [-
 The viewer (`mboxer.exe`, or `cargo run -p mboxer-app -- [file.mbox]` during development) opens an
 mbox through a file dialog or from its first argument, builds the sidecar index on the first open
 (with progress and a cancel button) and reuses it afterwards, then shows the archive in three
-panes: Gmail labels with counts, the message list (newest first, virtualised, so a 100 000-message
-archive scrolls like a short one) and a reader with the headers and the body.
+panes: the Gmail label tree with counts, the message list (newest first, virtualised, so a
+100 000-message archive scrolls like a short one) and a reader with the headers and the body.
+
+Labels: the folder pane shows the Gmail labels as a tree (`Work/Clients` sits under `Work`, the
+Takeout `Category …` labels sit under *Categories*, the system labels come first), each with the
+number of messages carrying it; a parent that only groups sub-labels shows their total in italics.
+Clicking a label narrows the list to that label *and* every label under it; a chevron (or
+`ArrowLeft` / `ArrowRight` on the selected node) folds and unfolds a branch.
+
+Conversations: by default the list shows one row per Gmail conversation (`X-GM-THRID`): the
+newest message with its subject, a count badge and a chevron. The chevron, `ArrowRight` or a
+click opens the conversation under its row, oldest message first; `ArrowLeft` closes it again,
+also from one of its messages. Only the messages that match the current search belong to a
+conversation row, so a search can show a thread with fewer messages than it has; a thread with
+one matching message is a plain row. The *Conversations* checkbox in the filter panel switches
+back to one row per message; the choice is remembered. The status bar counts both:
+`N conversations · M messages`.
 
 Reader: an HTML message renders as HTML (the *HTML* / *Text* / *Source* buttons switch between the
 rendered body, the plain-text part and the raw source of the message; HTML or Text is remembered).
