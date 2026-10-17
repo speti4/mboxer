@@ -3,6 +3,7 @@ size: M
 origin: session 2026-10-17
 created: 2026-10-17
 started: 2026-10-17
+closed: 2026-10-17
 milestone: M3 Comfort
 plan: folytassuk-a-009-taskkal-peaceful-sunbeam.md
 ---
@@ -37,7 +38,7 @@ csomópont; lenyitott threadben legrégebbi elöl. Az index formátuma nem vált
 5. [x] UI `index.html` + `style.css`; `main.js` címkefa, thread sorok, toggle + layout token, billentyűk, státusz, kapcsoló
 6. [x] `node --check` + stub-DOM check (`stripReplyPrefix`, `labelsUnder`, fa-sorrend, kijelölés-eltolás)
 7. [x] README; Log / Deviations / Verification; backlog item az RFC 2047 címkenevekre
-8. [ ] `cargo fmt`, `cargo clippy --all-targets -- -D warnings`, `cargo test`; debug exe a fixture-másolaton és a 14 GB-on
+8. [x] `cargo fmt`, `cargo clippy --all-targets -- -D warnings`, `cargo test`; debug exe a fixture-másolaton és a 14 GB-on
    (stderr `query:` idők); user kézi kör; `tasks_check`; commit
 
 ## Log
@@ -67,6 +68,10 @@ csomópont; lenyitott threadben legrégebbi elöl. Az index formátuma nem vált
   { build_secs: 0, parse_failures: 0 }, 92 ms`; a 14 GB-on hideg cache-sel 1352 ms, melegen 88 ms (a 005/006
   ungrouped listingje ~60 ms volt ugyanebben a debug buildben → a 86 085 üzenet csoportosítása ~30 ms). Mindkét
   ablak nyitva maradt a user kézi köréhez. Follow-up 015 (RFC 2047-kódolt címkenevek) felvéve a backlogba
+- 2026-10-17 — implementation committed as `636afe7`; waiting for the user's manual round
+- 2026-10-17 — user's manual round on the fixture copy and the 14 GB archive: "minden ok". Follow-ups: 015 filed
+  earlier (RFC 2047 label names); the "only matching members in a conversation" limit stays under Deviations as
+  accepted. Closed
 
 ## Deviations from the plan
 
@@ -91,11 +96,16 @@ csomópont; lenyitott threadben legrégebbi elöl. Az index formátuma nem vált
   35 eset, 0 hiba.
 - 2026-10-17 — `target\debug\mboxer.exe` a fixture-másolaton: 6 üzenet, index 92 ms alatt épült; a 14 GB-on
   újrahasznált index, hideg cache 1352 ms, meleg 88 ms (grouping ≈ 30 ms debug buildben, cél < 100 ms teljesül).
-- user kézi kör a fixture-ön és a 14 GB-on: pending.
+- 2026-10-17 — user's manual round on the fixture copy and on the 14 GB archive: conversations show as one
+  row with the count, the chevron / ArrowRight opens them oldest first and ArrowLeft closes them, a label click
+  narrows to the label and its sub-labels (Categories node included), the selection survives a narrowing with
+  the conversation opened around it, the Conversations switch returns to one row per message, the status bar
+  counts conversations and messages. Reported as "minden ok". Done-when met: a label click narrows the list;
+  a message with replies shows as one expandable conversation.
 
 ## Closing checklist
 
-- [ ] every follow-up is a `backlog/` file (`/tasks add`) or deleted with a reason in the Log
-- [ ] Verification written, dated
-- [ ] `tasks_check` green, README index regenerated
-- [ ] moved to `done/` with `closed: YYYY-MM-DD`
+- [x] every follow-up is a `backlog/` file (`/tasks add`) or deleted with a reason in the Log — 015 filed; one accepted limit under Deviations
+- [x] Verification written, dated
+- [x] `tasks_check` green, README index regenerated
+- [x] moved to `done/` with `closed: 2026-10-17`

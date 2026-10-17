@@ -11,7 +11,7 @@ Closing a task files every follow-up as a `backlog/` item now or deletes it with
 <!-- tasks:index:start -->
 _Generated 2026-10-17 — edit the files, not this section._
 
-**State:** 5 backlog (0 ready · 0 blocked · 0 waiting · 5 ideas) · 1 in progress · 9 done · 0 dropped · 4 decisions
+**State:** 5 backlog (0 ready · 0 blocked · 0 waiting · 5 ideas) · 0 in progress · 10 done · 0 dropped · 4 decisions
 
 ### Ready
 
@@ -39,11 +39,7 @@ _none_
 
 ### In progress
 
-#### M3 Comfort
-
-| # | Task | Started | Plan |
-|---|---|---|---|
-| 009 | [Gmail labels and conversation threads](wip/009-gmail-labels-and-threads.md) | 2026-10-17 | `folytassuk-a-009-taskkal-peaceful-sunbeam.md` |
+_none_
 
 ### Closed – do not reopen
 
@@ -54,6 +50,7 @@ _none_
 | # | Task | Closed |
 |---|---|---|
 | 013 | [Unescape >From  lines in message bodies for display](done/013-unescape-from-lines-in-message-bodies.md) | 2026-10-17 |
+| 009 | [Gmail labels and conversation threads](done/009-gmail-labels-and-threads.md) | 2026-10-17 |
 | 008 | [Attachments: list, open, save](done/008-attachments-list-open-save.md) | 2026-10-17 |
 | 007 | [Message reader with sanitized HTML](done/007-message-reader-sanitized-html.md) | 2026-10-17 |
 | 006 | [Search field and filter panel](done/006-search-field-and-filter-panel.md) | 2026-10-17 |
