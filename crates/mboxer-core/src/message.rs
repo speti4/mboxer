@@ -17,6 +17,18 @@ pub struct Mailbox {
     pub address: Option<String>,
 }
 
+impl Mailbox {
+    /// `Name <address>`, or whichever half exists; `?` when neither does.
+    pub fn display(&self) -> String {
+        match (&self.name, &self.address) {
+            (Some(name), Some(address)) => format!("{name} <{address}>"),
+            (None, Some(address)) => address.clone(),
+            (Some(name), None) => name.clone(),
+            (None, None) => "?".to_owned(),
+        }
+    }
+}
+
 /// The index-friendly digest of one message.
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct MessageSummary {

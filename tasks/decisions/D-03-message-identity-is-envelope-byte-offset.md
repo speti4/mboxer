@@ -1,8 +1,8 @@
 ---
-status: proposed
+status: decided
 date: 2026-10-17
 cost: one-way
-sources: [wip/002-rust-workspace-and-mbox-stream-parser.md, folytassuk-a-002-task-wise-starfish.md]
+sources: [done/002-rust-workspace-and-mbox-stream-parser.md, folytassuk-a-002-task-wise-starfish.md]
 ---
 
 # D-03 — A message is identified by the byte offset of its `From ` envelope line
@@ -26,7 +26,7 @@ on users' machines, so the contract is fixed before the first index exists.
 - `>From ` lines inside bodies are left as written (no mboxo/mboxrd unescaping) until a reader
   feature needs it; search is unaffected.
 
-Proposed by the session on 2026-10-17; awaiting the user's confirmation.
+Proposed by the session on 2026-10-17; confirmed by the user on 2026-10-17 (task 003 planning), before the first index stored an offset.
 
 ## Not chosen
 

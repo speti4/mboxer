@@ -4,10 +4,12 @@
 //! [`RawMessage`] at a time, each tagged with the byte offset and length that
 //! identify it for the rest of the application (decision D-03). Parsing of
 //! headers and MIME parts is delegated to `mail-parser`; [`MessageSummary`] is
-//! the owned, index-friendly digest of one message.
+//! the owned, index-friendly digest of one message. [`index`] builds and queries
+//! the sidecar full-text index that stores those identities next to the mbox.
 
 mod envelope;
 mod error;
+pub mod index;
 pub mod message;
 pub mod reader;
 
@@ -16,6 +18,10 @@ pub use mail_parser;
 
 pub use envelope::is_envelope;
 pub use error::{Error, Result};
+pub use index::{
+    BuildOptions, BuildReport, Hit, IndexMeta, IndexStatus, MboxIndex, Opened, Progress,
+    SearchQuery, SearchResult, Sort, StaleReason, build, index_dir, status,
+};
 pub use message::{
     Mailbox, MessageSummary, PartInfo, TextKind, TextPart, parse, part_tree, summarize, text_parts,
 };

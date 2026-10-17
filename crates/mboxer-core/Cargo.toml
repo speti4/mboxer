@@ -9,3 +9,9 @@ rust-version.workspace = true
 
 [dependencies]
 mail-parser.workspace = true
+tantivy.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true

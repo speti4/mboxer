@@ -15,6 +15,14 @@ pub enum Error {
         expected: u64,
         actual: u64,
     },
+    /// The sidecar index engine failed.
+    Index(tantivy::TantivyError),
+    /// The sidecar's own metadata or schema is not what this build expects.
+    IndexMeta(String),
+    /// `mboxer.json` could not be encoded or decoded.
+    Json(serde_json::Error),
+    /// An index build was stopped through its cancel flag.
+    Cancelled,
 }
 
 pub type Result<T> = std::result::Result<T, Error>;
@@ -38,6 +46,10 @@ impl fmt::Display for Error {
                 f,
                 "message at byte offset {offset}: expected {expected} bytes, file holds {actual}"
             ),
+            Error::Index(err) => write!(f, "index error: {err}"),
+            Error::IndexMeta(msg) => write!(f, "index metadata: {msg}"),
+            Error::Json(err) => write!(f, "index metadata: {err}"),
+            Error::Cancelled => write!(f, "index build cancelled"),
         }
     }
 }
@@ -46,6 +58,8 @@ impl std::error::Error for Error {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {
             Error::Io(err) => Some(err),
+            Error::Index(err) => Some(err),
+            Error::Json(err) => Some(err),
             _ => None,
         }
     }
@@ -54,5 +68,17 @@ impl std::error::Error for Error {
 impl From<std::io::Error> for Error {
     fn from(err: std::io::Error) -> Self {
         Error::Io(err)
+    }
+}
+
+impl From<tantivy::TantivyError> for Error {
+    fn from(err: tantivy::TantivyError) -> Self {
+        Error::Index(err)
+    }
+}
+
+impl From<serde_json::Error> for Error {
+    fn from(err: serde_json::Error) -> Self {
+        Error::Json(err)
     }
 }

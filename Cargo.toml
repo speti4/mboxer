@@ -7,7 +7,7 @@ version = "0.1.0"
 edition = "2024"
 license = "MIT"
 repository = "https://github.com/speti4/mboxer"
-rust-version = "1.85"
+rust-version = "1.88"
 
 [workspace.dependencies]
 mboxer-core = { path = "crates/mboxer-core" }
@@ -15,6 +15,14 @@ mboxer-core = { path = "crates/mboxer-core" }
 mail-parser = "0.11"
 # Subcommands and flags grow in task 004 (index, search) — see task 002 / D-02.
 clap = { version = "4.5", features = ["derive"] }
+# Inverted index, tokenizer chain (accent folding), fast fields, mmap reopen — see task 003 / D-02, D-04.
+# zstd left out: it compiles C; lz4_flex is pure Rust.
+tantivy = { version = "0.27", default-features = false, features = ["mmap", "lz4-compression"] }
+# The sidecar's `mboxer.json` (fingerprint, format version); both already in the build through tantivy.
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+# Test indexes in a temporary directory; already in the build through tantivy's `mmap` feature.
+tempfile = "3"
 
 [profile.release]
 lto = "thin"
