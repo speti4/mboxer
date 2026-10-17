@@ -1,6 +1,6 @@
 [package]
 name = "mboxer-cli"
-description = "Command-line front end for mboxer: scan, index, search"
+description = "Command-line tool for mboxer: scan, index, search (the GUI is crates/mboxer-app)"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -8,7 +8,7 @@ repository.workspace = true
 rust-version.workspace = true
 
 [[bin]]
-name = "mboxer"
+name = "mboxer-cli"
 path = "src/main.rs"
 
 [dependencies]

@@ -24,10 +24,10 @@ fn copy_fixture() -> (TempDir, PathBuf) {
 }
 
 fn mboxer(args: &[&str]) -> Output {
-    Command::new(env!("CARGO_BIN_EXE_mboxer"))
+    Command::new(env!("CARGO_BIN_EXE_mboxer-cli"))
         .args(args)
         .output()
-        .expect("mboxer runs")
+        .expect("mboxer-cli runs")
 }
 
 fn stdout(output: &Output) -> String {

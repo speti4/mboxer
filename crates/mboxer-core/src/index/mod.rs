@@ -7,6 +7,7 @@
 
 pub mod build;
 pub mod fingerprint;
+pub mod listing;
 pub mod schema;
 pub mod search;
 
@@ -15,5 +16,6 @@ pub use fingerprint::{
     FORMAT_VERSION, Fingerprint, IndexMeta, IndexStatus, META_FILE, StaleReason, fingerprint,
     index_dir, status,
 };
+pub use listing::Listing;
 pub use schema::TOKENIZER;
 pub use search::{Hit, MboxIndex, Opened, SearchQuery, SearchResult, Sort};

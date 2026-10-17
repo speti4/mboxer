@@ -5,9 +5,11 @@ full-text index), Tauri 2 / WebView2 UI, one portable exe, nothing for the user 
 
 ## Scope
 This repo is the source of truth for:
-- the Rust workspace: `crates/mboxer-core` (streaming reader, message model), `crates/mboxer-cli`
-  (the `mboxer` exe); the Tauri app arrives with task 005. Build: `cargo build --release`, tests:
-  `cargo test`; fixtures are synthetic files under `crates/*/tests/fixtures/`
+- the Rust workspace: `crates/mboxer-core` (streaming reader, message model, sidecar index),
+  `crates/mboxer-app` (the `mboxer` exe: Tauri 2 window, static UI under `ui/`), `crates/mboxer-cli`
+  (the `mboxer-cli` exe for scan / index / search). Build: `cargo build --release`, run the viewer:
+  `cargo run -p mboxer-app -- [file.mbox]`, tests: `cargo test`; fixtures are synthetic files under
+  `crates/mboxer-core/tests/fixtures/`
 - `docs/` — origin, research, benchmarks, usage
 - `tasks/` — the task standard: backlog, work in flight, history, decisions
 

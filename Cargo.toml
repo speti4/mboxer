@@ -1,13 +1,14 @@
 [workspace]
 resolver = "3"
-members = ["crates/mboxer-core", "crates/mboxer-cli"]
+members = ["crates/mboxer-core", "crates/mboxer-cli", "crates/mboxer-app"]
 
 [workspace.package]
 version = "0.1.0"
 edition = "2024"
 license = "MIT"
 repository = "https://github.com/speti4/mboxer"
-rust-version = "1.88"
+# Tauri 2.12 and tauri-plugin-dialog require 1.90 (task 005).
+rust-version = "1.90"
 
 [workspace.dependencies]
 mboxer-core = { path = "crates/mboxer-core" }
@@ -23,6 +24,14 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 # Test indexes in a temporary directory; already in the build through tantivy's `mmap` feature.
 tempfile = "3"
+# The WebView2 window, IPC, async runtime and asset embedding of the D-02 shell: one portable exe,
+# nothing to install (WebView2 ships with Windows 11) — see task 005.
+tauri = { version = "2", features = [] }
+# Build script: Windows icon/version resource, app manifest (Common Controls v6 for the native
+# dialog) and capability schemas — see task 005.
+tauri-build = { version = "2", features = [] }
+# The native Windows open-file dialog, called from Rust (`blocking_pick_file`) — see task 005.
+tauri-plugin-dialog = "2"
 
 [profile.release]
 lto = "thin"

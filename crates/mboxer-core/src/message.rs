@@ -1,9 +1,18 @@
 //! Parsed view of a message: a thin layer over `mail-parser` plus the owned
 //! [`MessageSummary`] that the index stores.
 
+use mail_parser::decoders::html::html_to_text;
 use mail_parser::{Address, Message, MessageParser, MessagePart, MimeHeaders, PartType};
 
 use crate::reader::RawMessage;
+
+/// HTML reduced to its text, for indexing and for a plain-text preview.
+/// `mail-parser` drops the whitespace that follows a tag, so `<b>Ár</b> a`
+/// would come out as `Ára`; a space in front of every tag keeps the words
+/// apart (the extra spaces cost the tokenizer nothing and read fine).
+pub fn html_to_plain_text(html: &str) -> String {
+    html_to_text(&html.replace('<', " <"))
+}
 
 /// Parses the raw bytes of a message. `None` means `mail-parser` found no message at all.
 pub fn parse(raw: &RawMessage) -> Option<Message<'_>> {
@@ -211,5 +220,19 @@ fn walk_part(message: &Message<'_>, part: &MessagePart<'_>, depth: usize, out: &
             walk_part(nested, nested.root_part(), depth + 1, out);
         }
         _ => {}
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn html_to_plain_text_keeps_words_apart_around_inline_tags() {
+        let text = html_to_plain_text(
+            "<p>Kedves P&eacute;ter,</p><p><b>Árajánlat</b> a gépre.</p><style>.x{}</style>",
+        );
+        let words: Vec<&str> = text.split_whitespace().collect();
+        assert_eq!(words, ["Kedves", "Péter,", "Árajánlat", "a", "gépre."]);
     }
 }

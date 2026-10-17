@@ -357,4 +357,101 @@ fn every_message_is_reachable_even_when_it_does_not_parse() {
     assert_eq!(all.hits[1].date, None);
     assert!(all.hits[1].len > 0);
     read_at(&mbox, all.hits[1].offset, all.hits[1].len).unwrap();
+
+    // The listing agrees: the undated message is the last row.
+    let listing = index.list(&SearchQuery::default()).unwrap();
+    let rows = listing.rows(0, 10).unwrap();
+    assert_eq!(rows.len(), 2);
+    assert!(rows[0].date.is_some());
+    assert_eq!(rows[1].date, None);
+    assert_eq!(rows, all.hits);
+}
+
+#[test]
+fn listing_holds_every_match_in_date_order_and_pages_by_slice() {
+    let (_dir, _mbox, index) = built("gmail-crlf.mbox");
+    let listing = index.list(&SearchQuery::default()).unwrap();
+    assert_eq!(listing.len() as u64, index.message_count());
+    assert!(listing.warnings().is_empty());
+    let count_only = index
+        .search(&SearchQuery {
+            limit: 0,
+            ..SearchQuery::default()
+        })
+        .unwrap();
+    assert_eq!(listing.len(), count_only.total);
+
+    let rows = listing.rows(0, 10).unwrap();
+    assert_eq!(rows.len(), 2);
+    assert!(
+        rows[0].date.unwrap() > rows[1].date.unwrap(),
+        "newest first"
+    );
+    let first_page = index
+        .search(&SearchQuery {
+            limit: 1,
+            ..SearchQuery::default()
+        })
+        .unwrap();
+    assert_eq!(rows[0], first_page.hits[0]);
+
+    // Slices are clamped to the end and empty past it.
+    assert_eq!(listing.rows(1, 10).unwrap().len(), 1);
+    assert_eq!(listing.rows(1, 10).unwrap()[0], rows[1]);
+    assert!(listing.rows(2, 10).unwrap().is_empty());
+    assert!(listing.rows(usize::MAX, 10).unwrap().is_empty());
+    assert!(listing.rows(0, 0).unwrap().is_empty());
+
+    // Every row can be found again by its identity; an unknown offset cannot.
+    for (position, row) in rows.iter().enumerate() {
+        assert_eq!(listing.position_of(row.offset).unwrap(), Some(position));
+    }
+    assert_eq!(listing.position_of(12_345).unwrap(), None);
+
+    // Filters narrow the listing like they narrow a search.
+    let inbox = index
+        .list(&SearchQuery {
+            labels: vec!["Inbox".into()],
+            ..SearchQuery::default()
+        })
+        .unwrap();
+    assert_eq!(inbox.len(), 1);
+    assert_eq!(inbox.rows(0, 1).unwrap()[0].offset, 0);
+    assert_eq!(inbox.position_of(rows[0].offset).unwrap(), None);
+
+    // Relevance order lists the same matches.
+    let relevance = index
+        .list(&SearchQuery {
+            text: Some("számla".into()),
+            sort: Sort::Relevance,
+            ..SearchQuery::default()
+        })
+        .unwrap();
+    assert_eq!(relevance.len(), total(&index, "számla"));
+    assert!(!relevance.is_empty());
+}
+
+#[test]
+fn label_counts_follow_the_headers() {
+    let (_dir, _mbox, index) = built("gmail-crlf.mbox");
+    let counts = index.label_counts().unwrap();
+    // `Opened` sits on both messages (folded onto a continuation line in the first).
+    let expected: Vec<(String, u64)> = [
+        ("Category personal", 1),
+        ("Important", 1),
+        ("Inbox", 1),
+        ("Opened", 2),
+        ("Sent", 1),
+    ]
+    .into_iter()
+    .map(|(name, count)| (name.to_owned(), count))
+    .collect();
+    assert_eq!(counts, expected);
+
+    let (_dir, _mbox, empty) = built("empty.mbox");
+    assert!(empty.label_counts().unwrap().is_empty());
+    let listing = empty.list(&SearchQuery::default()).unwrap();
+    assert!(listing.is_empty());
+    assert!(listing.rows(0, 10).unwrap().is_empty());
+    assert_eq!(listing.position_of(0).unwrap(), None);
 }

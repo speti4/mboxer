@@ -12,13 +12,14 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::{Duration, Instant, UNIX_EPOCH};
 
 use mail_parser::Message;
-use mail_parser::decoders::html::html_to_text;
 use tantivy::{Index, IndexWriter, TantivyDocument};
 
 use crate::error::{Error, Result};
 use crate::index::fingerprint::{FORMAT_VERSION, IndexMeta, fingerprint, index_dir};
 use crate::index::schema::{Fields, build_schema, register_tokenizer};
-use crate::message::{Mailbox, MessageSummary, TextKind, parse, summarize, text_parts};
+use crate::message::{
+    Mailbox, MessageSummary, TextKind, html_to_plain_text, parse, summarize, text_parts,
+};
 use crate::reader::{DEFAULT_MAX_MESSAGE_BYTES, MboxReader};
 
 /// Knobs of a build; [`BuildOptions::default`] fits a desktop machine.
@@ -264,7 +265,7 @@ pub fn body_text(message: &Message<'_>, max_bytes: usize) -> String {
     for part in &parts {
         let text = match part.kind {
             TextKind::Plain => part.text.clone(),
-            TextKind::Html if !has_plain => html_words(&part.text),
+            TextKind::Html if !has_plain => html_to_plain_text(&part.text),
             TextKind::Html => continue,
         };
         if !out.is_empty() {
@@ -277,13 +278,6 @@ pub fn body_text(message: &Message<'_>, max_bytes: usize) -> String {
     }
     truncate_at_char_boundary(&mut out, max_bytes);
     out
-}
-
-/// HTML reduced to its words for indexing. `mail-parser` drops the whitespace
-/// that follows a tag, so `<b>Ár</b> a` would come out as `Ára`; a space in
-/// front of every tag keeps the words apart (extra spaces cost the tokenizer nothing).
-fn html_words(html: &str) -> String {
-    html_to_text(&html.replace('<', " <"))
 }
 
 fn truncate_at_char_boundary(text: &mut String, max_bytes: usize) {
@@ -309,15 +303,6 @@ mod tests {
         let mut s = "abc".to_owned();
         truncate_at_char_boundary(&mut s, 10);
         assert_eq!(s, "abc");
-    }
-
-    #[test]
-    fn html_words_keeps_words_apart_around_inline_tags() {
-        let text = html_words(
-            "<p>Kedves P&eacute;ter,</p><p><b>Árajánlat</b> a gépre.</p><style>.x{}</style>",
-        );
-        let words: Vec<&str> = text.split_whitespace().collect();
-        assert_eq!(words, ["Kedves", "Péter,", "Árajánlat", "a", "gépre."]);
     }
 
     #[test]

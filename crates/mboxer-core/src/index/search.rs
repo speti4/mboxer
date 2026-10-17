@@ -5,6 +5,7 @@
 //! over the folded text fields, so `szamla` and `számla` are the same query;
 //! the structured filters are added as `Must` clauses around it.
 
+use std::collections::BTreeMap;
 use std::ops::Bound;
 use std::path::{Path, PathBuf};
 
@@ -173,6 +174,32 @@ impl MboxIndex {
         self.meta.message_count
     }
 
+    pub(crate) fn searcher(&self) -> Searcher {
+        self.reader.searcher()
+    }
+
+    pub(crate) fn fields(&self) -> &Fields {
+        &self.fields
+    }
+
+    /// How many messages carry each Gmail label, sorted by label. Exact: the
+    /// index is built in one pass and never holds deleted documents (D-04), so
+    /// a term's document frequency is its message count. Labels are
+    /// multi-valued, so the counts do not add up to the message count.
+    pub fn label_counts(&self) -> Result<Vec<(String, u64)>> {
+        let searcher = self.reader.searcher();
+        let mut counts: BTreeMap<String, u64> = BTreeMap::new();
+        for segment in searcher.segment_readers() {
+            let inverted = segment.inverted_index(self.fields.labels)?;
+            let mut terms = inverted.terms().stream()?;
+            while let Some((key, info)) = terms.next() {
+                let label = String::from_utf8_lossy(key).into_owned();
+                *counts.entry(label).or_insert(0) += u64::from(info.doc_freq);
+            }
+        }
+        Ok(counts.into_iter().collect())
+    }
+
     /// Runs `query` and returns one page of hits plus the total count.
     pub fn search(&self, query: &SearchQuery) -> Result<SearchResult> {
         let (tantivy_query, warnings) = self.to_tantivy_query(query);
@@ -192,7 +219,7 @@ impl MboxIndex {
                 let (total, docs) = searcher.search(&*tantivy_query, &(Count, collector))?;
                 let hits = docs
                     .into_iter()
-                    .map(|(_, address)| self.hit(&searcher, address, None))
+                    .map(|(_, address)| hit_from_address(&self.fields, &searcher, address, None))
                     .collect::<Result<Vec<_>>>()?;
                 (total, hits)
             }
@@ -201,7 +228,9 @@ impl MboxIndex {
                 let (total, docs) = searcher.search(&*tantivy_query, &(Count, collector))?;
                 let hits = docs
                     .into_iter()
-                    .map(|(score, address)| self.hit(&searcher, address, Some(score)))
+                    .map(|(score, address)| {
+                        hit_from_address(&self.fields, &searcher, address, Some(score))
+                    })
                     .collect::<Result<Vec<_>>>()?;
                 (total, hits)
             }
@@ -222,12 +251,17 @@ impl MboxIndex {
         let searcher = self.reader.searcher();
         let docs = searcher.search(&query, &TopDocs::with_limit(1).order_by_score())?;
         match docs.first() {
-            Some(&(_, address)) => Ok(Some(self.hit(&searcher, address, None)?)),
+            Some(&(_, address)) => Ok(Some(hit_from_address(
+                &self.fields,
+                &searcher,
+                address,
+                None,
+            )?)),
             None => Ok(None),
         }
     }
 
-    fn to_tantivy_query(&self, query: &SearchQuery) -> (Box<dyn Query>, Vec<String>) {
+    pub(crate) fn to_tantivy_query(&self, query: &SearchQuery) -> (Box<dyn Query>, Vec<String>) {
         let mut clauses: Vec<(Occur, Box<dyn Query>)> = Vec::new();
         let mut warnings = Vec::new();
         let f = &self.fields;
@@ -293,34 +327,39 @@ impl MboxIndex {
         };
         (combined, warnings)
     }
+}
 
-    fn hit(&self, searcher: &Searcher, address: DocAddress, score: Option<f32>) -> Result<Hit> {
-        let doc: TantivyDocument = searcher.doc(address)?;
-        let f = &self.fields;
-        let strings = |field| {
-            doc.get_all(field)
-                .filter_map(|v| v.as_str().map(str::to_owned))
-                .collect::<Vec<_>>()
-        };
-        Ok(Hit {
-            offset: doc
-                .get_first(f.offset)
-                .and_then(|v| v.as_u64())
-                .unwrap_or(0),
-            len: doc.get_first(f.len).and_then(|v| v.as_u64()).unwrap_or(0),
-            date: doc.get_first(f.date).and_then(|v| v.as_i64()),
-            from: strings(f.from),
-            to: strings(f.to),
-            subject: doc
-                .get_first(f.subject)
-                .and_then(|v| v.as_str().map(str::to_owned)),
-            labels: strings(f.labels),
-            has_attachment: doc
-                .get_first(f.has_attachment)
-                .and_then(|v| v.as_bool())
-                .unwrap_or(false),
-            attachment_names: strings(f.attachment_names),
-            score,
-        })
-    }
+/// Assembles a [`Hit`] from the stored fields of one document.
+pub(crate) fn hit_from_address(
+    f: &Fields,
+    searcher: &Searcher,
+    address: DocAddress,
+    score: Option<f32>,
+) -> Result<Hit> {
+    let doc: TantivyDocument = searcher.doc(address)?;
+    let strings = |field| {
+        doc.get_all(field)
+            .filter_map(|v| v.as_str().map(str::to_owned))
+            .collect::<Vec<_>>()
+    };
+    Ok(Hit {
+        offset: doc
+            .get_first(f.offset)
+            .and_then(|v| v.as_u64())
+            .unwrap_or(0),
+        len: doc.get_first(f.len).and_then(|v| v.as_u64()).unwrap_or(0),
+        date: doc.get_first(f.date).and_then(|v| v.as_i64()),
+        from: strings(f.from),
+        to: strings(f.to),
+        subject: doc
+            .get_first(f.subject)
+            .and_then(|v| v.as_str().map(str::to_owned)),
+        labels: strings(f.labels),
+        has_attachment: doc
+            .get_first(f.has_attachment)
+            .and_then(|v| v.as_bool())
+            .unwrap_or(false),
+        attachment_names: strings(f.attachment_names),
+        score,
+    })
 }

@@ -19,11 +19,12 @@ pub use mail_parser;
 pub use envelope::is_envelope;
 pub use error::{Error, Result};
 pub use index::{
-    BuildOptions, BuildReport, Hit, IndexMeta, IndexStatus, MboxIndex, Opened, Progress,
+    BuildOptions, BuildReport, Hit, IndexMeta, IndexStatus, Listing, MboxIndex, Opened, Progress,
     SearchQuery, SearchResult, Sort, StaleReason, build, index_dir, status,
 };
 pub use message::{
-    Mailbox, MessageSummary, PartInfo, TextKind, TextPart, parse, part_tree, summarize, text_parts,
+    Mailbox, MessageSummary, PartInfo, TextKind, TextPart, html_to_plain_text, parse, part_tree,
+    summarize, text_parts,
 };
 pub use reader::{
     DEFAULT_BUFFER_BYTES, DEFAULT_MAX_MESSAGE_BYTES, MboxReader, RawMessage, read_at, read_at_from,

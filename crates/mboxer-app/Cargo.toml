@@ -1,0 +1,30 @@
+[package]
+name = "mboxer-app"
+description = "The mboxer desktop viewer: Tauri 2 on WebView2 over mboxer-core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+# The `_lib` suffix keeps the library's output name apart from the exe's on Windows.
+[lib]
+name = "mboxer_app_lib"
+crate-type = ["lib"]
+
+[[bin]]
+name = "mboxer"
+path = "src/main.rs"
+
+[dependencies]
+mboxer-core.workspace = true
+tauri.workspace = true
+tauri-plugin-dialog.workspace = true
+serde.workspace = true
+
+[build-dependencies]
+tauri-build.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
+serde_json.workspace = true

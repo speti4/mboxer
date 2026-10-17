@@ -1,0 +1,199 @@
+//! The application state: the open mbox, its index and the current listing.
+//!
+//! No Tauri types here; [`OpenMbox::load`] is the whole open-or-build flow and
+//! runs against the fixtures in the tests.
+
+use std::path::{Path, PathBuf};
+use std::sync::atomic::{AtomicBool, AtomicU64};
+use std::sync::{Arc, Mutex, MutexGuard, PoisonError};
+
+use mboxer_core::{
+    BuildOptions, Error, IndexStatus, Listing, MboxIndex, Opened, Progress, SearchQuery, build,
+    status,
+};
+
+use crate::folders::ordered_labels;
+use crate::types::{IndexState, LabelCount, OpenSummary};
+
+/// Managed by Tauri; one per process.
+#[derive(Default)]
+pub struct AppState {
+    pub open: Mutex<Option<OpenMbox>>,
+    /// Set by `cancel_open`, read by the running index build.
+    pub cancel: Arc<AtomicBool>,
+    /// True while an open is in flight; a second open is refused.
+    pub busy: AtomicBool,
+    /// Bumped on every open and query change; stamps every page of rows.
+    pub generation: AtomicU64,
+}
+
+impl AppState {
+    /// The open file; a poisoned lock is recovered, the data is plain values.
+    pub fn open(&self) -> MutexGuard<'_, Option<OpenMbox>> {
+        self.open.lock().unwrap_or_else(PoisonError::into_inner)
+    }
+}
+
+/// An mbox with a fresh index and the listing behind the message list.
+#[derive(Debug)]
+pub struct OpenMbox {
+    pub path: PathBuf,
+    pub index: MboxIndex,
+    pub index_state: IndexState,
+    pub labels: Vec<LabelCount>,
+    pub query: SearchQuery,
+    pub listing: Listing,
+    pub generation: u64,
+}
+
+impl OpenMbox {
+    /// Opens `path`: reuses its index when fresh, builds it otherwise
+    /// (reporting `progress`, stopping on `cancel`), then lists every message.
+    pub fn load(
+        path: &Path,
+        cancel: &AtomicBool,
+        generation: u64,
+        progress: impl FnMut(Progress),
+    ) -> mboxer_core::Result<Self> {
+        let (index, index_state) = open_or_build(path, cancel, progress)?;
+        let labels = ordered_labels(index.label_counts()?);
+        let query = SearchQuery::default();
+        let listing = index.list(&query)?;
+        Ok(Self {
+            path: path.to_path_buf(),
+            index,
+            index_state,
+            labels,
+            query,
+            listing,
+            generation,
+        })
+    }
+
+    /// Replaces the listing with the matches of `query`.
+    pub fn set_query(&mut self, query: SearchQuery, generation: u64) -> mboxer_core::Result<()> {
+        self.listing = self.index.list(&query)?;
+        self.query = query;
+        self.generation = generation;
+        Ok(())
+    }
+
+    pub fn summary(&self) -> OpenSummary {
+        OpenSummary {
+            path: self.path.display().to_string(),
+            file_name: self
+                .path
+                .file_name()
+                .map(|name| name.to_string_lossy().into_owned())
+                .unwrap_or_default(),
+            message_count: self.index.message_count(),
+            labels: self.labels.clone(),
+            index: self.index_state.clone(),
+            generation: self.generation,
+            total: self.listing.len(),
+        }
+    }
+}
+
+/// A fresh index is opened; a missing or stale one is rebuilt first (D-04).
+pub fn open_or_build(
+    path: &Path,
+    cancel: &AtomicBool,
+    progress: impl FnMut(Progress),
+) -> mboxer_core::Result<(MboxIndex, IndexState)> {
+    if let IndexStatus::Fresh(meta) = status(path)?
+        && let Opened::Ready(index) = MboxIndex::open(path)?
+    {
+        return Ok((
+            *index,
+            IndexState::Reused {
+                built_at_unix: meta.built_at_unix,
+            },
+        ));
+    }
+    let report = build(path, &BuildOptions::default(), progress, cancel)?;
+    match MboxIndex::open(path)? {
+        Opened::Ready(index) => Ok((
+            *index,
+            IndexState::Built {
+                build_secs: report.elapsed.as_secs(),
+                parse_failures: report.parse_failures,
+            },
+        )),
+        Opened::Missing => Err(Error::IndexMeta(
+            "the index was built but cannot be found".to_owned(),
+        )),
+        Opened::Stale(reason) => Err(Error::IndexMeta(format!(
+            "the index was built but is already stale: {reason}"
+        ))),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs;
+    use std::sync::atomic::Ordering;
+
+    fn fixture_copy(name: &str) -> (tempfile::TempDir, PathBuf) {
+        let dir = tempfile::tempdir().unwrap();
+        let mbox = dir.path().join(name);
+        let source = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("../mboxer-core/tests/fixtures")
+            .join(name);
+        fs::copy(source, &mbox).unwrap();
+        (dir, mbox)
+    }
+
+    #[test]
+    fn first_open_builds_second_reuses() {
+        let (_dir, mbox) = fixture_copy("gmail-crlf.mbox");
+        let cancel = AtomicBool::new(false);
+        let mut progress_calls = 0;
+        let open = OpenMbox::load(&mbox, &cancel, 1, |_| progress_calls += 1).unwrap();
+        assert!(progress_calls > 0);
+        assert!(matches!(open.index_state, IndexState::Built { .. }));
+        assert_eq!(open.listing.len(), 2);
+        assert_eq!(open.labels[0].name, "Inbox");
+        let summary = open.summary();
+        assert_eq!(summary.file_name, "gmail-crlf.mbox");
+        assert_eq!(summary.total, 2);
+        assert_eq!(summary.message_count, 2);
+
+        let again = OpenMbox::load(&mbox, &cancel, 2, |_| {}).unwrap();
+        assert!(matches!(again.index_state, IndexState::Reused { .. }));
+        assert_eq!(again.generation, 2);
+    }
+
+    #[test]
+    fn query_changes_replace_the_listing() {
+        let (_dir, mbox) = fixture_copy("gmail-crlf.mbox");
+        let mut open = OpenMbox::load(&mbox, &AtomicBool::new(false), 1, |_| {}).unwrap();
+        let sent = SearchQuery {
+            labels: vec!["Sent".to_owned()],
+            ..SearchQuery::default()
+        };
+        open.set_query(sent.clone(), 5).unwrap();
+        assert_eq!(open.listing.len(), 1);
+        assert_eq!(open.query, sent);
+        assert_eq!(open.summary().generation, 5);
+    }
+
+    #[test]
+    fn a_cancelled_build_leaves_no_index() {
+        let (_dir, mbox) = fixture_copy("gmail-crlf.mbox");
+        let cancel = AtomicBool::new(true);
+        let err = OpenMbox::load(&mbox, &cancel, 1, |_| {}).unwrap_err();
+        assert!(matches!(err, Error::Cancelled), "{err}");
+        assert!(matches!(status(&mbox).unwrap(), IndexStatus::Missing));
+        cancel.store(false, Ordering::Relaxed);
+        OpenMbox::load(&mbox, &cancel, 2, |_| {}).unwrap();
+    }
+
+    #[test]
+    fn a_text_file_is_not_an_mbox() {
+        let (_dir, path) = fixture_copy("not-an-mbox.txt");
+        let err = OpenMbox::load(&path, &AtomicBool::new(false), 1, |_| {}).unwrap_err();
+        assert!(matches!(err, Error::NotAnMbox { offset: 0 }), "{err}");
+    }
+}

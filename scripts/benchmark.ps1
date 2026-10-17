@@ -15,7 +15,7 @@ scripts\benchmark.ps1 -Mbox "D:\mail\all.mbox" -Out docs\benchmarks\2026-10-17-1
 #>
 param(
     [Parameter(Mandatory)] [string] $Mbox,
-    [string] $Exe = (Join-Path $PSScriptRoot '..\target\release\mboxer.exe'),
+    [string] $Exe = (Join-Path $PSScriptRoot '..\target\release\mboxer-cli.exe'),
     [int] $Repeat = 3,
     [string] $Out
 )

@@ -31,7 +31,7 @@ pub fn register_tokenizer(index: &Index) {
 }
 
 /// Handles of every field, resolved once per index.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Fields {
     /// Byte offset of the envelope line (decision D-03); the message identity.
     pub offset: Field,

@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>mboxer</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body data-view="empty">
+    <header id="toolbar">
+      <button id="open-btn" type="button" title="Open an mbox file (Ctrl+O)">Open…</button>
+      <span id="file-name" class="muted">No file open</span>
+    </header>
+
+    <main id="panes" class="panes">
+      <nav id="folders" role="listbox" aria-label="Folders" tabindex="0"></nav>
+      <div class="splitter" data-target="folders" role="separator" aria-orientation="vertical"></div>
+      <section id="list" role="listbox" aria-label="Messages" tabindex="0">
+        <div id="spacer"></div>
+        <div id="rows"></div>
+      </section>
+      <div class="splitter" data-target="list" role="separator" aria-orientation="vertical"></div>
+      <section id="reader" tabindex="0" aria-label="Message">
+        <div id="reader-empty" class="placeholder">Select a message</div>
+        <div id="reader-content" hidden>
+          <h1 id="msg-subject"></h1>
+          <dl id="msg-headers"></dl>
+          <pre id="msg-body"></pre>
+          <details id="msg-parts">
+            <summary>MIME parts</summary>
+            <ul id="msg-parts-list"></ul>
+          </details>
+        </div>
+      </section>
+    </main>
+
+    <section id="empty" class="screen">
+      <div class="screen-box">
+        <h2>No mbox open</h2>
+        <p>Open a Gmail Takeout archive to browse it.</p>
+        <p><button id="empty-open-btn" type="button">Open an mbox… (Ctrl+O)</button></p>
+        <p><button id="reopen-btn" type="button" hidden></button></p>
+      </div>
+    </section>
+
+    <section id="error" class="screen">
+      <div class="screen-box">
+        <h2>Could not open the file</h2>
+        <p id="error-path" class="muted"></p>
+        <p id="error-text" class="error-text"></p>
+        <p>
+          <button id="retry-btn" type="button">Retry</button>
+          <button id="error-open-btn" type="button">Open another file…</button>
+        </p>
+      </div>
+    </section>
+
+    <div id="overlay" class="overlay" hidden>
+      <div class="overlay-box">
+        <h2 id="overlay-title">Opening…</h2>
+        <p id="overlay-path" class="muted"></p>
+        <progress id="progress" max="1" value="0"></progress>
+        <p id="progress-text"></p>
+        <p><button id="cancel-btn" type="button">Cancel</button></p>
+      </div>
+    </div>
+
+    <footer id="status">
+      <span id="status-left"></span>
+      <span id="status-center"></span>
+      <span id="status-right"></span>
+    </footer>
+
+    <script src="main.js"></script>
+  </body>
+</html>

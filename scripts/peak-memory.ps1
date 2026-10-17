@@ -3,7 +3,7 @@
 Runs a command and reports its peak working set.
 
 .EXAMPLE
-scripts\peak-memory.ps1 -- target\release\mboxer.exe scan "D:\mail\all.mbox" --quiet
+scripts\peak-memory.ps1 -- target\release\mboxer-cli.exe scan "D:\mail\all.mbox" --quiet
 #>
 param(
     [Parameter(Mandatory, ValueFromRemainingArguments)]

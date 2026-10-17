@@ -1,4 +1,4 @@
-//! `mboxer` command line: scan (task 002), index (task 003) and search with filters (tasks 003/004).
+//! `mboxer-cli` command line: scan (task 002), index (task 003) and search with filters (tasks 003/004).
 
 use std::collections::HashSet;
 use std::error::Error;
@@ -17,7 +17,7 @@ use mboxer_core::{
 
 #[derive(Parser)]
 #[command(
-    name = "mboxer",
+    name = "mboxer-cli",
     version,
     about = "Tools for large Gmail Takeout mbox archives"
 )]
