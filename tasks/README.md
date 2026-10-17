@@ -11,15 +11,9 @@ Closing a task files every follow-up as a `backlog/` item now or deletes it with
 <!-- tasks:index:start -->
 _Generated 2026-10-17 — edit the files, not this section._
 
-**State:** 11 backlog (5 ready · 0 blocked · 0 waiting · 6 ideas) · 0 in progress · 3 done · 0 dropped · 4 decisions
+**State:** 10 backlog (4 ready · 0 blocked · 0 waiting · 6 ideas) · 0 in progress · 4 done · 0 dropped · 4 decisions
 
 ### Ready
-
-#### M1 Index core
-
-| # | Task | Size | Created |
-|---|---|---|---|
-| 004 | [Index CLI and the 14 GB benchmark](backlog/004-index-cli-and-14gb-benchmark.md) | S | 2026-10-17 |
 
 #### M2 Viewer MVP
 
@@ -68,6 +62,7 @@ _none_
 
 | # | Task | Closed |
 |---|---|---|
+| 004 | [Index CLI filters and the 14 GB benchmark](done/004-index-cli-and-14gb-benchmark.md) | 2026-10-17 |
 | 003 | [Sidecar full-text index with accent folding](done/003-fulltext-sidecar-index-accent-folding.md) | 2026-10-17 |
 | 002 | [Rust workspace and streaming mbox parser](done/002-rust-workspace-and-mbox-stream-parser.md) | 2026-10-17 |
 | 001 | [Project scaffolding: hub card, repo structure, task standard](done/001-project-scaffolding.md) | 2026-10-17 |

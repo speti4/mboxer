@@ -1,4 +1,4 @@
-//! `mboxer` command line: scan (task 002), index and search (tasks 003/004).
+//! `mboxer` command line: scan (task 002), index (task 003) and search with filters (tasks 003/004).
 
 use std::collections::HashSet;
 use std::error::Error;
@@ -70,15 +70,57 @@ struct IndexArgs {
 struct SearchArgs {
     /// Path to the mbox file (its index must exist, see `mboxer index`).
     mbox: PathBuf,
-    /// Free-text query; words are AND-ed, "quotes" make a phrase.
-    #[arg(required = true, num_args = 1..)]
+    /// Free-text query over subject, body, addresses and attachment names; words are AND-ed,
+    /// "quotes" make a phrase. Optional when a filter is given.
+    #[arg(num_args = 0..)]
     query: Vec<String>,
+    /// Words that must appear in the sender (name or address).
+    #[arg(long, value_name = "WORDS")]
+    from: Option<String>,
+    /// Words that must appear in a recipient (To or Cc).
+    #[arg(long, value_name = "WORDS")]
+    to: Option<String>,
+    /// Only messages dated on or after this day (YYYY-MM-DD, UTC) or RFC 3339 instant.
+    #[arg(long, value_name = "DATE", value_parser = parse_date)]
+    after: Option<i64>,
+    /// Only messages dated before this day (YYYY-MM-DD, UTC, exclusive) or RFC 3339 instant.
+    #[arg(long, value_name = "DATE", value_parser = parse_date)]
+    before: Option<i64>,
+    /// Exact Gmail label (repeatable; every one must be present).
+    #[arg(long, value_name = "NAME")]
+    label: Vec<String>,
+    /// Only messages with an attachment.
+    #[arg(long, conflicts_with = "no_attachment")]
+    has_attachment: bool,
+    /// Only messages without an attachment.
+    #[arg(long)]
+    no_attachment: bool,
     /// Number of hits to print.
     #[arg(long, default_value_t = 20)]
     limit: usize,
+    /// Skip the first N hits (paging).
+    #[arg(long, default_value_t = 0, value_name = "N")]
+    offset: usize,
+    /// Print the hit count only.
+    #[arg(long)]
+    count: bool,
     /// Order by match quality instead of date.
     #[arg(long)]
     relevance: bool,
+}
+
+/// Parses `--after` / `--before`: a day (`2026-01-13`, UTC midnight) or a full RFC 3339 instant.
+fn parse_date(text: &str) -> Result<i64, String> {
+    let text = text.trim();
+    let instant = if text.contains('T') {
+        text.to_owned()
+    } else {
+        format!("{text}T00:00:00Z")
+    };
+    DateTime::parse_rfc3339(&instant)
+        .filter(DateTime::is_valid)
+        .map(|date| date.to_timestamp())
+        .ok_or_else(|| format!("`{text}` is not a date (expected YYYY-MM-DD or RFC 3339)"))
 }
 
 fn main() -> ExitCode {
@@ -267,19 +309,34 @@ fn search(args: &SearchArgs) -> Result<(), Box<dyn Error>> {
     let text = args.query.join(" ");
     let query = SearchQuery {
         text: Some(text.clone()),
-        limit: args.limit,
+        from: args.from.clone(),
+        to: args.to.clone(),
+        after: args.after,
+        before: args.before,
+        labels: args.label.clone(),
+        has_attachment: match (args.has_attachment, args.no_attachment) {
+            (true, _) => Some(true),
+            (_, true) => Some(false),
+            _ => None,
+        },
+        limit: if args.count { 0 } else { args.limit },
+        offset: args.offset,
         sort: if args.relevance {
             Sort::Relevance
         } else {
             Sort::DateDesc
         },
-        ..SearchQuery::default()
     };
     let search_start = Instant::now();
     let result = index.search(&query)?;
     let search_elapsed = search_start.elapsed();
 
-    writeln!(out, "query:             {text}")?;
+    writeln!(
+        out,
+        "query:             {}",
+        if text.is_empty() { "-" } else { &text }
+    )?;
+    writeln!(out, "filters:           {}", describe_filters(&query))?;
     writeln!(out, "indexed messages:  {}", index.message_count())?;
     writeln!(out, "hits:              {}", result.total)?;
     writeln!(out, "open:              {:.1} ms", ms(open_elapsed))?;
@@ -311,6 +368,42 @@ fn search(args: &SearchArgs) -> Result<(), Box<dyn Error>> {
         writeln!(out, "{line}")?;
     }
     Ok(())
+}
+
+/// The active structured filters of `query` as one line, `-` when there are none.
+fn describe_filters(query: &SearchQuery) -> String {
+    let mut parts = Vec::new();
+    if let Some(from) = &query.from {
+        parts.push(format!("from \"{from}\""));
+    }
+    if let Some(to) = &query.to {
+        parts.push(format!("to \"{to}\""));
+    }
+    if let Some(after) = query.after {
+        parts.push(format!(
+            "after {}",
+            DateTime::from_timestamp(after).to_rfc3339()
+        ));
+    }
+    if let Some(before) = query.before {
+        parts.push(format!(
+            "before {}",
+            DateTime::from_timestamp(before).to_rfc3339()
+        ));
+    }
+    for label in &query.labels {
+        parts.push(format!("label \"{label}\""));
+    }
+    match query.has_attachment {
+        Some(true) => parts.push("has attachment".to_owned()),
+        Some(false) => parts.push("no attachment".to_owned()),
+        None => {}
+    }
+    if parts.is_empty() {
+        "-".to_owned()
+    } else {
+        parts.join(", ")
+    }
 }
 
 fn progress(position: u64, total: u64, count: u64, elapsed: Duration) {
@@ -414,4 +507,50 @@ fn join_mailboxes(mailboxes: &[Mailbox]) -> String {
         .map(Mailbox::display)
         .collect::<Vec<_>>()
         .join(", ")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn a_day_is_utc_midnight() {
+        assert_eq!(parse_date("2026-01-13"), Ok(1_768_262_400));
+        assert_eq!(parse_date(" 1970-01-02 "), Ok(86_400));
+    }
+
+    #[test]
+    fn an_rfc3339_instant_passes_through() {
+        assert_eq!(parse_date("2026-01-13T07:30:04+01:00"), Ok(1_768_285_804));
+        assert_eq!(parse_date("2026-01-13T00:00:00Z"), parse_date("2026-01-13"));
+    }
+
+    #[test]
+    fn garbage_is_rejected() {
+        for bad in [
+            "2026-13-01",
+            "yesterday",
+            "2026-01",
+            "",
+            "2026-01-13T25:00:00Z",
+        ] {
+            assert!(parse_date(bad).is_err(), "{bad:?}");
+        }
+    }
+
+    #[test]
+    fn filters_are_described_or_dashed() {
+        assert_eq!(describe_filters(&SearchQuery::default()), "-");
+        let query = SearchQuery {
+            from: Some("anna".into()),
+            after: Some(0),
+            labels: vec!["Inbox".into()],
+            has_attachment: Some(false),
+            ..SearchQuery::default()
+        };
+        assert_eq!(
+            describe_filters(&query),
+            "from \"anna\", after 1970-01-01T00:00:00Z, label \"Inbox\", no attachment"
+        );
+    }
 }
