@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: decided
 date: 2026-10-17
 cost: medium
 sources: [wip/003-fulltext-sidecar-index-accent-folding.md, D-02-rust-tauri2-sidecar-fulltext-index.md, folytassuk-a-003-taskkal-parsed-panda.md]
@@ -30,7 +30,7 @@ the user's data.
 - Tokenization: words, lower-cased, ASCII-folded (`AsciiFoldingFilter`, covers ő/ű) on both the
   index and the query side; phrase positions are kept on every text field.
 
-Proposed by the session on 2026-10-17; awaiting the user's confirmation.
+Proposed by the session on 2026-10-17; confirmed by the user on 2026-10-17 after the 14 GB run.
 
 ## Not chosen
 

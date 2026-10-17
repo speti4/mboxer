@@ -76,7 +76,7 @@ _none_
 
 | # | Decision | Status | Date |
 |---|---|---|---|
-| D-04 | [The sidecar index lives in .mboxer/<mbox name>/ beside the mbox and is rebuilt whole when stale](decisions/D-04-sidecar-index-location-and-freshness.md) | proposed | 2026-10-17 |
+| D-04 | [The sidecar index lives in .mboxer/<mbox name>/ beside the mbox and is rebuilt whole when stale](decisions/D-04-sidecar-index-location-and-freshness.md) | decided | 2026-10-17 |
 | D-03 | [A message is identified by the byte offset of its From  envelope line](decisions/D-03-message-identity-is-envelope-byte-offset.md) | decided | 2026-10-17 |
 | D-02 | [Rust + Tauri 2 (WebView2) with a one-time sidecar full-text index](decisions/D-02-rust-tauri2-sidecar-fulltext-index.md) | decided | 2026-10-17 |
 | D-01 | [Build our own mbox viewer instead of adopting an existing one](decisions/D-01-build-own-viewer-instead-of-buying.md) | decided | 2026-10-17 |
