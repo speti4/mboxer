@@ -319,6 +319,7 @@ fn search(args: &SearchArgs) -> Result<(), Box<dyn Error>> {
             (_, true) => Some(false),
             _ => None,
         },
+        prefix_last_word: false,
         limit: if args.count { 0 } else { args.limit },
         offset: args.offset,
         sort: if args.relevance {

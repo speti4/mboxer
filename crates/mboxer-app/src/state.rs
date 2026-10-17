@@ -180,6 +180,58 @@ mod tests {
     }
 
     #[test]
+    fn text_and_filters_combine_in_one_listing() {
+        let (_dir, mbox) = fixture_copy("gmail-crlf.mbox");
+        let mut open = OpenMbox::load(&mbox, &AtomicBool::new(false), 1, |_| {}).unwrap();
+        let all = open.listing.rows(0, 10).unwrap();
+        assert_eq!(all.len(), 2);
+        let first = all
+            .iter()
+            .find(|hit| hit.offset == 0)
+            .expect("the first message is listed");
+        let date = first.date.expect("the fixture's first message has a date");
+
+        // Body word (accent-folded) + sender word + a one-day window around its date.
+        let narrow = SearchQuery {
+            text: Some("szamla".to_owned()),
+            from: Some("anna".to_owned()),
+            after: Some(date - 3600),
+            before: Some(date + 3600),
+            ..SearchQuery::default()
+        };
+        open.set_query(narrow, 2).unwrap();
+        assert_eq!(open.listing.len(), 1);
+        assert_eq!(open.listing.rows(0, 1).unwrap()[0].offset, 0);
+
+        // The same window with a sender that is not there: nothing.
+        let wrong_sender = SearchQuery {
+            text: Some("szamla".to_owned()),
+            from: Some("nobody".to_owned()),
+            ..SearchQuery::default()
+        };
+        open.set_query(wrong_sender, 3).unwrap();
+        assert!(open.listing.is_empty());
+
+        // No text at all: a structured filter alone still narrows the list.
+        let attachments = SearchQuery {
+            text: Some("   ".to_owned()),
+            has_attachment: Some(true),
+            ..SearchQuery::default()
+        };
+        open.set_query(attachments, 4).unwrap();
+        let with = open.listing.len();
+        assert!(with < 2, "the fixture has a message without attachments");
+        assert!(
+            open.listing
+                .rows(0, 10)
+                .unwrap()
+                .iter()
+                .all(|h| h.has_attachment),
+            "every row has an attachment"
+        );
+    }
+
+    #[test]
     fn a_cancelled_build_leaves_no_index() {
         let (_dir, mbox) = fixture_copy("gmail-crlf.mbox");
         let cancel = AtomicBool::new(true);

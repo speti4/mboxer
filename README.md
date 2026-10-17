@@ -30,9 +30,19 @@ The viewer (`mboxer.exe`, or `cargo run -p mboxer-app -- [file.mbox]` during dev
 mbox through a file dialog or from its first argument, builds the sidecar index on the first open
 (with progress and a cancel button) and reuses it afterwards, then shows the archive in three
 panes: Gmail labels with counts, the message list (newest first, virtualised, so a 100 000-message
-archive scrolls like a short one) and a reader with the headers and the plain-text body. Keyboard:
-`Ctrl+O` opens, arrows / `PageUp` / `PageDown` / `Home` / `End` move in the list, `Enter` focuses the
-reader and `Esc` returns. The UI is plain HTML/CSS/JS embedded in the exe: no Node toolchain, no
+archive scrolls like a short one) and a reader with the headers and the plain-text body.
+
+Search: the field in the toolbar (`Ctrl+F` or `Ctrl+K`) narrows the list while you type (words are
+AND-ed, the word you are still typing counts as a prefix until you type a space, `"quotes"` make a
+phrase, accents and case do not matter); the *Filters* panel
+(`Ctrl+Shift+F`) adds a sender, a date range (local days, both ends inclusive), an attachment
+filter and the sort order (newest first, or best match when there are words to score); clicking a
+label in the folder pane narrows further. All of it combines into one query; the words you searched
+for are highlighted in the list and in the message body, the selected message stays selected when
+it is still in the result, and *Clear* returns to all mail. Keyboard: `Ctrl+O` opens, `Enter` or
+`ArrowDown` in the search field moves to the list, `Esc` clears the field, arrows / `PageUp` /
+`PageDown` / `Home` / `End` move in the list, `Enter` focuses the reader and `Esc` returns. The
+UI is plain HTML/CSS/JS embedded in the exe: no Node toolchain, no
 bundler, no Tauri CLI needed; a change under `crates/mboxer-app/ui/` takes effect on the next
 `cargo run`. The application icon is generated once by `scripts\make-icon.py` (Pillow) and committed.
 

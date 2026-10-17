@@ -455,3 +455,52 @@ fn label_counts_follow_the_headers() {
     assert!(listing.rows(0, 10).unwrap().is_empty());
     assert_eq!(listing.position_of(0).unwrap(), None);
 }
+
+#[test]
+fn the_word_being_typed_matches_as_a_prefix_when_asked() {
+    let (_dir, _mbox, index) = built("gmail-crlf.mbox");
+    let typing = |text: &str| SearchQuery {
+        text: Some(text.to_owned()),
+        prefix_last_word: true,
+        ..SearchQuery::default()
+    };
+    let hits = |query: &SearchQuery| index.search(query).unwrap().total;
+
+    assert_eq!(
+        total(&index, "szaml"),
+        0,
+        "whole words only without the flag"
+    );
+    assert_eq!(hits(&typing("szaml")), 1);
+    assert_eq!(hits(&typing("Száml")), 1, "the prefix is folded too");
+    assert_eq!(hits(&typing("szamla")), 1, "a whole word still matches");
+    assert_eq!(
+        hits(&typing("szaml ")),
+        0,
+        "a trailing space closes the word"
+    );
+    assert_eq!(
+        hits(&typing("konyveles szaml")),
+        1,
+        "the rest is parsed as before"
+    );
+    assert_eq!(hits(&typing("nincsilyen szaml")), 0);
+    assert_eq!(hits(&typing("s")), 0, "one letter is not a prefix");
+    assert!(index.search(&typing("szaml")).unwrap().warnings.is_empty());
+
+    // The same for the sender filter, which also refreshes while typing.
+    let from = |from: &str, prefix: bool| SearchQuery {
+        from: Some(from.to_owned()),
+        prefix_last_word: prefix,
+        ..SearchQuery::default()
+    };
+    assert_eq!(hits(&from("ann", false)), 0);
+    assert_eq!(hits(&from("ann", true)), 1);
+    assert_eq!(hits(&from("pet", true)), 1);
+    assert_eq!(hits(&from("zzz", true)), 0);
+
+    // The listing behind the viewer goes through the same clause.
+    let listing = index.list(&typing("szaml")).unwrap();
+    assert_eq!(listing.len(), 1);
+    assert_eq!(listing.rows(0, 1).unwrap()[0].offset, 0);
+}

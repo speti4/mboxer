@@ -10,7 +10,39 @@
     <header id="toolbar">
       <button id="open-btn" type="button" title="Open an mbox file (Ctrl+O)">Open…</button>
       <span id="file-name" class="muted">No file open</span>
+      <input
+        id="search"
+        type="search"
+        placeholder="Search messages (Ctrl+F)"
+        aria-label="Search messages"
+        autocomplete="off"
+        spellcheck="false"
+        disabled
+      />
+      <button id="filters-btn" type="button" aria-expanded="false" aria-controls="filters" title="Show the filter panel (Ctrl+Shift+F)" disabled>
+        Filters<span id="filters-count" class="badge" hidden></span>
+      </button>
     </header>
+
+    <section id="filters" class="filters" aria-label="Filters" hidden>
+      <label>From <input id="f-from" type="text" placeholder="name or address" autocomplete="off" spellcheck="false" /></label>
+      <label>Date from <input id="f-after" type="date" /></label>
+      <label>to <input id="f-before" type="date" /></label>
+      <label>Attachments
+        <select id="f-att">
+          <option value="">Any</option>
+          <option value="true">With attachments</option>
+          <option value="false">Without</option>
+        </select>
+      </label>
+      <label>Sort
+        <select id="f-sort">
+          <option value="dateDesc">Newest first</option>
+          <option value="relevance">Best match</option>
+        </select>
+      </label>
+      <button id="filters-clear" type="button" title="Clear the search, the filters and the label">Clear</button>
+    </section>
 
     <main id="panes" class="panes">
       <nav id="folders" role="listbox" aria-label="Folders" tabindex="0"></nav>
@@ -18,6 +50,7 @@
       <section id="list" role="listbox" aria-label="Messages" tabindex="0">
         <div id="spacer"></div>
         <div id="rows"></div>
+        <div id="list-empty" hidden>No messages match</div>
       </section>
       <div class="splitter" data-target="list" role="separator" aria-orientation="vertical"></div>
       <section id="reader" tabindex="0" aria-label="Message">

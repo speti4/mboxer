@@ -10,15 +10,21 @@ use std::ops::Bound;
 use std::path::{Path, PathBuf};
 
 use tantivy::collector::{Count, TopDocs};
-use tantivy::query::{AllQuery, BooleanQuery, Occur, Query, QueryParser, RangeQuery, TermQuery};
-use tantivy::schema::{IndexRecordOption, Value};
+use tantivy::query::{
+    AllQuery, BooleanQuery, Occur, PhrasePrefixQuery, Query, QueryParser, RangeQuery, TermQuery,
+};
+use tantivy::schema::{Field, IndexRecordOption, Value};
 use tantivy::{
     DocAddress, Index, IndexReader, Order, ReloadPolicy, Searcher, TantivyDocument, Term,
 };
 
 use crate::error::Result;
 use crate::index::fingerprint::{IndexMeta, IndexStatus, StaleReason, index_dir, status};
-use crate::index::schema::{Fields, register_tokenizer};
+use crate::index::schema::{Fields, fold_analyzer, register_tokenizer};
+
+/// How many dictionary terms the word being typed may expand to; the terms
+/// come in dictionary order, so the shortest completions come first.
+const PREFIX_EXPANSIONS: u32 = 200;
 
 /// Result of [`MboxIndex::open`].
 #[derive(Debug)]
@@ -74,6 +80,11 @@ pub struct SearchQuery {
     /// Exact Gmail labels; every one must be present.
     pub labels: Vec<String>,
     pub has_attachment: Option<bool>,
+    /// The last word of `text`, `from` and `to` is still being typed: it
+    /// matches as a prefix (`szaml` finds `számla`) unless the text ends in
+    /// whitespace, the word carries syntax, or a phrase is open before it.
+    /// For a search that refreshes on every keystroke; the CLI leaves it off.
+    pub prefix_last_word: bool,
     pub limit: usize,
     pub offset: usize,
     pub sort: Sort,
@@ -89,11 +100,69 @@ impl Default for SearchQuery {
             before: None,
             labels: Vec::new(),
             has_attachment: None,
+            prefix_last_word: false,
             limit: 50,
             offset: 0,
             sort: Sort::DateDesc,
         }
     }
+}
+
+/// Splits off the word still being typed at the end of `text`: the last
+/// whitespace-delimited word when the text does not end in whitespace, the
+/// word is plain (no quotes, operators or wildcards) and no phrase is open
+/// before it. Returns `(rest, word)`.
+pub(crate) fn typing_word(text: &str) -> Option<(&str, &str)> {
+    if text.is_empty() || text.ends_with(char::is_whitespace) {
+        return None;
+    }
+    let start = text
+        .char_indices()
+        .rev()
+        .find(|(_, c)| c.is_whitespace())
+        .map_or(0, |(i, c)| i + c.len_utf8());
+    let (rest, word) = text.split_at(start);
+    let syntax = |c: char| {
+        matches!(
+            c,
+            '"' | '\'' | ':' | '*' | '~' | '^' | '(' | ')' | '[' | ']' | '{' | '}'
+        )
+    };
+    if word.starts_with('-') || word.starts_with('+') || word.contains(syntax) {
+        return None;
+    }
+    if rest.matches('"').count() % 2 == 1 {
+        return None;
+    }
+    Some((rest, word))
+}
+
+/// `word` as a prefix on every one of `fields`: its folded tokens in order,
+/// the last one completed from the dictionary. `None` when the word folds
+/// to nothing or its last token is a single character.
+fn prefix_query(fields: &[Field], word: &str) -> Option<Box<dyn Query>> {
+    let mut analyzer = fold_analyzer();
+    let mut stream = analyzer.token_stream(word);
+    let mut tokens = Vec::new();
+    while let Some(token) = stream.next() {
+        tokens.push(token.text.clone());
+    }
+    if tokens.last()?.chars().count() < 2 {
+        return None;
+    }
+    let clauses = fields
+        .iter()
+        .map(|&field| {
+            let terms = tokens
+                .iter()
+                .map(|t| Term::from_field_text(field, t))
+                .collect();
+            let mut query = PhrasePrefixQuery::new(terms);
+            query.set_max_expansions(PREFIX_EXPANSIONS);
+            (Occur::Should, Box::new(query) as Box<dyn Query>)
+        })
+        .collect();
+    Some(Box::new(BooleanQuery::new(clauses)))
 }
 
 impl SearchQuery {
@@ -261,40 +330,91 @@ impl MboxIndex {
         }
     }
 
+    /// `text` through the lenient query parser over `fields`.
+    fn parse_text(
+        &self,
+        fields: Vec<Field>,
+        text: &str,
+        boost_subject: bool,
+        warnings: &mut Vec<String>,
+    ) -> Box<dyn Query> {
+        let mut parser = QueryParser::for_index(&self.index, fields);
+        parser.set_conjunction_by_default();
+        if boost_subject {
+            parser.set_field_boost(self.fields.subject, 2.0);
+        }
+        let (parsed, errors) = parser.parse_query_lenient(text);
+        warnings.extend(errors.iter().map(|e| e.to_string()));
+        parsed
+    }
+
+    /// One free-text clause; with `prefix_last_word` the word being typed
+    /// becomes a prefix query AND-ed to the parse of the rest.
+    fn text_clause(
+        &self,
+        fields: Vec<Field>,
+        text: &str,
+        boost_subject: bool,
+        prefix_last_word: bool,
+        warnings: &mut Vec<String>,
+    ) -> Box<dyn Query> {
+        if prefix_last_word
+            && let Some((rest, word)) = typing_word(text)
+            && let Some(prefix) = prefix_query(&fields, word)
+        {
+            let rest = rest.trim();
+            if rest.is_empty() {
+                return prefix;
+            }
+            let parsed = self.parse_text(fields, rest, boost_subject, warnings);
+            return Box::new(BooleanQuery::new(vec![
+                (Occur::Must, parsed),
+                (Occur::Must, prefix),
+            ]));
+        }
+        self.parse_text(fields, text, boost_subject, warnings)
+    }
+
     pub(crate) fn to_tantivy_query(&self, query: &SearchQuery) -> (Box<dyn Query>, Vec<String>) {
         let mut clauses: Vec<(Occur, Box<dyn Query>)> = Vec::new();
         let mut warnings = Vec::new();
         let f = &self.fields;
+        let prefix = query.prefix_last_word;
 
-        let mut parse = |fields: Vec<tantivy::schema::Field>, text: &str, boost_subject: bool| {
-            let mut parser = QueryParser::for_index(&self.index, fields);
-            parser.set_conjunction_by_default();
-            if boost_subject {
-                parser.set_field_boost(f.subject, 2.0);
-            }
-            let (parsed, errors) = parser.parse_query_lenient(text);
-            warnings.extend(errors.iter().map(|e| e.to_string()));
-            parsed
-        };
-
+        // Trailing whitespace is meaningful to `typing_word`: only the start is trimmed.
         if let Some(text) = query
             .text
             .as_deref()
-            .map(str::trim)
-            .filter(|t| !t.is_empty())
+            .map(str::trim_start)
+            .filter(|t| !t.trim().is_empty())
         {
-            clauses.push((Occur::Must, parse(f.default_search_fields(), text, true)));
+            let fields = f.default_search_fields();
+            clauses.push((
+                Occur::Must,
+                self.text_clause(fields, text, true, prefix, &mut warnings),
+            ));
         }
         if let Some(from) = query
             .from
             .as_deref()
-            .map(str::trim)
-            .filter(|t| !t.is_empty())
+            .map(str::trim_start)
+            .filter(|t| !t.trim().is_empty())
         {
-            clauses.push((Occur::Must, parse(vec![f.from], from, false)));
+            clauses.push((
+                Occur::Must,
+                self.text_clause(vec![f.from], from, false, prefix, &mut warnings),
+            ));
         }
-        if let Some(to) = query.to.as_deref().map(str::trim).filter(|t| !t.is_empty()) {
-            clauses.push((Occur::Must, parse(vec![f.to, f.cc], to, false)));
+        if let Some(to) = query
+            .to
+            .as_deref()
+            .map(str::trim_start)
+            .filter(|t| !t.trim().is_empty())
+        {
+            clauses.push((
+                Occur::Must,
+                self.text_clause(vec![f.to, f.cc], to, false, prefix, &mut warnings),
+            ));
         }
         if query.after.is_some() || query.before.is_some() {
             let lower = query.after.map_or(Bound::Unbounded, |t| {
@@ -362,4 +482,31 @@ pub(crate) fn hit_from_address(
         attachment_names: strings(f.attachment_names),
         score,
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::typing_word;
+
+    #[test]
+    fn the_word_being_typed_is_the_plain_last_word() {
+        assert_eq!(typing_word("szaml"), Some(("", "szaml")));
+        assert_eq!(
+            typing_word("konyveles szaml"),
+            Some(("konyveles ", "szaml"))
+        );
+        assert_eq!(typing_word("  Száml"), Some(("  ", "Száml")));
+        assert_eq!(typing_word("\"big bad\" wo"), Some(("\"big bad\" ", "wo")));
+    }
+
+    #[test]
+    fn a_finished_word_or_syntax_is_left_to_the_parser() {
+        assert_eq!(typing_word(""), None);
+        assert_eq!(typing_word("szaml "), None, "a space closes the word");
+        assert_eq!(typing_word("from:ann"), None);
+        assert_eq!(typing_word("a -b"), None);
+        assert_eq!(typing_word("foo*"), None);
+        assert_eq!(typing_word("\"szamla mell"), None, "inside an open phrase");
+        assert_eq!(typing_word("x \"y\""), None);
+    }
 }

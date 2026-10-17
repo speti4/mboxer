@@ -80,6 +80,8 @@ pub struct QueryInput {
     pub before: Option<i64>,
     pub labels: Vec<String>,
     pub has_attachment: Option<bool>,
+    /// The last word is still being typed and matches as a prefix.
+    pub prefix_last_word: bool,
     pub sort: SortInput,
 }
 
@@ -101,6 +103,7 @@ impl From<QueryInput> for SearchQuery {
             before: input.before,
             labels: input.labels,
             has_attachment: input.has_attachment,
+            prefix_last_word: input.prefix_last_word,
             sort: match input.sort {
                 SortInput::DateDesc => Sort::DateDesc,
                 SortInput::Relevance => Sort::Relevance,
@@ -229,6 +232,29 @@ mod tests {
         assert_eq!(query.labels, vec!["Inbox".to_owned()]);
         assert_eq!(query.has_attachment, Some(true));
         assert_eq!(query.sort, Sort::Relevance);
+    }
+
+    #[test]
+    fn the_full_query_input_shape_maps_onto_a_search_query() {
+        let json: QueryInput = serde_json::from_str(
+            r#"{"text":"számla","from":"anna","after":1700000000,"before":1700086400,
+                "labels":["Inbox"],"hasAttachment":false,"prefixLastWord":true,"sort":"dateDesc"}"#,
+        )
+        .unwrap();
+        let query: SearchQuery = json.into();
+        assert!(query.prefix_last_word);
+        assert!(!SearchQuery::from(QueryInput::default()).prefix_last_word);
+        assert_eq!(query.text.as_deref(), Some("számla"));
+        assert_eq!(query.from.as_deref(), Some("anna"));
+        assert_eq!(query.to, None);
+        assert_eq!(query.after, Some(1_700_000_000));
+        assert_eq!(query.before, Some(1_700_086_400));
+        assert_eq!(query.labels, vec!["Inbox".to_owned()]);
+        assert_eq!(query.has_attachment, Some(false));
+        assert_eq!(query.sort, Sort::DateDesc);
+        // The CLI-only paging fields keep their defaults.
+        assert_eq!(query.limit, SearchQuery::default().limit);
+        assert_eq!(query.offset, 0);
     }
 
     #[test]

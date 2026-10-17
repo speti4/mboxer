@@ -9,7 +9,7 @@ use std::sync::atomic::Ordering;
 
 use mboxer_core::{Error, Progress, SearchQuery};
 use tauri::ipc::Channel;
-use tauri::{AppHandle, State};
+use tauri::{AppHandle, Manager, State};
 use tauri_plugin_dialog::DialogExt;
 
 use crate::state::{AppState, OpenMbox};
@@ -138,20 +138,33 @@ pub fn cancel_open(state: State<'_, AppState>) {
     state.cancel.store(true, Ordering::Release);
 }
 
-/// Replaces the listing behind the message list.
+/// Replaces the listing behind the message list. The search runs off the
+/// main thread: a sync command would block the webview while a relevance
+/// query scores every message of a large archive.
 #[tauri::command]
-pub fn set_query(state: State<'_, AppState>, query: QueryInput) -> Result<ListInfo, String> {
-    let generation = state.generation.fetch_add(1, Ordering::AcqRel) + 1;
-    let mut guard = state.open();
-    let open = guard.as_mut().ok_or("no mbox is open")?;
-    let query: SearchQuery = query.into();
-    open.set_query(query, generation)
-        .map_err(|err| err.to_string())?;
-    Ok(ListInfo {
-        generation,
-        total: open.listing.len(),
-        warnings: open.listing.warnings().to_vec(),
+pub async fn set_query(app: AppHandle, query: QueryInput) -> Result<ListInfo, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let state = app.state::<AppState>();
+        let started = std::time::Instant::now();
+        let generation = state.generation.fetch_add(1, Ordering::AcqRel) + 1;
+        let mut guard = state.open();
+        let open = guard.as_mut().ok_or("no mbox is open")?;
+        let query: SearchQuery = query.into();
+        open.set_query(query, generation)
+            .map_err(|err| err.to_string())?;
+        eprintln!(
+            "query: {} hits, {} ms",
+            open.listing.len(),
+            started.elapsed().as_millis()
+        );
+        Ok(ListInfo {
+            generation,
+            total: open.listing.len(),
+            warnings: open.listing.warnings().to_vec(),
+        })
     })
+    .await
+    .map_err(|err| format!("the query task failed: {err}"))?
 }
 
 /// One page of the current listing.
