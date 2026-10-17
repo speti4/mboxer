@@ -1,0 +1,11 @@
+[package]
+name = "mboxer-core"
+description = "Streaming mbox reader and message model for mboxer"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+mail-parser.workspace = true

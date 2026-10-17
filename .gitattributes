@@ -1,0 +1,3 @@
+# Test fixtures carry their own line endings (LF or CRLF); git must never convert them.
+*.mbox -text
+crates/*/tests/fixtures/* -text

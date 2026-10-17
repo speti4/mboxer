@@ -1,0 +1,53 @@
+From 1234567890123456789@xxx Tue Jan 13 06:30:04 +0000 2026
+X-GM-THRID: 1234567890123456789
+X-Gmail-Labels: Inbox,Important,Category personal,
+ Opened
+Delivered-To: bela@example.com
+MIME-Version: 1.0
+From: =?UTF-8?Q?Anna_P=C3=A9lda?= <anna@example.com>
+To: Bela <bela@example.com>
+Cc: konyveles@example.com
+Subject: =?UTF-8?Q?Sz=C3=A1mla_janu=C3=A1r?=
+Date: Tue, 13 Jan 2026 07:30:04 +0100
+Message-ID: <msg1@mail.example.com>
+Content-Type: multipart/mixed; boundary="mixed-1"
+
+--mixed-1
+Content-Type: multipart/alternative; boundary="alt-1"
+
+--alt-1
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+Kedves B=C3=A9la,
+
+>From a k=C3=B6nyvel=C3=A9s fel=C5=91l j=C3=B6tt a sz=C3=A1mla.
+From Anna wrote: ez nem envelope.
+--alt-1
+Content-Type: text/html; charset="UTF-8"
+Content-Transfer-Encoding: base64
+
+PGh0bWw+PGJvZHk+PHA+S2VkdmVzIELDqWxhLCBhIHN6w6FtbGEgbWVsbMOpa2VsdmUuPC9wPjwv
+Ym9keT48L2h0bWw+
+--alt-1--
+--mixed-1
+Content-Type: application/pdf; name*=utf-8''sz%C3%A1mla-2026-01.pdf
+Content-Disposition: attachment; filename*=utf-8''sz%C3%A1mla-2026-01.pdf
+Content-Transfer-Encoding: base64
+
+JVBERi0xLjQgZmFrZSBwZGYgZm9yIHRlc3Rz
+--mixed-1--
+
+From 9876543210987654321@xxx Wed Jan 14 08:00:00 +0000 2026
+X-GM-THRID: 9876543210987654321
+X-Gmail-Labels: Sent,Opened
+From: =?UTF-8?Q?P=C3=A9ter?= <peter@example.com>
+To: anna@example.com
+Subject: Re: valasz
+Date: Wed, 14 Jan 2026 09:00:00 +0100
+Message-ID: <msg2@mail.example.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: base64
+
+UmVuZGJlbiwga8O2c3rDtm7Dtm0hDQo=

@@ -1,0 +1,25 @@
+From alice@example.com Mon Jan  5 09:00:00 2026
+From: Alice <alice@example.com>
+To: Bob <bob@example.com>
+Subject: one
+Date: Mon, 5 Jan 2026 09:00:00 +0100
+Message-ID: <one@example.com>
+
+Body of message one.
+
+From bob@example.com Tue Jan  6 10:00:00 +0100 2026
+From: Bob <bob@example.com>
+To: Alice <alice@example.com>
+Subject: two
+Date: Tue, 6 Jan 2026 10:00:00 +0100
+Message-ID: <two@example.com>
+
+From Anna wrote: this line is not an envelope.
+From the top, neither is this one.
+
+From MAILER-DAEMON Wed Jan  7 11:00:00 2026
+From: Mail Delivery <mailer-daemon@example.com>
+Subject: three
+Date: Wed, 7 Jan 2026 11:00:00 +0100
+
+Body of message three.

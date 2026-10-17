@@ -11,7 +11,7 @@ Closing a task files every follow-up as a `backlog/` item now or deletes it with
 <!-- tasks:index:start -->
 _Generated 2026-10-17 — edit the files, not this section._
 
-**State:** 11 backlog (7 ready · 0 blocked · 0 waiting · 4 ideas) · 0 in progress · 1 done · 0 dropped · 2 decisions
+**State:** 11 backlog (6 ready · 0 blocked · 0 waiting · 5 ideas) · 0 in progress · 2 done · 0 dropped · 3 decisions
 
 ### Ready
 
@@ -19,7 +19,6 @@ _Generated 2026-10-17 — edit the files, not this section._
 
 | # | Task | Size | Created |
 |---|---|---|---|
-| 002 | [Rust workspace and streaming mbox parser](backlog/002-rust-workspace-and-mbox-stream-parser.md) | M | 2026-10-17 |
 | 003 | [Sidecar full-text index with accent folding](backlog/003-fulltext-sidecar-index-accent-folding.md) | L | 2026-10-17 |
 | 004 | [Index CLI and the 14 GB benchmark](backlog/004-index-cli-and-14gb-benchmark.md) | S | 2026-10-17 |
 
@@ -42,6 +41,12 @@ _none_
 
 ### Ideas
 
+#### M2 Viewer MVP
+
+| # | Task | Size | Created |
+|---|---|---|---|
+| 013 | [Unescape >From  lines in message bodies for display](backlog/013-unescape-from-lines-in-message-bodies.md) | S | 2026-10-17 |
+
 #### M3 Comfort
 
 | # | Task | Size | Created |
@@ -63,12 +68,14 @@ _none_
 
 | # | Task | Closed |
 |---|---|---|
+| 002 | [Rust workspace and streaming mbox parser](done/002-rust-workspace-and-mbox-stream-parser.md) | 2026-10-17 |
 | 001 | [Project scaffolding: hub card, repo structure, task standard](done/001-project-scaffolding.md) | 2026-10-17 |
 
 ### Decisions
 
 | # | Decision | Status | Date |
 |---|---|---|---|
+| D-03 | [A message is identified by the byte offset of its From  envelope line](decisions/D-03-message-identity-is-envelope-byte-offset.md) | proposed | 2026-10-17 |
 | D-02 | [Rust + Tauri 2 (WebView2) with a one-time sidecar full-text index](decisions/D-02-rust-tauri2-sidecar-fulltext-index.md) | decided | 2026-10-17 |
 | D-01 | [Build our own mbox viewer instead of adopting an existing one](decisions/D-01-build-own-viewer-instead-of-buying.md) | decided | 2026-10-17 |
 <!-- tasks:index:end -->

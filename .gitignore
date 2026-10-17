@@ -13,3 +13,6 @@ dist/
 # local
 .env
 *.log
+
+# synthetic test fixtures are the one exception to the mbox rule
+!crates/*/tests/fixtures/*.mbox

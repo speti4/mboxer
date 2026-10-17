@@ -1,0 +1,16 @@
+[package]
+name = "mboxer-cli"
+description = "Command-line front end for mboxer: scan, index, search"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[[bin]]
+name = "mboxer"
+path = "src/main.rs"
+
+[dependencies]
+mboxer-core.workspace = true
+clap.workspace = true
