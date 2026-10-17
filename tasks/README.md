@@ -11,7 +11,7 @@ Closing a task files every follow-up as a `backlog/` item now or deletes it with
 <!-- tasks:index:start -->
 _Generated 2026-10-17 — edit the files, not this section._
 
-**State:** 7 backlog (0 ready · 0 blocked · 0 waiting · 7 ideas) · 0 in progress · 10 done · 0 dropped · 4 decisions
+**State:** 6 backlog (0 ready · 0 blocked · 0 waiting · 6 ideas) · 0 in progress · 11 done · 0 dropped · 4 decisions
 
 ### Ready
 
@@ -31,7 +31,6 @@ _none_
 
 | # | Task | Size | Created |
 |---|---|---|---|
-| 010 | [Gmail-style query syntax in the search field](backlog/010-gmail-style-query-syntax.md) | S | 2026-10-17 |
 | 011 | [Export a message: .eml, PDF, print](backlog/011-export-eml-pdf-print.md) | M | 2026-10-17 |
 | 012 | [Portable release build for other users](backlog/012-portable-exe-release-build.md) | S | 2026-10-17 |
 | 014 | [Index fallback when the mbox folder is not writable](backlog/014-index-fallback-for-read-only-mbox-locations.md) | S | 2026-10-17 |
@@ -52,6 +51,7 @@ _none_
 | # | Task | Closed |
 |---|---|---|
 | 013 | [Unescape >From  lines in message bodies for display](done/013-unescape-from-lines-in-message-bodies.md) | 2026-10-17 |
+| 010 | [Gmail-style query syntax in the search field](done/010-gmail-style-query-syntax.md) | 2026-10-17 |
 | 009 | [Gmail labels and conversation threads](done/009-gmail-labels-and-threads.md) | 2026-10-17 |
 | 008 | [Attachments: list, open, save](done/008-attachments-list-open-save.md) | 2026-10-17 |
 | 007 | [Message reader with sanitized HTML](done/007-message-reader-sanitized-html.md) | 2026-10-17 |
@@ -60,7 +60,8 @@ _none_
 | 004 | [Index CLI filters and the 14 GB benchmark](done/004-index-cli-and-14gb-benchmark.md) | 2026-10-17 |
 | 003 | [Sidecar full-text index with accent folding](done/003-fulltext-sidecar-index-accent-folding.md) | 2026-10-17 |
 | 002 | [Rust workspace and streaming mbox parser](done/002-rust-workspace-and-mbox-stream-parser.md) | 2026-10-17 |
-| 001 | [Project scaffolding: hub card, repo structure, task standard](done/001-project-scaffolding.md) | 2026-10-17 |
+
+_1 more in `done/`._
 
 ### Decisions
 
