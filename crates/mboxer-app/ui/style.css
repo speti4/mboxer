@@ -381,11 +381,86 @@ body:not([data-view="ready"]) .panes {
   overflow-wrap: anywhere;
 }
 
+#reader-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 10px;
+}
+
+.segmented {
+  display: inline-flex;
+}
+
+.segmented button {
+  border-radius: 0;
+  margin-left: -1px;
+}
+
+.segmented button:first-child {
+  border-radius: 4px 0 0 4px;
+  margin-left: 0;
+}
+
+.segmented button:last-child {
+  border-radius: 0 4px 4px 0;
+}
+
+.segmented button[aria-pressed="true"] {
+  background: var(--selected-bg);
+  border-color: var(--accent);
+  position: relative;
+}
+
+.segmented button:disabled {
+  color: var(--muted);
+  cursor: default;
+  background: var(--bg-alt);
+  border-color: var(--border);
+}
+
+#remote-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 10px;
+  padding: 6px 10px;
+  border: 1px solid #f0d27a;
+  border-radius: 4px;
+  background: #fff6d6;
+}
+
+#remote-bar[hidden] {
+  display: none;
+}
+
+#msg-html {
+  display: block;
+  width: 100%;
+  min-height: 40px;
+  border: 0;
+  background: var(--bg);
+}
+
+#msg-html[hidden] {
+  display: none;
+}
+
 #msg-body {
   margin: 0;
   font: inherit;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
+}
+
+#msg-body[hidden] {
+  display: none;
+}
+
+#msg-body.source {
+  font-family: Consolas, monospace;
+  font-size: 12px;
 }
 
 #msg-body.html-as-text::before,
@@ -397,7 +472,7 @@ body:not([data-view="ready"]) .panes {
 }
 
 #msg-body.html-as-text::before {
-  content: "HTML message shown as text (HTML rendering arrives with task 007)";
+  content: "HTML message shown as text";
 }
 
 #msg-body.raw::before {

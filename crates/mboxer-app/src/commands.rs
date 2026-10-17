@@ -7,10 +7,11 @@ use std::path::PathBuf;
 use std::sync::Arc;
 use std::sync::atomic::Ordering;
 
-use mboxer_core::{Error, Progress, SearchQuery};
+use mboxer_core::{Error, Progress, SearchQuery, read_at};
 use tauri::ipc::Channel;
 use tauri::{AppHandle, Manager, State};
 use tauri_plugin_dialog::DialogExt;
+use tauri_plugin_opener::OpenerExt;
 
 use crate::state::{AppState, OpenMbox};
 use crate::types::{ListInfo, MessageView, OpenEvent, QueryInput, RowsPage};
@@ -205,6 +206,53 @@ pub async fn read_message(
         .map_err(|err| err.to_string())
 }
 
+/// The source of the message at `offset`/`len`: the envelope line and the
+/// raw bytes, lossily decoded, for the reader's Source view.
+#[tauri::command]
+pub async fn read_source(
+    state: State<'_, AppState>,
+    offset: u64,
+    len: u64,
+) -> Result<String, String> {
+    let path = {
+        let guard = state.open();
+        guard.as_ref().ok_or("no mbox is open")?.path.clone()
+    };
+    tauri::async_runtime::spawn_blocking(move || {
+        read_at(&path, offset, len).map(|raw| {
+            let mut source = raw.envelope;
+            source.push('\n');
+            source.push_str(&String::from_utf8_lossy(&raw.bytes));
+            source
+        })
+    })
+    .await
+    .map_err(|err| format!("the read task failed: {err}"))?
+    .map_err(|err| err.to_string())
+}
+
+/// Opens a link clicked in a message body with the system's default browser
+/// or mail client. Only web and mail links get out; the sanitizer in the
+/// webview has already dropped the rest, this is the second check.
+#[tauri::command]
+pub async fn open_url(app: AppHandle, url: String) -> Result<(), String> {
+    if !allowed_link(&url) {
+        return Err("only http, https and mailto links are opened".to_owned());
+    }
+    tauri::async_runtime::spawn_blocking(move || app.opener().open_url(&url, None::<&str>))
+        .await
+        .map_err(|err| format!("the open task failed: {err}"))?
+        .map_err(|err| err.to_string())
+}
+
+/// `http:`, `https:` and `mailto:` links, whatever their case.
+pub fn allowed_link(url: &str) -> bool {
+    let lower = url.trim_start().to_ascii_lowercase();
+    ["http://", "https://", "mailto:"]
+        .iter()
+        .any(|scheme| lower.starts_with(scheme))
+}
+
 /// Row index of the message with this offset in the current listing.
 #[tauri::command]
 pub fn position_of(state: State<'_, AppState>, offset: u64) -> Result<Option<usize>, String> {
@@ -213,4 +261,24 @@ pub fn position_of(state: State<'_, AppState>, offset: u64) -> Result<Option<usi
     open.listing
         .position_of(offset)
         .map_err(|err| err.to_string())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::allowed_link;
+
+    #[test]
+    fn only_web_and_mail_links_are_opened() {
+        assert!(allowed_link("https://example.com/x?y=1"));
+        assert!(allowed_link("http://example.com"));
+        assert!(allowed_link("HTTPS://EXAMPLE.COM"));
+        assert!(allowed_link("mailto:anna@example.com?subject=hi"));
+        assert!(allowed_link("  https://example.com"));
+        assert!(!allowed_link("javascript:alert(1)"));
+        assert!(!allowed_link("file:///C:/Windows"));
+        assert!(!allowed_link("ftp://example.com"));
+        assert!(!allowed_link("httpss://example.com"));
+        assert!(!allowed_link("//example.com"));
+        assert!(!allowed_link(""));
+    }
 }

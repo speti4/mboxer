@@ -30,7 +30,17 @@ The viewer (`mboxer.exe`, or `cargo run -p mboxer-app -- [file.mbox]` during dev
 mbox through a file dialog or from its first argument, builds the sidecar index on the first open
 (with progress and a cancel button) and reuses it afterwards, then shows the archive in three
 panes: Gmail labels with counts, the message list (newest first, virtualised, so a 100 000-message
-archive scrolls like a short one) and a reader with the headers and the plain-text body.
+archive scrolls like a short one) and a reader with the headers and the body.
+
+Reader: an HTML message renders as HTML (the *HTML* / *Text* / *Source* buttons switch between the
+rendered body, the plain-text part and the raw source of the message; HTML or Text is remembered).
+The HTML is sanitized in the webview before it is shown (scripts, frames, forms, event handlers
+and `javascript:` links are removed) and rendered in a sandboxed iframe whose own content security
+policy allows no network request at all: remote images and styles are held back and a yellow bar
+counts them, *Show* loads them for that one message. Links in the body open in the system browser
+or mail client (`http`, `https`, `mailto` only). *Copy* puts the text of the current view on the
+clipboard. In the Text view the mboxrd quoting of body lines (`>From `) is undone; the Source view
+shows the bytes as they are in the file.
 
 Search: the field in the toolbar (`Ctrl+F` or `Ctrl+K`) narrows the list while you type (words are
 AND-ed, the word you are still typing counts as a prefix until you type a space, `"quotes"` make a

@@ -170,7 +170,10 @@ pub struct MessageView {
     pub subject: Option<String>,
     pub labels: Vec<String>,
     pub message_id: Option<String>,
+    /// The text view of the body: the plain part, else the HTML reduced to text.
     pub body: Option<BodyView>,
+    /// The first HTML part as written; the webview sanitizes it before rendering.
+    pub html: Option<String>,
     pub parts: Vec<PartView>,
 }
 
@@ -181,11 +184,11 @@ pub struct BodyView {
     pub text: String,
 }
 
-/// How the body text was obtained; task 007 adds a sanitized `html` kind.
+/// How the text of the body was obtained.
 #[derive(Debug, Clone, Copy, Serialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub enum BodyKind {
-    /// A `text/plain` part.
+    /// A `text/plain` part, mboxrd `>From ` quoting undone.
     Plain,
     /// The text of an HTML part, for a message with no plain part.
     HtmlAsText,

@@ -17,13 +17,16 @@
   const STORAGE_LAST_PATH = "mboxer.lastPath";
   const STORAGE_WIDTHS = "mboxer.paneWidths";
   const STORAGE_FILTERS_OPEN = "mboxer.filtersOpen";
+  const STORAGE_BODY_MODE = "mboxer.bodyMode";
+  const STATUS_FLASH_MS = 2000;
 
   const el = {};
   for (const id of [
     "toolbar", "open-btn", "file-name", "search", "filters-btn", "filters-count", "filters",
     "f-from", "f-after", "f-before", "f-att", "f-sort", "filters-clear", "panes", "folders",
     "list", "spacer", "rows", "list-empty", "reader", "reader-empty", "reader-content",
-    "msg-subject", "msg-headers", "msg-body", "msg-parts-list", "empty", "empty-open-btn",
+    "msg-subject", "msg-headers", "msg-body", "msg-html", "msg-parts-list", "view-html", "view-text",
+    "view-source", "copy-btn", "remote-bar", "remote-text", "remote-allow", "empty", "empty-open-btn",
     "reopen-btn", "error", "error-path", "error-text", "retry-btn", "error-open-btn", "overlay",
     "overlay-title", "overlay-path", "progress", "progress-text", "cancel-btn", "status-left",
     "status-center", "status-right",
@@ -52,6 +55,13 @@
     selected: -1, // row index
     selectedOffset: null,
     view: null, // MessageView shown in the reader
+    bodyMode: "html", // the sticky body view: "html" (when the message has one) or "text"
+    sourceMode: false, // the Source view, for this message only
+    sanitized: null, // { offset, doc, remote, length } of the HTML in the reader
+    allowRemote: false, // the remote content of this message was allowed
+    source: null, // { offset, text } the raw source, read on demand
+    warnings: [], // the query warnings behind the status bar
+    statusTimer: 0,
     query: defaultQuery(), // the one source of truth behind the listing
     queryToken: 0, // only the newest set_query response lands
     queryTimer: 0,
@@ -177,12 +187,10 @@
     return Array.from(terms).sort((a, b) => b.length - a.length);
   }
 
-  // Fills `node` with `text`, the occurrences of `terms` wrapped in <mark>.
-  function renderHighlighted(node, text, terms) {
-    if (terms.length === 0 || !text || text.length > MAX_HIGHLIGHT_CHARS) {
-      node.textContent = text;
-      return;
-    }
+  // The nodes that show `text` with the occurrences of `terms` wrapped in
+  // <mark>, or null when no term occurs.
+  function highlightFragments(text, terms) {
+    if (terms.length === 0 || !text) return null;
     const { folded, map } = foldWithMap(text);
     const ranges = [];
     for (const term of terms) {
@@ -192,10 +200,7 @@
         at = folded.indexOf(term, at + term.length);
       }
     }
-    if (ranges.length === 0) {
-      node.textContent = text;
-      return;
-    }
+    if (ranges.length === 0) return null;
     ranges.sort((a, b) => a[0] - b[0]);
     // Overlapping and touching matches become one mark.
     const merged = [];
@@ -214,7 +219,205 @@
       cursor = end;
     }
     if (cursor < text.length) parts.push(document.createTextNode(text.slice(cursor)));
-    node.replaceChildren(...parts);
+    return parts;
+  }
+
+  // Fills `node` with `text`, the occurrences of `terms` wrapped in <mark>.
+  function renderHighlighted(node, text, terms) {
+    const parts = text && text.length <= MAX_HIGHLIGHT_CHARS ? highlightFragments(text, terms) : null;
+    if (parts) node.replaceChildren(...parts);
+    else node.textContent = text;
+  }
+
+  // ---------- HTML sanitizer ----------
+  //
+  // The HTML of a message is parsed into an inert document (DOMParser loads
+  // nothing and runs nothing), stripped to a safe subset and serialised into a
+  // sandboxed iframe whose own CSP blocks every remote request. Remote
+  // references move into `data-mboxer-*` attributes so that the per-message
+  // "Show" button can put them back; the CSP is relaxed for images only then.
+
+  const DROP_ELEMENTS = new Set([
+    "script", "noscript", "iframe", "frame", "frameset", "object", "embed", "applet", "base",
+    "link", "meta", "template",
+  ]);
+  const UNWRAP_ELEMENTS = new Set(["form"]);
+  // Attributes that hold a URL; `href` is a link on a / area, a resource elsewhere.
+  const RESOURCE_ATTRIBUTES = new Set(["src", "poster", "background", "xlink:href", "href"]);
+  const DROP_ATTRIBUTES = new Set([
+    "srcdoc", "target", "action", "formaction", "ping", "longdesc", "usemap", "cite", "data",
+  ]);
+  const RESTORE_ATTRIBUTES = ["src", "srcset", "poster", "background", "xlink:href", "href"];
+  // Text under these elements is not highlighted.
+  const NO_HIGHLIGHT = new Set(["style", "title", "textarea", "script"]);
+  const IFRAME_STYLE = [
+    "html,body{height:auto!important;min-height:0!important;overflow:visible!important}",
+    'body{font-family:"Segoe UI",system-ui,sans-serif;font-size:13px;overflow-wrap:anywhere}',
+    "img{max-width:100%;height:auto}",
+    "pre{white-space:pre-wrap}",
+    "mark{background:#ffe58f;color:inherit}",
+    "img[data-mboxer-cid]{min-width:16px;min-height:16px;border:1px dashed #d9dee3}",
+  ].join("");
+
+  // The kind of a URL by its scheme: "empty", "fragment", "data", "cid",
+  // "remote" (http, https, protocol-relative), "mailto", "relative" or "other".
+  // Control characters and spaces are ignored, as browsers ignore them.
+  function classifyUrl(value) {
+    const cleaned = String(value || "").replace(/[\u0000- ]+/g, "");
+    if (!cleaned) return "empty";
+    if (cleaned.startsWith("#")) return "fragment";
+    if (cleaned.startsWith("//")) return "remote";
+    const m = /^([a-z][a-z0-9+.-]*):/i.exec(cleaned);
+    if (!m) return "relative";
+    const scheme = m[1].toLowerCase();
+    if (scheme === "data") return "data";
+    if (scheme === "cid") return "cid";
+    if (scheme === "http" || scheme === "https") return "remote";
+    if (scheme === "mailto") return "mailto";
+    return "other";
+  }
+
+  // Scrubs a CSS text: `@import`, `expression()` and `behavior` are always
+  // dropped; `safe` keeps the remote `url()`s, `blocked` turns them into
+  // `none` (an empty `url()` would still resolve to the document itself);
+  // `remote` counts them.
+  function scrubCss(css) {
+    const safe = String(css || "")
+      .replace(/@import\b[^;]*;?/gi, "")
+      .replace(/expression\s*\(/gi, "expression-blocked(")
+      .replace(/-moz-binding|behavior\s*:/gi, "blocked:");
+    let remote = 0;
+    const blocked = safe.replace(/url\(\s*(['"]?)([^'")]*)\1\s*\)/gi, (whole, _quote, url) => {
+      const kind = classifyUrl(url);
+      if (kind === "data" || kind === "fragment") return whole;
+      if (kind === "remote") remote++;
+      return "none";
+    });
+    return { safe, blocked, remote };
+  }
+
+  // Parses `html` into an inert document and strips it: active content,
+  // unsafe URLs and remote references. Returns the document and the number
+  // of remote references held back.
+  function sanitizeHtml(html) {
+    const doc = new DOMParser().parseFromString(html, "text/html");
+    const counter = { remote: 0 };
+    for (const element of Array.from(doc.querySelectorAll("*"))) {
+      if (!element.isConnected) continue;
+      const tag = element.localName;
+      if (DROP_ELEMENTS.has(tag)) {
+        element.remove();
+        continue;
+      }
+      if (UNWRAP_ELEMENTS.has(tag)) {
+        element.replaceWith(...element.childNodes);
+        continue;
+      }
+      sanitizeAttributes(element, counter);
+      if (tag === "style") {
+        const { safe, blocked, remote } = scrubCss(element.textContent);
+        element.textContent = blocked;
+        if (remote > 0) {
+          element.setAttribute("data-mboxer-css", safe);
+          counter.remote += remote;
+        }
+      } else if ((tag === "a" || tag === "area") && !element.hasAttribute("title")) {
+        const href = element.getAttribute("href");
+        if (href) element.setAttribute("title", href);
+      }
+    }
+    return { doc, remote: counter.remote };
+  }
+
+  function sanitizeAttributes(element, counter) {
+    const isLink = element.localName === "a" || element.localName === "area";
+    for (const attr of Array.from(element.attributes)) {
+      const name = attr.name.toLowerCase();
+      const value = attr.value;
+      if (name.startsWith("on") || DROP_ATTRIBUTES.has(name)) {
+        element.removeAttribute(attr.name);
+      } else if (name === "style") {
+        const { safe, blocked, remote } = scrubCss(value);
+        element.setAttribute("style", blocked);
+        if (remote > 0) {
+          element.setAttribute("data-mboxer-style", safe);
+          counter.remote += remote;
+        }
+      } else if (name === "srcset") {
+        // Candidates are hard to split (data URLs hold commas); the whole set
+        // is held back and the `src` fallback shows instead.
+        element.removeAttribute(attr.name);
+        if (/https?:\/\/|(^|[\s,])\/\//i.test(value)) {
+          element.setAttribute("data-mboxer-srcset", value);
+          counter.remote++;
+        }
+      } else if (name === "href" && isLink) {
+        const kind = classifyUrl(value);
+        if (kind !== "remote" && kind !== "mailto" && kind !== "fragment") {
+          element.removeAttribute(attr.name);
+        }
+      } else if (RESOURCE_ATTRIBUTES.has(name)) {
+        const kind = classifyUrl(value);
+        if (kind === "data") continue;
+        element.removeAttribute(attr.name);
+        if (kind === "cid") {
+          element.setAttribute("data-mboxer-cid", value.trim().slice(4));
+        } else if (kind === "remote") {
+          element.setAttribute(`data-mboxer-${name}`, value);
+          counter.remote++;
+        }
+      }
+    }
+  }
+
+  // Puts the held-back remote references of `doc` back.
+  function restoreRemote(doc) {
+    for (const element of doc.querySelectorAll("*")) {
+      for (const name of RESTORE_ATTRIBUTES) {
+        const held = element.getAttribute(`data-mboxer-${name}`);
+        if (held != null) element.setAttribute(name, held);
+      }
+      const style = element.getAttribute("data-mboxer-style");
+      if (style != null) element.setAttribute("style", style);
+      const css = element.getAttribute("data-mboxer-css");
+      if (css != null) element.textContent = css;
+    }
+  }
+
+  // Wraps the occurrences of `terms` in the text of `doc` in <mark>.
+  function highlightDocument(doc, terms) {
+    if (!doc.body || terms.length === 0) return;
+    const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT);
+    const nodes = [];
+    for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+      if (!NO_HIGHLIGHT.has(node.parentNode.localName)) nodes.push(node);
+    }
+    for (const node of nodes) {
+      const parts = highlightFragments(node.data, terms);
+      if (parts) node.replaceWith(...parts);
+    }
+  }
+
+  // The srcdoc of the iframe: a copy of the sanitized document with our CSP,
+  // charset and base style in front, remote references restored on request,
+  // the search words marked.
+  function htmlSrcdoc(sanitized, { allowRemote, terms }) {
+    const doc = document.implementation.createHTMLDocument("");
+    doc.replaceChild(doc.importNode(sanitized.doc.documentElement, true), doc.documentElement);
+    if (allowRemote) restoreRemote(doc);
+    if (sanitized.length <= MAX_HIGHLIGHT_CHARS) highlightDocument(doc, terms);
+    const charset = doc.createElement("meta");
+    charset.setAttribute("charset", "utf-8");
+    const csp = doc.createElement("meta");
+    csp.setAttribute("http-equiv", "Content-Security-Policy");
+    csp.setAttribute(
+      "content",
+      `default-src 'none'; img-src data: blob:${allowRemote ? " https: http:" : ""}; style-src 'unsafe-inline'`,
+    );
+    const style = doc.createElement("style");
+    style.textContent = IFRAME_STYLE;
+    doc.head.prepend(charset, csp, style);
+    return `<!doctype html>${doc.documentElement.outerHTML}`;
   }
 
   // ---------- open flow ----------
@@ -421,14 +624,24 @@
   }
 
   function showWarnings(warnings) {
+    state.warnings = warnings || [];
+    clearTimeout(state.statusTimer);
     el.statusRight.title = "";
-    if (warnings && warnings.length > 0) {
-      el.statusRight.textContent = `Query: ${warnings.join("; ")}`;
+    if (state.warnings.length > 0) {
+      el.statusRight.textContent = `Query: ${state.warnings.join("; ")}`;
       el.statusRight.className = "warn";
     } else {
       el.statusRight.textContent = state.file ? indexStateText(state.file.index) : "";
       el.statusRight.className = "";
     }
+  }
+
+  // Shows `text` in the status bar for a moment, then the usual text again.
+  function flashStatus(text, className = "") {
+    el.statusRight.textContent = text;
+    el.statusRight.className = className;
+    clearTimeout(state.statusTimer);
+    state.statusTimer = setTimeout(() => showWarnings(state.warnings), STATUS_FLASH_MS);
   }
 
   function clearQuery() {
@@ -739,7 +952,10 @@
   }
 
   el.list.addEventListener("scroll", scheduleRender);
-  window.addEventListener("resize", scheduleRender);
+  window.addEventListener("resize", () => {
+    scheduleRender();
+    syncHtmlHeight();
+  });
 
   function visibleRows() {
     return Math.max(1, Math.floor(el.list.clientHeight / ROW_H));
@@ -783,6 +999,7 @@
       if (token !== state.readToken || state.selected !== index) return;
       state.selectedOffset = data.offset;
       state.view = view;
+      resetBodyState();
       renderMessage(view);
     } catch (err) {
       if (token !== state.readToken) return;
@@ -834,10 +1051,20 @@
 
   function clearReader() {
     state.view = null;
+    resetBodyState();
+    if (el.msgHtml.hasAttribute("srcdoc")) el.msgHtml.removeAttribute("srcdoc");
     el.readerContent.hidden = true;
     el.readerEmpty.hidden = false;
     el.readerEmpty.textContent = "Select a message";
     el.reader.scrollTop = 0;
+  }
+
+  // Forgets what belonged to the previous message's body.
+  function resetBodyState() {
+    state.sourceMode = false;
+    state.sanitized = null;
+    state.allowRemote = false;
+    state.source = null;
   }
 
   function headerRow(term, value) {
@@ -860,18 +1087,7 @@
     if (view.messageId) rows.push(...headerRow("Message-Id", view.messageId));
     el.msgHeaders.replaceChildren(...rows);
 
-    el.msgBody.className = "";
-    if (view.body) {
-      if (view.body.kind === "raw") {
-        el.msgBody.textContent = view.body.text;
-        el.msgBody.classList.add("raw");
-      } else {
-        renderHighlighted(el.msgBody, view.body.text, terms);
-        if (view.body.kind === "htmlAsText") el.msgBody.classList.add("html-as-text");
-      }
-    } else {
-      el.msgBody.textContent = "(no text body)";
-    }
+    renderBody(view, { keepScroll: true });
 
     const parts = view.parts.map((part) => {
       const li = document.createElement("li");
@@ -889,6 +1105,193 @@
     el.readerContent.hidden = false;
     if (!keepScroll) el.reader.scrollTop = 0;
   }
+
+  // ---------- body views ----------
+
+  // Which view the body gets: Source when asked for this message, else the
+  // sticky choice, else Text when the message has no HTML.
+  function bodyMode(view) {
+    if (state.sourceMode) return "source";
+    return state.bodyMode === "html" && view.html ? "html" : "text";
+  }
+
+  function renderBody(view, { keepScroll = false } = {}) {
+    const mode = bodyMode(view);
+    el.viewHtml.disabled = !view.html;
+    for (const button of [el.viewHtml, el.viewText, el.viewSource]) {
+      button.setAttribute("aria-pressed", button.dataset.mode === mode ? "true" : "false");
+    }
+    el.remoteBar.hidden = true;
+    el.msgHtml.hidden = mode !== "html";
+    el.msgBody.hidden = mode === "html";
+    el.msgBody.className = "";
+    if (mode === "html") showHtml(view);
+    else if (mode === "source") showSource(view);
+    else showText(view);
+    if (mode !== "html" && el.msgHtml.hasAttribute("srcdoc")) el.msgHtml.removeAttribute("srcdoc");
+    if (!keepScroll) el.reader.scrollTop = 0;
+  }
+
+  function showText(view) {
+    if (!view.body) {
+      el.msgBody.textContent = "(no text body)";
+      return;
+    }
+    if (view.body.kind === "raw") {
+      el.msgBody.textContent = view.body.text;
+      el.msgBody.classList.add("raw");
+      return;
+    }
+    renderHighlighted(el.msgBody, view.body.text, state.highlightTerms);
+    if (view.body.kind === "htmlAsText") el.msgBody.classList.add("html-as-text");
+  }
+
+  function showHtml(view) {
+    if (!state.sanitized || state.sanitized.offset !== view.offset) {
+      const { doc, remote } = sanitizeHtml(view.html);
+      state.sanitized = { offset: view.offset, doc, remote, length: view.html.length };
+    }
+    const sanitized = state.sanitized;
+    el.msgHtml.srcdoc = htmlSrcdoc(sanitized, {
+      allowRemote: state.allowRemote,
+      terms: state.highlightTerms,
+    });
+    if (sanitized.remote > 0 && !state.allowRemote) {
+      el.remoteText.textContent =
+        sanitized.remote === 1
+          ? "1 remote image or style blocked"
+          : `${fmt(sanitized.remote)} remote images or styles blocked`;
+      el.remoteBar.hidden = false;
+    }
+  }
+
+  function showSource(view) {
+    el.msgBody.classList.add("source");
+    if (state.source && state.source.offset === view.offset) {
+      el.msgBody.textContent = state.source.text;
+      return;
+    }
+    el.msgBody.textContent = "Reading the source…";
+    const offset = view.offset;
+    invoke("read_source", { offset, len: view.len })
+      .then((text) => {
+        if (!state.view || state.view.offset !== offset) return;
+        state.source = { offset, text };
+        if (bodyMode(state.view) === "source") el.msgBody.textContent = text;
+      })
+      .catch((err) => {
+        if (!state.view || state.view.offset !== offset) return;
+        el.msgBody.textContent = `Could not read the source: ${err}`;
+      });
+  }
+
+  function setBodyMode(mode) {
+    if (mode === "source") {
+      state.sourceMode = true;
+    } else {
+      state.sourceMode = false;
+      state.bodyMode = mode;
+      storageSet(STORAGE_BODY_MODE, mode);
+    }
+    if (state.view) renderBody(state.view);
+  }
+
+  for (const button of [el.viewHtml, el.viewText, el.viewSource]) {
+    button.addEventListener("click", () => setBodyMode(button.dataset.mode));
+  }
+
+  el.remoteAllow.addEventListener("click", () => {
+    state.allowRemote = true;
+    if (state.view) renderBody(state.view, { keepScroll: true });
+  });
+
+  // The iframe is sized to its content; the sandbox keeps `allow-same-origin`
+  // (and nothing else, so no script runs inside) for exactly this access.
+  function syncHtmlHeight() {
+    const doc = el.msgHtml.contentDocument;
+    if (el.msgHtml.hidden || !doc || !doc.documentElement) return;
+    let height = Math.ceil(doc.documentElement.getBoundingClientRect().height);
+    if (doc.body) height = Math.max(height, doc.body.scrollHeight);
+    if (doc.documentElement.scrollWidth > el.msgHtml.clientWidth) height += 20; // the horizontal scrollbar
+    el.msgHtml.style.height = `${Math.max(40, height)}px`;
+  }
+
+  el.msgHtml.addEventListener("load", () => {
+    const doc = el.msgHtml.contentDocument;
+    if (!doc) return;
+    syncHtmlHeight();
+    for (const img of doc.images) img.addEventListener("load", syncHtmlHeight);
+    doc.addEventListener("click", onFrameClick);
+    doc.addEventListener("auxclick", onFrameClick);
+    doc.addEventListener("keydown", onFrameKeydown);
+  });
+
+  // Links leave through the backend to the system browser; the sandbox would
+  // otherwise navigate the frame itself (and the shell's CSP would stop it).
+  function onFrameClick(event) {
+    const anchor = event.target && event.target.closest ? event.target.closest("a[href]") : null;
+    if (!anchor) return;
+    const href = anchor.getAttribute("href") || "";
+    if (href.trim().startsWith("#")) return;
+    event.preventDefault();
+    if (event.type === "auxclick" && event.button !== 1) return;
+    invoke("open_url", { url: href }).catch((err) => {
+      flashStatus(`Could not open the link: ${err}`, "error");
+    });
+  }
+
+  function onFrameKeydown(event) {
+    if (event.key === "Escape" || event.key === "ArrowLeft") {
+      el.list.focus();
+      event.preventDefault();
+      return;
+    }
+    globalShortcut(event);
+  }
+
+  async function copyBody() {
+    const view = state.view;
+    if (!view) return;
+    const mode = bodyMode(view);
+    let text = "";
+    if (mode === "html") {
+      const doc = el.msgHtml.contentDocument;
+      text = doc && doc.body ? doc.body.innerText : "";
+    } else if (mode === "source") {
+      text = state.source && state.source.offset === view.offset ? state.source.text : "";
+    } else {
+      text = view.body ? view.body.text : "";
+    }
+    try {
+      await writeClipboard(text);
+      flashStatus("Copied");
+    } catch (err) {
+      flashStatus(`Copy failed: ${err}`, "error");
+    }
+  }
+
+  async function writeClipboard(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      try {
+        await navigator.clipboard.writeText(text);
+        return;
+      } catch (_) {
+        /* fall back to the selection command */
+      }
+    }
+    const area = document.createElement("textarea");
+    area.value = text;
+    area.setAttribute("readonly", "");
+    area.style.position = "fixed";
+    area.style.opacity = "0";
+    document.body.appendChild(area);
+    area.select();
+    const ok = document.execCommand("copy");
+    area.remove();
+    if (!ok) throw new Error("the clipboard is not available");
+  }
+
+  el.copyBtn.addEventListener("click", copyBody);
 
   el.reader.addEventListener("keydown", (event) => {
     if (event.key === "Escape" || event.key === "ArrowLeft") {
@@ -930,6 +1333,7 @@
       const width = Math.max(120, Math.min(600, startWidth + event.clientX - startX));
       el.panes.style.setProperty(`--w-${target}`, `${width}px`);
       scheduleRender();
+      syncHtmlHeight();
     });
     splitter.addEventListener("pointerup", (event) => {
       if (!splitter.hasPointerCapture(event.pointerId)) return;
@@ -956,7 +1360,8 @@
     });
   });
 
-  document.addEventListener("keydown", (event) => {
+  // Ctrl+O / Ctrl+F / Ctrl+K / Ctrl+Shift+F, from the document or the body iframe.
+  function globalShortcut(event) {
     if (!(event.ctrlKey || event.metaKey)) return;
     const key = event.key.toLowerCase();
     if (key === "o") {
@@ -972,11 +1377,14 @@
         el.search.select();
       }
     }
-  });
+  }
+
+  document.addEventListener("keydown", globalShortcut);
 
   async function start() {
     loadWidths();
     setFiltersOpen(storageGet(STORAGE_FILTERS_OPEN) === "1");
+    if (storageGet(STORAGE_BODY_MODE) === "text") state.bodyMode = "text";
     state.lastPath = storageGet(STORAGE_LAST_PATH);
     if (state.lastPath) {
       const name = state.lastPath.split(/[\\/]/).pop();

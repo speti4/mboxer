@@ -32,6 +32,9 @@ tauri = { version = "2", features = [] }
 tauri-build = { version = "2", features = [] }
 # The native Windows open-file dialog, called from Rust (`blocking_pick_file`) — see task 005.
 tauri-plugin-dialog = "2"
+# Links in a message body open in the system's default browser / mail client (`open_url`, called
+# from Rust, so no capability entry); task 008 opens attachments with `open_path` — see task 007.
+tauri-plugin-opener = "2"
 
 [profile.release]
 lto = "thin"

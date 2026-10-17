@@ -1,0 +1,41 @@
+From 111222333@xxx Thu Jan 15 08:00:00 +0000 2026
+X-GM-THRID: 111222333444555666
+X-Gmail-Labels: Inbox,Opened
+Message-ID: <remote1@mail.example.com>
+Date: Thu, 15 Jan 2026 09:00:00 +0100
+From: "Webshop" <hirlevel@example.com>
+To: peter@example.com
+Subject: =?UTF-8?Q?Sz=C3=A1mla_k=C3=A9pekkel?=
+MIME-Version: 1.0
+Content-Type: multipart/alternative; boundary="alt-remote"
+
+--alt-remote
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+
+Kedves Béla,
+
+>From a szerverről jött a számla.
+>>From kétszer idézve.
+From Anna wrote: nem envelope.
+Üdv
+--alt-remote
+Content-Type: text/html; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+
+<html><head><meta http-equiv="refresh" content="0;url=https://example.com/go"><base href="https://example.com/"><title>Számla</title><style>@import url(https://example.com/x.css); .a{background:url(https://example.com/bg.png)} .b{color:#1f5ea0}</style></head><body onload="alert(1)"><p class="b">Kedves <b>Béla</b>, a <span class="a">számla</span> mellékelve.</p><img src="https://example.com/t.gif" width="1" height="1" alt=""><img src="cid:logo" alt="logo"><div style="background:url(https://example.com/d.png);color:blue;padding:4px">Ajánlat a gépre</div><p><a href="javascript:alert(1)">ne kattints</a> <a href="https://example.com/x" target="_blank">részletek</a> <a href="mailto:anna@example.com">írj</a> <a href="#top">fel</a></p><form action="https://example.com/post"><input name="q"><button onclick="x()">Küld</button></form><script>document.write("x")</script></body></html>
+--alt-remote--
+
+From 999888777@xxx Fri Jan 16 08:00:00 +0000 2026
+X-GM-THRID: 999888777666555444
+X-Gmail-Labels: Inbox
+Message-ID: <remote2@mail.example.com>
+Date: Fri, 16 Jan 2026 09:00:00 +0100
+From: "Portal" <portal@example.com>
+To: peter@example.com
+Subject: HTML only frame
+MIME-Version: 1.0
+Content-Type: text/html; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+
+<html><head><base href="https://example.com/"></head><body><p>Nézd meg a <a href="/relative">relatív linket</a>.</p><iframe src="https://example.com/frame"></iframe><object data="https://example.com/o.swf"></object></body></html>

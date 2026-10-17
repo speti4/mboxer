@@ -1,13 +1,15 @@
 //! Turns one message of the mbox into the reader pane's [`MessageView`].
 //!
-//! Task 005 shows headers plus a plain-text body; task 007 replaces the body
-//! block with a sanitized HTML rendering in a sandboxed iframe.
+//! The view carries both the text of the body (the plain part, else the HTML
+//! reduced to text) and the first HTML part as written; the webview sanitizes
+//! the HTML and renders it in a sandboxed iframe (task 007).
 
 use std::path::Path;
 
 use mboxer_core::mail_parser::Message;
 use mboxer_core::{
-    RawMessage, TextKind, html_to_plain_text, parse, part_tree, read_at, summarize, text_parts,
+    RawMessage, TextKind, TextPart, html_to_plain_text, parse, part_tree, read_at, summarize,
+    text_parts,
 };
 
 use crate::types::{BodyKind, BodyView, MessageView};
@@ -30,6 +32,7 @@ pub fn message_view(raw: &RawMessage, message: &Message<'_>) -> MessageView {
             .map(mboxer_core::Mailbox::display)
             .collect::<Vec<_>>()
     };
+    let parts = text_parts(message);
     MessageView {
         offset: raw.offset,
         len: raw.len,
@@ -40,27 +43,44 @@ pub fn message_view(raw: &RawMessage, message: &Message<'_>) -> MessageView {
         subject: summary.subject,
         labels: summary.labels,
         message_id: summary.message_id,
-        body: body_view(message),
+        body: body_view(&parts),
+        html: html_part(&parts).map(|html| html.text.clone()),
         parts: part_tree(message).into_iter().map(Into::into).collect(),
     }
 }
 
 /// The first plain part, else the text of the first HTML part, else nothing.
-fn body_view(message: &Message<'_>) -> Option<BodyView> {
-    let parts = text_parts(message);
+fn body_view(parts: &[TextPart]) -> Option<BodyView> {
     if let Some(plain) = parts.iter().find(|part| part.kind == TextKind::Plain) {
         return Some(BodyView {
             kind: BodyKind::Plain,
-            text: plain.text.clone(),
+            text: unescape_from_lines(&plain.text),
         });
     }
-    parts
-        .iter()
-        .find(|part| part.kind == TextKind::Html)
-        .map(|html| BodyView {
-            kind: BodyKind::HtmlAsText,
-            text: html_to_plain_text(&html.text),
+    html_part(parts).map(|html| BodyView {
+        kind: BodyKind::HtmlAsText,
+        text: html_to_plain_text(&html.text),
+    })
+}
+
+fn html_part(parts: &[TextPart]) -> Option<&TextPart> {
+    parts.iter().find(|part| part.kind == TextKind::Html)
+}
+
+/// Undoes the mboxrd quoting of a body for display: one `>` comes off every
+/// line that is `>`s followed by `From `. The bytes in the file stay as written
+/// (D-03): mboxo and mboxrd cannot be told apart, so this is a display choice.
+pub fn unescape_from_lines(text: &str) -> String {
+    text.split_inclusive('\n')
+        .map(|line| {
+            let quoted = line.len() - line.trim_start_matches('>').len();
+            if quoted > 0 && line[quoted..].starts_with("From ") {
+                &line[1..]
+            } else {
+                line
+            }
         })
+        .collect()
 }
 
 /// A message `mail-parser` could not parse: identity plus its raw bytes.
@@ -79,6 +99,7 @@ fn raw_view(raw: &RawMessage) -> MessageView {
             kind: BodyKind::Raw,
             text: String::from_utf8_lossy(&raw.bytes).into_owned(),
         }),
+        html: None,
         parts: Vec::new(),
     }
 }
@@ -116,6 +137,14 @@ mod tests {
         let body = view.body.expect("plain body");
         assert_eq!(body.kind, BodyKind::Plain);
         assert!(body.text.contains("Kedves Béla"), "{}", body.text);
+        // The fixture's `>From a könyvelés` line is shown unquoted (task 013).
+        assert!(body.text.contains("\nFrom a könyvelés"), "{}", body.text);
+        assert!(!body.text.contains(">From"), "{}", body.text);
+        let html = view.html.expect("the alternative HTML part travels too");
+        assert!(
+            html.contains("<p>Kedves Béla, a számla mellékelve.</p>"),
+            "{html}"
+        );
         let message = parse(&raw).unwrap();
         assert_eq!(view.parts.len(), part_tree(&message).len());
         assert!(view.parts.len() > 1, "a nested MIME tree");
@@ -130,6 +159,44 @@ mod tests {
         assert_eq!(body.kind, BodyKind::HtmlAsText);
         assert!(!body.text.contains('<'), "{}", body.text);
         assert!(!body.text.trim().is_empty());
+        // The HTML goes to the webview as written; sanitizing is its job.
+        let html = view.html.expect("html part");
+        assert!(html.contains("<script>"), "{html}");
+    }
+
+    #[test]
+    fn mboxrd_quoting_comes_off_for_display_only() {
+        let text = ">From one\r\n>>From two\nFrom plain\n>Frome not\n> From spaced\n>From";
+        assert_eq!(
+            unescape_from_lines(text),
+            "From one\r\n>From two\nFrom plain\n>Frome not\n> From spaced\n>From"
+        );
+        assert_eq!(unescape_from_lines(""), "");
+        assert_eq!(unescape_from_lines(">From tail"), "From tail");
+    }
+
+    #[test]
+    fn remote_fixture_carries_its_html_and_unquoted_text() {
+        let path = fixture("html-remote.mbox");
+        let views: Vec<MessageView> = MboxReader::open(&path)
+            .unwrap()
+            .map(|item| {
+                let raw = item.unwrap();
+                read_message_view(&path, raw.offset, raw.len).unwrap()
+            })
+            .collect();
+        assert_eq!(views.len(), 2);
+        let first = &views[0];
+        let body = first.body.as_ref().expect("plain body");
+        assert_eq!(body.kind, BodyKind::Plain);
+        assert!(body.text.contains("\nFrom a szerverről"), "{}", body.text);
+        assert!(body.text.contains("\n>From kétszer"), "{}", body.text);
+        let html = first.html.as_deref().expect("html part");
+        assert!(html.contains("https://example.com/t.gif"), "{html}");
+        assert!(html.contains("<script>"), "{html}");
+        let second = &views[1];
+        assert_eq!(second.body.as_ref().unwrap().kind, BodyKind::HtmlAsText);
+        assert!(second.html.as_deref().unwrap().contains("<iframe"));
     }
 
     #[test]

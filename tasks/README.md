@@ -11,7 +11,7 @@ Closing a task files every follow-up as a `backlog/` item now or deletes it with
 <!-- tasks:index:start -->
 _Generated 2026-10-17 — edit the files, not this section._
 
-**State:** 8 backlog (2 ready · 0 blocked · 0 waiting · 6 ideas) · 0 in progress · 6 done · 0 dropped · 4 decisions
+**State:** 6 backlog (1 ready · 0 blocked · 0 waiting · 5 ideas) · 0 in progress · 8 done · 0 dropped · 4 decisions
 
 ### Ready
 
@@ -19,7 +19,6 @@ _Generated 2026-10-17 — edit the files, not this section._
 
 | # | Task | Size | Created |
 |---|---|---|---|
-| 007 | [Message reader with sanitized HTML](backlog/007-message-reader-sanitized-html.md) | M | 2026-10-17 |
 | 008 | [Attachments: list, open, save](backlog/008-attachments-list-open-save.md) | M | 2026-10-17 |
 
 ### Needs decision
@@ -31,12 +30,6 @@ _none_
 _none_
 
 ### Ideas
-
-#### M2 Viewer MVP
-
-| # | Task | Size | Created |
-|---|---|---|---|
-| 013 | [Unescape >From  lines in message bodies for display](backlog/013-unescape-from-lines-in-message-bodies.md) | S | 2026-10-17 |
 
 #### M3 Comfort
 
@@ -60,6 +53,8 @@ _none_
 
 | # | Task | Closed |
 |---|---|---|
+| 013 | [Unescape >From  lines in message bodies for display](done/013-unescape-from-lines-in-message-bodies.md) | 2026-10-17 |
+| 007 | [Message reader with sanitized HTML](done/007-message-reader-sanitized-html.md) | 2026-10-17 |
 | 006 | [Search field and filter panel](done/006-search-field-and-filter-panel.md) | 2026-10-17 |
 | 005 | [Tauri 2 shell with the three-pane layout](done/005-tauri2-shell-three-pane-layout.md) | 2026-10-17 |
 | 004 | [Index CLI filters and the 14 GB benchmark](done/004-index-cli-and-14gb-benchmark.md) | 2026-10-17 |

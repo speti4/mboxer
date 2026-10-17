@@ -15,6 +15,7 @@ pub mod view;
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_opener::init())
         .manage(state::AppState::default())
         .invoke_handler(tauri::generate_handler![
             commands::initial_path,
@@ -23,7 +24,9 @@ pub fn run() {
             commands::set_query,
             commands::list_rows,
             commands::read_message,
+            commands::read_source,
             commands::position_of,
+            commands::open_url,
         ])
         .run(tauri::generate_context!())
         .expect("error while running the mboxer window");
