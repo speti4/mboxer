@@ -19,7 +19,7 @@ use tantivy::{
 };
 
 use crate::error::Result;
-use crate::index::fingerprint::{IndexMeta, IndexStatus, StaleReason, index_dir, status};
+use crate::index::fingerprint::{IndexMeta, IndexStatus, StaleReason, default_index_home, resolve};
 use crate::index::schema::{Fields, fold_analyzer, register_tokenizer};
 
 /// How many dictionary terms the word being typed may expand to; the terms
@@ -216,14 +216,20 @@ pub struct SearchResult {
 }
 
 impl MboxIndex {
-    /// Opens the sidecar of `mbox` when it exists and matches the file.
+    /// Opens the index of `mbox` — beside the mbox or under the default index
+    /// home — when it exists and matches the file.
     pub fn open(mbox: &Path) -> Result<Opened> {
-        let meta = match status(mbox)? {
+        Self::open_in(mbox, &default_index_home())
+    }
+
+    /// [`MboxIndex::open`] with an explicit index home.
+    pub fn open_in(mbox: &Path, home: &Path) -> Result<Opened> {
+        let (dir, status) = resolve(mbox, home)?;
+        let meta = match status {
             IndexStatus::Missing => return Ok(Opened::Missing),
             IndexStatus::Stale(reason) => return Ok(Opened::Stale(reason)),
             IndexStatus::Fresh(meta) => meta,
         };
-        let dir = index_dir(mbox);
         let index = Index::open_in_dir(&dir)?;
         register_tokenizer(&index);
         let fields = Fields::from_schema(&index.schema())?;

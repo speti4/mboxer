@@ -1,10 +1,15 @@
 //! Where the sidecar lives and whether it still matches the mbox.
 //!
 //! The index of `<dir>/<name>.mbox` is the directory `<dir>/.mboxer/<name>.mbox/`.
-//! Its `mboxer.json` records the index format version and a fingerprint of the
-//! mbox: size, modification time and a hash over a few sampled regions. Any
-//! mismatch makes the index stale; the caller rebuilds it from scratch.
+//! When that directory cannot be created (a read-only share, a DVD, a denied
+//! folder) the index lives under the index home instead —
+//! `%LOCALAPPDATA%\mboxer\index\<name>.mbox-<path hash>\` — and [`status`]
+//! looks in both places (task 014, D-05). Its `mboxer.json` records the index
+//! format version and a fingerprint of the mbox: size, modification time and a
+//! hash over a few sampled regions. Any mismatch makes the index stale; the
+//! caller rebuilds it from scratch.
 
+use std::ffi::OsString;
 use std::fs::{self, File};
 use std::io::{self, Read, Seek, SeekFrom};
 use std::path::{Path, PathBuf};
@@ -29,14 +34,46 @@ const TAIL_BYTES: u64 = 1 << 20;
 const SAMPLE_BLOCKS: u64 = 16;
 const SAMPLE_BLOCK_BYTES: u64 = 64 << 10;
 
+/// Environment variable that overrides the index home (see [`default_index_home`]).
+pub const INDEX_HOME_ENV: &str = "MBOXER_INDEX_HOME";
+
 /// The index directory for `mbox`: `<parent>/.mboxer/<file name>/`.
 pub fn index_dir(mbox: &Path) -> PathBuf {
     let parent = mbox.parent().unwrap_or_else(|| Path::new("."));
-    let name = mbox
-        .file_name()
+    parent.join(SIDECAR_DIR).join(file_name(mbox))
+}
+
+/// The root of the fallback indexes: `$MBOXER_INDEX_HOME`, else
+/// `%LOCALAPPDATA%\mboxer\index`, else `<temp>/mboxer/index`.
+pub fn default_index_home() -> PathBuf {
+    let set = |name: &str| std::env::var_os(name).filter(|value| !value.is_empty());
+    if let Some(home) = set(INDEX_HOME_ENV) {
+        return PathBuf::from(home);
+    }
+    if let Some(local) = set("LOCALAPPDATA") {
+        return PathBuf::from(local).join("mboxer").join("index");
+    }
+    std::env::temp_dir().join("mboxer").join("index")
+}
+
+/// The fallback index directory of `mbox` under `home`:
+/// `<home>/<file name>-<16 hex>/`, the hex being FNV-1a 64 over the canonical
+/// absolute path. One location maps to one directory, so a new export dropped
+/// at the same place replaces its index instead of leaving an orphan.
+pub fn fallback_dir(mbox: &Path, home: &Path) -> PathBuf {
+    let canonical = fs::canonicalize(mbox)
+        .or_else(|_| std::path::absolute(mbox))
+        .unwrap_or_else(|_| mbox.to_path_buf());
+    let hash = fnv1a64(FNV_OFFSET, canonical.to_string_lossy().as_bytes());
+    let mut name = file_name(mbox);
+    name.push(format!("-{hash:016x}"));
+    home.join(name)
+}
+
+fn file_name(mbox: &Path) -> OsString {
+    mbox.file_name()
         .map(|n| n.to_os_string())
-        .unwrap_or_else(|| "mbox".into());
-    parent.join(SIDECAR_DIR).join(name)
+        .unwrap_or_else(|| "mbox".into())
 }
 
 /// What identifies the mbox content the index was built from.
@@ -184,13 +221,41 @@ pub enum IndexStatus {
     Fresh(IndexMeta),
 }
 
-/// Checks the sidecar of `mbox` without opening the index itself.
+/// Checks the index of `mbox` — beside the mbox or under the default index
+/// home — without opening it.
 pub fn status(mbox: &Path) -> Result<IndexStatus> {
-    let dir = index_dir(mbox);
+    status_in(mbox, &default_index_home())
+}
+
+/// [`status`] with an explicit index home.
+pub fn status_in(mbox: &Path, home: &Path) -> Result<IndexStatus> {
+    resolve(mbox, home).map(|(_, status)| status)
+}
+
+/// Where the index of `mbox` is, and its state. The directory beside the mbox
+/// wins when it holds a fresh index, then a fresh fallback; a stale index is
+/// reported from the primary location first; `Missing` names the primary.
+pub(crate) fn resolve(mbox: &Path, home: &Path) -> Result<(PathBuf, IndexStatus)> {
+    let primary = index_dir(mbox);
+    let primary_status = match status_of(&primary, mbox)? {
+        fresh @ IndexStatus::Fresh(_) => return Ok((primary, fresh)),
+        other => other,
+    };
+    let fallback = fallback_dir(mbox, home);
+    Ok(match (primary_status, status_of(&fallback, mbox)?) {
+        (_, fresh @ IndexStatus::Fresh(_)) => (fallback, fresh),
+        (stale @ IndexStatus::Stale(_), _) => (primary, stale),
+        (_, stale @ IndexStatus::Stale(_)) => (fallback, stale),
+        _ => (primary, IndexStatus::Missing),
+    })
+}
+
+/// The state of the index directory `dir` against `mbox`.
+fn status_of(dir: &Path, mbox: &Path) -> Result<IndexStatus> {
     if !dir.join(META_FILE).is_file() {
         return Ok(IndexStatus::Missing);
     }
-    let meta = match IndexMeta::read(&dir) {
+    let meta = match IndexMeta::read(dir) {
         Ok(meta) => meta,
         Err(Error::Json(err)) => {
             return Ok(IndexStatus::Stale(StaleReason::Unreadable(err.to_string())));
@@ -259,5 +324,19 @@ mod tests {
     fn index_dir_is_a_sidecar_folder_next_to_the_mbox() {
         let dir = index_dir(Path::new("D:/mail/All mail.mbox"));
         assert_eq!(dir, Path::new("D:/mail/.mboxer/All mail.mbox"));
+    }
+
+    #[test]
+    fn fallback_dir_is_keyed_by_the_mbox_path() {
+        let home = Path::new("C:/Users/x/AppData/Local/mboxer/index");
+        let a = fallback_dir(Path::new("D:/mail/All mail.mbox"), home);
+        let again = fallback_dir(Path::new("D:/mail/All mail.mbox"), home);
+        let b = fallback_dir(Path::new("E:/other/All mail.mbox"), home);
+        assert_eq!(a, again);
+        assert_ne!(a, b);
+        assert_eq!(a.parent(), Some(home));
+        let name = a.file_name().unwrap().to_string_lossy().into_owned();
+        assert!(name.starts_with("All mail.mbox-"), "{name}");
+        assert_eq!(name.len(), "All mail.mbox-".len() + 16, "{name}");
     }
 }

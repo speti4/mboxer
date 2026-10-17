@@ -31,6 +31,7 @@ enum Command {
     /// Walk an mbox once: count messages, report throughput, show a sample.
     Scan(ScanArgs),
     /// Build the sidecar full-text index next to an mbox (skipped when it is up to date).
+    #[command(after_help = INDEX_HELP)]
     Index(IndexArgs),
     /// Search an indexed mbox.
     Search(SearchArgs),
@@ -50,6 +51,10 @@ struct ScanArgs {
     #[arg(long)]
     quiet: bool,
 }
+
+const INDEX_HELP: &str = "The index goes to .mboxer\\<file name>\\ next to the mbox. When that folder is not \
+writable (a read-only share, a DVD), it goes under %LOCALAPPDATA%\\mboxer\\index\\ instead, or under \
+MBOXER_INDEX_HOME when that variable is set; `search` looks in both places.";
 
 #[derive(Args)]
 struct IndexArgs {
@@ -278,7 +283,16 @@ fn index(args: &IndexArgs) -> Result<(), Box<dyn Error>> {
         eprintln!();
     }
     writeln!(out, "file:              {}", args.mbox.display())?;
-    writeln!(out, "index:             {}", report.index_dir.display())?;
+    writeln!(
+        out,
+        "index:             {}{}",
+        report.index_dir.display(),
+        if report.fallback {
+            " (fallback: the mbox folder is not writable)"
+        } else {
+            ""
+        }
+    )?;
     writeln!(out, "messages:          {}", report.messages)?;
     writeln!(out, "parse failures:    {}", report.parse_failures)?;
     writeln!(

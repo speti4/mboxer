@@ -666,6 +666,7 @@
       el.statusRight.className = "warn";
     } else {
       el.statusRight.textContent = state.file ? indexStateText(state.file.index) : "";
+      el.statusRight.title = state.file ? `index: ${state.file.indexDir}` : "";
       el.statusRight.className = "";
     }
   }

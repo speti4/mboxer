@@ -1,4 +1,5 @@
-//! The sidecar full-text index: one tantivy index per mbox, stored next to it.
+//! The sidecar full-text index: one tantivy index per mbox, stored next to it
+//! (or under the index home when the mbox folder is not writable).
 //!
 //! Layout and freshness live in [`fingerprint`], the field set and the
 //! accent-folding tokenizer in [`schema`], the one-pass build in [`build`] and
@@ -13,8 +14,8 @@ pub mod search;
 
 pub use build::{BuildOptions, BuildReport, Progress, build};
 pub use fingerprint::{
-    FORMAT_VERSION, Fingerprint, IndexMeta, IndexStatus, META_FILE, StaleReason, fingerprint,
-    index_dir, status,
+    FORMAT_VERSION, Fingerprint, INDEX_HOME_ENV, IndexMeta, IndexStatus, META_FILE, StaleReason,
+    default_index_home, fallback_dir, fingerprint, index_dir, status, status_in,
 };
 pub use listing::{ListRow, Listing, RowKind};
 pub use schema::TOKENIZER;

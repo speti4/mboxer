@@ -4,7 +4,10 @@
 //! renamed into place only after the commit and the metadata file succeed, so
 //! a crash or a cancel never leaves a half index that looks fresh. Every
 //! tantivy handle is dropped before the directory is removed or renamed:
-//! Windows refuses both while a file is memory-mapped.
+//! Windows refuses both while a file is memory-mapped. When the `.building`
+//! directory cannot be created beside the mbox, the build goes to the index
+//! home instead (task 014, D-05) and the other location is cleared, so one
+//! index exists per mbox.
 
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -15,7 +18,9 @@ use mail_parser::Message;
 use tantivy::{Index, IndexWriter, TantivyDocument};
 
 use crate::error::{Error, Result};
-use crate::index::fingerprint::{FORMAT_VERSION, IndexMeta, fingerprint, index_dir};
+use crate::index::fingerprint::{
+    FORMAT_VERSION, IndexMeta, default_index_home, fallback_dir, fingerprint, index_dir,
+};
 use crate::index::schema::{Fields, build_schema, register_tokenizer};
 use crate::message::{
     Mailbox, MessageSummary, TextKind, html_to_plain_text, parse, summarize, text_parts,
@@ -33,6 +38,8 @@ pub struct BuildOptions {
     pub max_message_bytes: u64,
     /// Body text beyond this many bytes is not indexed.
     pub max_body_bytes: usize,
+    /// Root of the fallback indexes; `None` means [`default_index_home`].
+    pub home: Option<PathBuf>,
 }
 
 impl Default for BuildOptions {
@@ -43,6 +50,7 @@ impl Default for BuildOptions {
             memory_per_thread_bytes: 128 << 20,
             max_message_bytes: DEFAULT_MAX_MESSAGE_BYTES,
             max_body_bytes: 4 << 20,
+            home: None,
         }
     }
 }
@@ -64,6 +72,9 @@ pub struct BuildReport {
     /// Size of the index directory on disk.
     pub index_bytes: u64,
     pub index_dir: PathBuf,
+    /// The index went under the index home because `.mboxer/` beside the mbox
+    /// could not be created.
+    pub fallback: bool,
 }
 
 const PROGRESS_EVERY_BYTES: u64 = 16 << 20;
@@ -79,12 +90,18 @@ pub fn build(
     cancel: &AtomicBool,
 ) -> Result<BuildReport> {
     let start = Instant::now();
-    let final_dir = index_dir(mbox);
-    let building = building_dir(&final_dir);
     let mbox_fingerprint = fingerprint(mbox)?;
-
-    remove_dir_if_present(&building)?;
-    fs::create_dir_all(&building)?;
+    let home = options.home.clone().unwrap_or_else(default_index_home);
+    let primary = index_dir(mbox);
+    let (final_dir, fallback) = match prepare_building_dir(&primary) {
+        Ok(()) => (primary, false),
+        Err(_) => {
+            let dir = fallback_dir(mbox, &home);
+            prepare_building_dir(&dir)?;
+            (dir, true)
+        }
+    };
+    let building = building_dir(&final_dir);
     let outcome = index_into(mbox, &building, options, progress, cancel);
     let counts = match outcome {
         Ok(counts) => counts,
@@ -108,6 +125,13 @@ pub fn build(
     meta.write(&building)?;
     remove_dir_if_present(&final_dir)?;
     fs::rename(&building, &final_dir)?;
+    // One index per mbox: the location not used this time goes, when it can.
+    let other = if fallback {
+        index_dir(mbox)
+    } else {
+        fallback_dir(mbox, &home)
+    };
+    let _ = remove_dir_if_present(&other);
 
     Ok(BuildReport {
         messages: counts.messages,
@@ -115,7 +139,17 @@ pub fn build(
         elapsed: start.elapsed(),
         index_bytes: dir_size(&final_dir)?,
         index_dir: final_dir,
+        fallback,
     })
+}
+
+/// Creates an empty `.building` sibling of `final_dir`; an `Err` means the
+/// location cannot take an index.
+fn prepare_building_dir(final_dir: &Path) -> Result<()> {
+    let building = building_dir(final_dir);
+    remove_dir_if_present(&building)?;
+    fs::create_dir_all(&building)?;
+    Ok(())
 }
 
 fn building_dir(final_dir: &Path) -> PathBuf {

@@ -42,6 +42,9 @@ pub struct OpenSummary {
     /// The label tree of the folder pane, in display order.
     pub labels: Vec<LabelNode>,
     pub index: IndexState,
+    /// Where the index lives: beside the mbox, or under the index home when
+    /// the mbox folder is not writable (task 014).
+    pub index_dir: String,
     /// Identifies the current listing; rows of an older generation are stale.
     pub generation: u64,
     /// Rows in the current listing (every conversation right after an open).

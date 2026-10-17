@@ -19,8 +19,9 @@ pub use mail_parser;
 pub use envelope::is_envelope;
 pub use error::{Error, Result};
 pub use index::{
-    BuildOptions, BuildReport, Hit, IndexMeta, IndexStatus, ListRow, Listing, MboxIndex, Opened,
-    Progress, RowKind, SearchQuery, SearchResult, Sort, StaleReason, build, index_dir, status,
+    BuildOptions, BuildReport, Hit, INDEX_HOME_ENV, IndexMeta, IndexStatus, ListRow, Listing,
+    MboxIndex, Opened, Progress, RowKind, SearchQuery, SearchResult, Sort, StaleReason, build,
+    default_index_home, fallback_dir, index_dir, status, status_in,
 };
 pub use message::{
     Attachment, Mailbox, MessageSummary, PartInfo, PartRef, TextKind, TextPart, attachments,

@@ -30,6 +30,15 @@ fn mboxer(args: &[&str]) -> Output {
         .expect("mboxer-cli runs")
 }
 
+/// Runs `mboxer-cli` with the index home set to `home`.
+fn mboxer_with_home(args: &[&str], home: &Path) -> Output {
+    Command::new(env!("CARGO_BIN_EXE_mboxer-cli"))
+        .args(args)
+        .env("MBOXER_INDEX_HOME", home)
+        .output()
+        .expect("mboxer-cli runs")
+}
+
 fn stdout(output: &Output) -> String {
     String::from_utf8_lossy(&output.stdout).into_owned()
 }
@@ -63,6 +72,36 @@ fn search(mbox: &Path, args: &[&str]) -> String {
 
 fn hits(mbox: &Path, args: &[&str]) -> String {
     field(&search(mbox, args), "hits:").to_owned()
+}
+
+#[test]
+fn a_blocked_mbox_folder_indexes_into_the_home_and_search_finds_it() {
+    let (dir, mbox) = copy_fixture();
+    let home = tempfile::tempdir().unwrap();
+    // A file named `.mboxer` blocks the sidecar folder, like a read-only share would.
+    fs::write(dir.path().join(".mboxer"), b"blocked").unwrap();
+
+    let output = mboxer_with_home(&["index", mbox.to_str().unwrap(), "--quiet"], home.path());
+    assert!(output.status.success(), "{output:?}");
+    let text = stdout(&output);
+    let index_line = field(&text, "index:");
+    assert!(
+        index_line.ends_with("(fallback: the mbox folder is not writable)"),
+        "{index_line}"
+    );
+    assert!(
+        Path::new(index_line.split(" (fallback").next().unwrap()).starts_with(home.path()),
+        "{index_line}"
+    );
+    assert_eq!(field(&text, "messages:"), "2");
+
+    let output = mboxer_with_home(&["search", mbox.to_str().unwrap(), "számla"], home.path());
+    assert!(output.status.success(), "{output:?}");
+    assert_eq!(field(&stdout(&output), "hits:"), "1");
+
+    // Without the home the index is not found.
+    let output = mboxer(&["search", mbox.to_str().unwrap(), "számla"]);
+    assert_eq!(output.status.code(), Some(1), "{output:?}");
 }
 
 #[test]

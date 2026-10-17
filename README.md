@@ -101,7 +101,9 @@ bundler, no Tauri CLI needed; a change under `crates/mboxer-app/ui/` takes effec
 first messages, then a summary (message count, throughput, largest message, labels, parse failures).
 
 `index` builds the sidecar full-text index in `.mboxer\<file name>\` next to the mbox (a cache:
-delete it any time) and skips the build when the index already matches the file. `search` needs
+delete it any time) and skips the build when the index already matches the file. When that folder
+is not writable (a read-only share, a DVD), the index goes under `%LOCALAPPDATA%\mboxer\index\`
+(`MBOXER_INDEX_HOME` overrides the root), and every open looks in both places. `search` needs
 that index: query words are AND-ed, `"quotes"` make a phrase, accents and case are folded on
 both sides (`szamla` finds `Számla`), the filters narrow the result, and every hit line carries
 the message's byte offset and length in the mbox. Dates are UTC days; `--before` is exclusive.

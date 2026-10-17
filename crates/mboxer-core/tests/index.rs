@@ -10,7 +10,7 @@ use std::sync::atomic::AtomicBool;
 use mboxer_core::index::fingerprint::{FORMAT_VERSION, META_FILE};
 use mboxer_core::{
     BuildOptions, Error, Hit, IndexStatus, ListRow, Listing, MboxIndex, Opened, RowKind,
-    SearchQuery, Sort, StaleReason, build, index_dir, read_at, status,
+    SearchQuery, Sort, StaleReason, build, fallback_dir, index_dir, read_at, status, status_in,
 };
 use tempfile::TempDir;
 
@@ -390,6 +390,126 @@ fn freshness_follows_the_mbox_and_the_format() {
         reopened.search(&SearchQuery::text("számla")).unwrap().total,
         1
     );
+}
+
+/// Builds with the fallback root set to `home`, one thread.
+fn build_with_home(mbox: &Path, home: &Path) -> mboxer_core::Result<mboxer_core::BuildReport> {
+    build(
+        mbox,
+        &BuildOptions {
+            threads: 1,
+            memory_per_thread_bytes: 20 << 20,
+            home: Some(home.to_path_buf()),
+            ..BuildOptions::default()
+        },
+        |_| {},
+        &AtomicBool::new(false),
+    )
+}
+
+/// A file named `.mboxer` beside the mbox: `.mboxer/<name>.building` cannot
+/// be created, which is what a read-only share or a denied folder looks like
+/// to the build (the Windows read-only folder attribute does not block it).
+fn block_sidecar(mbox: &Path) {
+    fs::write(mbox.parent().unwrap().join(".mboxer"), b"not a directory").unwrap();
+}
+
+#[test]
+fn a_blocked_sidecar_falls_back_to_the_index_home() {
+    let (_dir, mbox) = copy_fixture("gmail-crlf.mbox");
+    let home = tempfile::tempdir().unwrap();
+    block_sidecar(&mbox);
+
+    let report = build_with_home(&mbox, home.path()).unwrap();
+    assert!(report.fallback);
+    assert_eq!(report.index_dir, fallback_dir(&mbox, home.path()));
+    assert!(report.index_dir.join(META_FILE).is_file());
+    assert!(report.index_dir.starts_with(home.path()));
+    assert_eq!(report.messages, 2);
+
+    assert!(matches!(
+        status_in(&mbox, home.path()).unwrap(),
+        IndexStatus::Fresh(_)
+    ));
+    let index = match MboxIndex::open_in(&mbox, home.path()).unwrap() {
+        Opened::Ready(index) => *index,
+        other => panic!("{other:?}"),
+    };
+    assert_eq!(index.dir(), fallback_dir(&mbox, home.path()));
+    assert_eq!(index.search(&SearchQuery::text("számla")).unwrap().total, 1);
+
+    // Another home knows nothing about it.
+    let elsewhere = tempfile::tempdir().unwrap();
+    assert_eq!(
+        status_in(&mbox, elsewhere.path()).unwrap(),
+        IndexStatus::Missing
+    );
+
+    // A changed mbox is stale in the fallback too, and rebuilds in place.
+    let mut bytes = fs::read(&mbox).unwrap();
+    bytes.push(b'\n');
+    fs::write(&mbox, bytes).unwrap();
+    assert_eq!(
+        status_in(&mbox, home.path()).unwrap(),
+        IndexStatus::Stale(StaleReason::Fingerprint)
+    );
+    let again = build_with_home(&mbox, home.path()).unwrap();
+    assert!(again.fallback);
+    assert_eq!(again.index_dir, report.index_dir);
+    assert!(matches!(
+        status_in(&mbox, home.path()).unwrap(),
+        IndexStatus::Fresh(_)
+    ));
+}
+
+#[test]
+fn the_primary_location_wins_when_it_is_writable() {
+    let (_dir, mbox) = copy_fixture("gmail-crlf.mbox");
+    let home = tempfile::tempdir().unwrap();
+    let primary = index_dir(&mbox);
+    let fallback = fallback_dir(&mbox, home.path());
+
+    // Writable folder: the index goes beside the mbox, the home stays empty.
+    let report = build_with_home(&mbox, home.path()).unwrap();
+    assert!(!report.fallback);
+    assert_eq!(report.index_dir, primary);
+    assert!(!fallback.exists());
+    assert!(matches!(
+        status_in(&mbox, home.path()).unwrap(),
+        IndexStatus::Fresh(_)
+    ));
+
+    // The mbox changes and the folder is now blocked: the rebuild goes to the
+    // home and the stale primary is cleared, so one index exists.
+    let mut bytes = fs::read(&mbox).unwrap();
+    bytes.push(b'\n');
+    fs::write(&mbox, bytes).unwrap();
+    fs::remove_dir_all(mbox.parent().unwrap().join(".mboxer")).unwrap();
+    block_sidecar(&mbox);
+    let moved = build_with_home(&mbox, home.path()).unwrap();
+    assert!(moved.fallback);
+    assert_eq!(moved.index_dir, fallback);
+    assert!(!primary.exists());
+    let index = match MboxIndex::open_in(&mbox, home.path()).unwrap() {
+        Opened::Ready(index) => *index,
+        other => panic!("{other:?}"),
+    };
+    assert_eq!(index.dir(), fallback);
+
+    // The folder is writable again and the mbox changes once more: the build
+    // returns beside the mbox and the fallback directory goes.
+    fs::remove_file(mbox.parent().unwrap().join(".mboxer")).unwrap();
+    let mut bytes = fs::read(&mbox).unwrap();
+    bytes.push(b'\n');
+    fs::write(&mbox, bytes).unwrap();
+    let back = build_with_home(&mbox, home.path()).unwrap();
+    assert!(!back.fallback);
+    assert_eq!(back.index_dir, primary);
+    assert!(!fallback.exists());
+    assert!(matches!(
+        status_in(&mbox, home.path()).unwrap(),
+        IndexStatus::Fresh(_)
+    ));
 }
 
 #[test]

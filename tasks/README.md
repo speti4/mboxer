@@ -11,7 +11,7 @@ Closing a task files every follow-up as a `backlog/` item now or deletes it with
 <!-- tasks:index:start -->
 _Generated 2026-10-17 — edit the files, not this section._
 
-**State:** 5 backlog (0 ready · 0 blocked · 0 waiting · 5 ideas) · 0 in progress · 12 done · 0 dropped · 4 decisions
+**State:** 4 backlog (0 ready · 0 blocked · 0 waiting · 4 ideas) · 0 in progress · 13 done · 0 dropped · 5 decisions
 
 ### Ready
 
@@ -33,7 +33,6 @@ _none_
 |---|---|---|---|
 | 011 | [Export a message: .eml, PDF, print](backlog/011-export-eml-pdf-print.md) | M | 2026-10-17 |
 | 012 | [Portable release build for other users](backlog/012-portable-exe-release-build.md) | S | 2026-10-17 |
-| 014 | [Index fallback when the mbox folder is not writable](backlog/014-index-fallback-for-read-only-mbox-locations.md) | S | 2026-10-17 |
 | 016 | [Open multiple mbox files](backlog/016-open-multiple-mbox-files.md) | M | 2026-10-17 |
 | 017 | [Dark mode toggle with OS default](backlog/017-dark-mode-toggle.md) | S | 2026-10-17 |
 
@@ -50,6 +49,7 @@ _none_
 | # | Task | Closed |
 |---|---|---|
 | 015 | [Decode RFC 2047-encoded Gmail label names](done/015-decode-rfc2047-gmail-label-names.md) | 2026-10-17 |
+| 014 | [Index fallback when the mbox folder is not writable](done/014-index-fallback-for-read-only-mbox-locations.md) | 2026-10-17 |
 | 013 | [Unescape >From  lines in message bodies for display](done/013-unescape-from-lines-in-message-bodies.md) | 2026-10-17 |
 | 010 | [Gmail-style query syntax in the search field](done/010-gmail-style-query-syntax.md) | 2026-10-17 |
 | 009 | [Gmail labels and conversation threads](done/009-gmail-labels-and-threads.md) | 2026-10-17 |
@@ -58,14 +58,14 @@ _none_
 | 006 | [Search field and filter panel](done/006-search-field-and-filter-panel.md) | 2026-10-17 |
 | 005 | [Tauri 2 shell with the three-pane layout](done/005-tauri2-shell-three-pane-layout.md) | 2026-10-17 |
 | 004 | [Index CLI filters and the 14 GB benchmark](done/004-index-cli-and-14gb-benchmark.md) | 2026-10-17 |
-| 003 | [Sidecar full-text index with accent folding](done/003-fulltext-sidecar-index-accent-folding.md) | 2026-10-17 |
 
-_2 more in `done/`._
+_3 more in `done/`._
 
 ### Decisions
 
 | # | Decision | Status | Date |
 |---|---|---|---|
+| D-05 | [When .mboxer/ beside the mbox cannot be created, the index lives under %LOCALAPPDATA%\mboxer\index\<name>-<path hash>\](decisions/D-05-index-fallback-under-localappdata.md) | proposed | 2026-10-17 |
 | D-04 | [The sidecar index lives in .mboxer/<mbox name>/ beside the mbox and is rebuilt whole when stale](decisions/D-04-sidecar-index-location-and-freshness.md) | decided | 2026-10-17 |
 | D-03 | [A message is identified by the byte offset of its From  envelope line](decisions/D-03-message-identity-is-envelope-byte-offset.md) | decided | 2026-10-17 |
 | D-02 | [Rust + Tauri 2 (WebView2) with a one-time sidecar full-text index](decisions/D-02-rust-tauri2-sidecar-fulltext-index.md) | decided | 2026-10-17 |

@@ -7,6 +7,8 @@ use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, AtomicU64};
 use std::sync::{Arc, Mutex, MutexGuard, PoisonError};
 
+#[cfg(test)]
+use mboxer_core::index_dir;
 use mboxer_core::{
     BuildOptions, Error, IndexStatus, Listing, MboxIndex, Opened, Progress, SearchQuery, build,
     status,
@@ -110,6 +112,7 @@ impl OpenMbox {
             message_count: self.index.message_count(),
             labels: self.labels.clone(),
             index: self.index_state.clone(),
+            index_dir: self.index.dir().display().to_string(),
             generation: self.generation,
             total: self.listing.len(),
             messages: self.listing.message_count(),
@@ -180,6 +183,7 @@ mod tests {
         assert_eq!(open.labels[0].name, "Inbox");
         let summary = open.summary();
         assert_eq!(summary.file_name, "gmail-crlf.mbox");
+        assert_eq!(summary.index_dir, index_dir(&mbox).display().to_string());
         assert_eq!(summary.total, 2);
         assert_eq!(summary.message_count, 2);
         assert_eq!((summary.messages, summary.conversations), (2, 2));
