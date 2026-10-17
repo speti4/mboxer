@@ -8,8 +8,8 @@ use std::path::Path;
 
 use mboxer_core::mail_parser::Message;
 use mboxer_core::{
-    RawMessage, TextKind, TextPart, html_to_plain_text, parse, part_tree, read_at, summarize,
-    text_parts,
+    RawMessage, TextKind, TextPart, attachments, html_to_plain_text, parse, part_tree, read_at,
+    summarize, text_parts,
 };
 
 use crate::types::{BodyKind, BodyView, MessageView};
@@ -45,6 +45,7 @@ pub fn message_view(raw: &RawMessage, message: &Message<'_>) -> MessageView {
         message_id: summary.message_id,
         body: body_view(&parts),
         html: html_part(&parts).map(|html| html.text.clone()),
+        attachments: attachments(message).into_iter().map(Into::into).collect(),
         parts: part_tree(message).into_iter().map(Into::into).collect(),
     }
 }
@@ -100,6 +101,7 @@ fn raw_view(raw: &RawMessage) -> MessageView {
             text: String::from_utf8_lossy(&raw.bytes).into_owned(),
         }),
         html: None,
+        attachments: Vec::new(),
         parts: Vec::new(),
     }
 }
@@ -197,6 +199,35 @@ mod tests {
         let second = &views[1];
         assert_eq!(second.body.as_ref().unwrap().kind, BodyKind::HtmlAsText);
         assert!(second.html.as_deref().unwrap().contains("<iframe"));
+    }
+
+    #[test]
+    fn attachments_travel_with_the_view() {
+        let path = fixture("attachments.mbox");
+        let raw = first_message("attachments.mbox");
+        let view = read_message_view(&path, raw.offset, raw.len).unwrap();
+        let names: Vec<Option<&str>> = view.attachments.iter().map(|a| a.name.as_deref()).collect();
+        assert_eq!(names[0], Some("logo.png"));
+        assert_eq!(names[3], Some("Forwarded original.eml"));
+        assert_eq!(view.attachments.len(), 6);
+        let logo = &view.attachments[0];
+        assert!(logo.inline);
+        assert_eq!(logo.content_id.as_deref(), Some("logo@example.com"));
+        assert_eq!(view.parts[logo.index].content_type, "image/png");
+        assert_eq!(view.parts[logo.index].index, logo.index);
+        assert!(
+            view.html
+                .as_deref()
+                .unwrap()
+                .contains("cid:logo@example.com")
+        );
+        assert!(view.attachments[3].is_message);
+        // The second message: one nameless inline part for the cid, nothing to list.
+        let second = MboxReader::open(&path).unwrap().nth(1).unwrap().unwrap();
+        let view = read_message_view(&path, second.offset, second.len).unwrap();
+        assert_eq!(view.attachments.len(), 1);
+        assert_eq!(view.attachments[0].name, None);
+        assert!(view.attachments[0].inline);
     }
 
     #[test]

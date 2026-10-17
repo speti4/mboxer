@@ -381,6 +381,88 @@ body:not([data-view="ready"]) .panes {
   overflow-wrap: anywhere;
 }
 
+/* Attachment strip: one chip per attachment (click opens), a Save button on each */
+
+#attachments {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 12px;
+}
+
+#attachments[hidden] {
+  display: none;
+}
+
+#attachment-list {
+  display: contents;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.attachment-item {
+  display: inline-flex;
+  max-width: 100%;
+}
+
+.attachment-item button {
+  margin-left: -1px;
+  border-radius: 0;
+}
+
+.attachment {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 340px;
+  margin-left: 0 !important;
+  padding: 4px 10px;
+  border-radius: 4px 0 0 4px !important;
+}
+
+.attachment:disabled {
+  cursor: not-allowed;
+  background: var(--bg-alt);
+  border-color: var(--border);
+}
+
+.attachment .att-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.attachment .att-size,
+.attachment .att-inline {
+  color: var(--muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.attachment .att-inline {
+  padding: 0 4px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  font-size: 11px;
+}
+
+.attachment-save {
+  padding: 4px 8px;
+  border-radius: 0 4px 4px 0 !important;
+  font-size: 12px;
+}
+
+.attachment-item button.busy {
+  color: var(--muted);
+  cursor: progress;
+}
+
+#save-all-btn[hidden] {
+  display: none;
+}
+
 #reader-bar {
   display: flex;
   align-items: center;

@@ -23,8 +23,9 @@ pub use index::{
     SearchQuery, SearchResult, Sort, StaleReason, build, index_dir, status,
 };
 pub use message::{
-    Mailbox, MessageSummary, PartInfo, TextKind, TextPart, html_to_plain_text, parse, part_tree,
-    summarize, text_parts,
+    Attachment, Mailbox, MessageSummary, PartInfo, PartRef, TextKind, TextPart, attachments,
+    html_to_plain_text, is_inline, parse, part_at, part_bytes, part_tree, summarize, text_parts,
+    walk_parts,
 };
 pub use reader::{
     DEFAULT_BUFFER_BYTES, DEFAULT_MAX_MESSAGE_BYTES, MboxReader, RawMessage, read_at, read_at_from,

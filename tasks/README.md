@@ -11,15 +11,11 @@ Closing a task files every follow-up as a `backlog/` item now or deletes it with
 <!-- tasks:index:start -->
 _Generated 2026-10-17 — edit the files, not this section._
 
-**State:** 6 backlog (1 ready · 0 blocked · 0 waiting · 5 ideas) · 0 in progress · 8 done · 0 dropped · 4 decisions
+**State:** 5 backlog (0 ready · 0 blocked · 0 waiting · 5 ideas) · 1 in progress · 8 done · 0 dropped · 4 decisions
 
 ### Ready
 
-#### M2 Viewer MVP
-
-| # | Task | Size | Created |
-|---|---|---|---|
-| 008 | [Attachments: list, open, save](backlog/008-attachments-list-open-save.md) | M | 2026-10-17 |
+_none_
 
 ### Needs decision
 
@@ -43,7 +39,11 @@ _none_
 
 ### In progress
 
-_none_
+#### M2 Viewer MVP
+
+| # | Task | Started | Plan |
+|---|---|---|---|
+| 008 | [Attachments: list, open, save](wip/008-attachments-list-open-save.md) | 2026-10-17 | `folytassuk-a-008-taskkal-transient-dolphin.md` |
 
 ### Closed – do not reopen
 

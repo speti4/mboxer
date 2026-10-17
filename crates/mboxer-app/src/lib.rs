@@ -5,6 +5,7 @@
 //! does not need a webview — the state, the open-or-build flow, the message
 //! view, the label order — lives in plain modules with unit tests.
 
+pub mod attachments;
 pub mod commands;
 pub mod folders;
 pub mod state;
@@ -13,6 +14,8 @@ pub mod view;
 
 /// Builds the window and runs the event loop until it closes.
 pub fn run() {
+    // The temporary attachment copies of earlier runs go, off the main thread.
+    std::thread::spawn(attachments::clean_temp);
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
@@ -27,6 +30,10 @@ pub fn run() {
             commands::read_source,
             commands::position_of,
             commands::open_url,
+            commands::read_part,
+            commands::open_attachment,
+            commands::save_attachment,
+            commands::save_all_attachments,
         ])
         .run(tauri::generate_context!())
         .expect("error while running the mboxer window");

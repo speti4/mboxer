@@ -8,13 +8,17 @@ use std::sync::Arc;
 use std::sync::atomic::Ordering;
 
 use mboxer_core::{Error, Progress, SearchQuery, read_at};
-use tauri::ipc::Channel;
+use tauri::ipc::{Channel, Response};
 use tauri::{AppHandle, Manager, State};
-use tauri_plugin_dialog::DialogExt;
+use tauri_plugin_dialog::{DialogExt, FileDialogBuilder};
 use tauri_plugin_opener::OpenerExt;
 
+use crate::attachments::{
+    extension_of, open_blocked, read_attachment, read_listed_attachments, unique_path, write_temp,
+    write_with_motw,
+};
 use crate::state::{AppState, OpenMbox};
-use crate::types::{ListInfo, MessageView, OpenEvent, QueryInput, RowsPage};
+use crate::types::{ListInfo, MessageView, OpenEvent, QueryInput, RowsPage, SaveAllReport};
 use crate::view::read_message_view;
 
 /// The largest page `list_rows` serves.
@@ -189,6 +193,21 @@ pub fn list_rows(
     })
 }
 
+/// The path of the open mbox, copied out from under the lock.
+fn open_path(state: &AppState) -> Result<PathBuf, String> {
+    let guard = state.open();
+    Ok(guard.as_ref().ok_or("no mbox is open")?.path.clone())
+}
+
+/// Runs `work` off the runtime threads and flattens the join error.
+async fn blocking<T: Send + 'static>(
+    work: impl FnOnce() -> Result<T, String> + Send + 'static,
+) -> Result<T, String> {
+    tauri::async_runtime::spawn_blocking(work)
+        .await
+        .map_err(|err| format!("the task failed: {err}"))?
+}
+
 /// The message at `offset`/`len` of the open mbox, read off the runtime threads.
 #[tauri::command]
 pub async fn read_message(
@@ -196,14 +215,8 @@ pub async fn read_message(
     offset: u64,
     len: u64,
 ) -> Result<MessageView, String> {
-    let path = {
-        let guard = state.open();
-        guard.as_ref().ok_or("no mbox is open")?.path.clone()
-    };
-    tauri::async_runtime::spawn_blocking(move || read_message_view(&path, offset, len))
-        .await
-        .map_err(|err| format!("the read task failed: {err}"))?
-        .map_err(|err| err.to_string())
+    let path = open_path(&state)?;
+    blocking(move || read_message_view(&path, offset, len).map_err(|err| err.to_string())).await
 }
 
 /// The source of the message at `offset`/`len`: the envelope line and the
@@ -214,21 +227,18 @@ pub async fn read_source(
     offset: u64,
     len: u64,
 ) -> Result<String, String> {
-    let path = {
-        let guard = state.open();
-        guard.as_ref().ok_or("no mbox is open")?.path.clone()
-    };
-    tauri::async_runtime::spawn_blocking(move || {
-        read_at(&path, offset, len).map(|raw| {
-            let mut source = raw.envelope;
-            source.push('\n');
-            source.push_str(&String::from_utf8_lossy(&raw.bytes));
-            source
-        })
+    let path = open_path(&state)?;
+    blocking(move || {
+        read_at(&path, offset, len)
+            .map(|raw| {
+                let mut source = raw.envelope;
+                source.push('\n');
+                source.push_str(&String::from_utf8_lossy(&raw.bytes));
+                source
+            })
+            .map_err(|err| err.to_string())
     })
     .await
-    .map_err(|err| format!("the read task failed: {err}"))?
-    .map_err(|err| err.to_string())
 }
 
 /// Opens a link clicked in a message body with the system's default browser
@@ -239,10 +249,12 @@ pub async fn open_url(app: AppHandle, url: String) -> Result<(), String> {
     if !allowed_link(&url) {
         return Err("only http, https and mailto links are opened".to_owned());
     }
-    tauri::async_runtime::spawn_blocking(move || app.opener().open_url(&url, None::<&str>))
-        .await
-        .map_err(|err| format!("the open task failed: {err}"))?
-        .map_err(|err| err.to_string())
+    blocking(move || {
+        app.opener()
+            .open_url(&url, None::<&str>)
+            .map_err(|err| err.to_string())
+    })
+    .await
 }
 
 /// `http:`, `https:` and `mailto:` links, whatever their case.
@@ -261,6 +273,132 @@ pub fn position_of(state: State<'_, AppState>, offset: u64) -> Result<Option<usi
     open.listing
         .position_of(offset)
         .map_err(|err| err.to_string())
+}
+
+/// The decoded bytes of attachment part `index` of the message at
+/// `offset`/`len`, raw over the bridge: the webview turns a cid-referenced
+/// image into a blob URL for the sandboxed body frame.
+#[tauri::command]
+pub async fn read_part(
+    state: State<'_, AppState>,
+    offset: u64,
+    len: u64,
+    index: usize,
+) -> Result<Response, String> {
+    let path = open_path(&state)?;
+    let attachment = blocking(move || read_attachment(&path, offset, len, index)).await?;
+    Ok(Response::new(attachment.bytes))
+}
+
+/// Writes the attachment to a temporary file and opens it with the default
+/// application. Executable files are refused: they can only be saved.
+#[tauri::command]
+pub async fn open_attachment(
+    app: AppHandle,
+    state: State<'_, AppState>,
+    offset: u64,
+    len: u64,
+    index: usize,
+) -> Result<(), String> {
+    let path = open_path(&state)?;
+    blocking(move || {
+        let attachment = read_attachment(&path, offset, len, index)?;
+        if open_blocked(&attachment.file_name) {
+            return Err(format!(
+                "{} is an executable file: save it instead of opening it",
+                attachment.file_name
+            ));
+        }
+        let file = write_temp(offset, index, &attachment)
+            .map_err(|err| format!("could not write the temporary file: {err}"))?;
+        app.opener()
+            .open_path(file.to_string_lossy(), None::<&str>)
+            .map_err(|err| err.to_string())
+    })
+    .await
+}
+
+/// Saves one attachment where the user picks. `None` when the dialog is
+/// cancelled; the saved path otherwise.
+#[tauri::command]
+pub async fn save_attachment(
+    app: AppHandle,
+    state: State<'_, AppState>,
+    offset: u64,
+    len: u64,
+    index: usize,
+) -> Result<Option<String>, String> {
+    let path = open_path(&state)?;
+    blocking(move || {
+        let attachment = read_attachment(&path, offset, len, index)?;
+        let mut dialog = save_dialog(&app, "Save attachment").set_file_name(&attachment.file_name);
+        if let Some(ext) = extension_of(&attachment.file_name) {
+            dialog = dialog.add_filter(format!("{} files", ext.to_ascii_uppercase()), &[&ext]);
+        }
+        let Some(picked) = dialog.add_filter("All files", &["*"]).blocking_save_file() else {
+            return Ok(None);
+        };
+        let target = picked
+            .into_path()
+            .map_err(|err| format!("unusable path from the dialog: {err}"))?;
+        write_with_motw(&target, &attachment.bytes)
+            .map_err(|err| format!("could not write {}: {err}", target.display()))?;
+        remember_dir(&app, target.parent());
+        Ok(Some(target.display().to_string()))
+    })
+    .await
+}
+
+/// Saves every listed attachment of the message into a folder the user
+/// picks, never overwriting (` (2)` and so on). `None` when cancelled.
+#[tauri::command]
+pub async fn save_all_attachments(
+    app: AppHandle,
+    state: State<'_, AppState>,
+    offset: u64,
+    len: u64,
+) -> Result<Option<SaveAllReport>, String> {
+    let path = open_path(&state)?;
+    blocking(move || {
+        let attachments = read_listed_attachments(&path, offset, len)?;
+        if attachments.is_empty() {
+            return Err("the message has no attachments".to_owned());
+        }
+        let Some(picked) = save_dialog(&app, "Save all attachments").blocking_pick_folder() else {
+            return Ok(None);
+        };
+        let dir = picked
+            .into_path()
+            .map_err(|err| format!("unusable path from the dialog: {err}"))?;
+        let mut saved = 0;
+        for attachment in &attachments {
+            let target = unique_path(&dir, &attachment.file_name);
+            write_with_motw(&target, &attachment.bytes)
+                .map_err(|err| format!("could not write {}: {err}", target.display()))?;
+            saved += 1;
+        }
+        remember_dir(&app, Some(&dir));
+        Ok(Some(SaveAllReport {
+            dir: dir.display().to_string(),
+            saved,
+        }))
+    })
+    .await
+}
+
+/// A file dialog that starts in the folder of the last save.
+fn save_dialog(app: &AppHandle, title: &str) -> FileDialogBuilder<tauri::Wry> {
+    let mut dialog = app.dialog().file().set_title(title);
+    if let Some(dir) = app.state::<AppState>().last_save_dir() {
+        dialog = dialog.set_directory(dir);
+    }
+    dialog
+}
+
+fn remember_dir(app: &AppHandle, dir: Option<&std::path::Path>) {
+    if let Some(dir) = dir {
+        app.state::<AppState>().set_last_save_dir(dir.to_path_buf());
+    }
 }
 
 #[cfg(test)]

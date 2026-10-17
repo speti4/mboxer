@@ -1,7 +1,9 @@
 //! The IPC types: what the webview sends and receives, camel-cased on the wire.
 
-use mboxer_core::{Hit, PartInfo, SearchQuery, Sort};
+use mboxer_core::{Attachment, Hit, PartInfo, SearchQuery, Sort};
 use serde::{Deserialize, Serialize};
+
+use crate::attachments::{open_blocked, safe_file_name};
 
 /// Progress of `open_mbox`, streamed over a channel; the last event is
 /// `Ready`, `Cancelled` or `Failed`.
@@ -174,7 +176,53 @@ pub struct MessageView {
     pub body: Option<BodyView>,
     /// The first HTML part as written; the webview sanitizes it before rendering.
     pub html: Option<String>,
+    /// The attachments, for the strip and for the cid images of the HTML.
+    pub attachments: Vec<AttachmentView>,
     pub parts: Vec<PartView>,
+}
+
+/// One attachment of the message; `index` addresses the part in the
+/// attachment commands.
+#[derive(Debug, Clone, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct AttachmentView {
+    pub index: usize,
+    pub name: Option<String>,
+    pub content_type: String,
+    pub content_id: Option<String>,
+    pub size: usize,
+    pub inline: bool,
+    pub is_message: bool,
+    /// False for an executable: it can be saved, not opened.
+    pub can_open: bool,
+}
+
+impl From<Attachment> for AttachmentView {
+    fn from(attachment: Attachment) -> Self {
+        let file_name = safe_file_name(
+            attachment.name.as_deref(),
+            &attachment.content_type,
+            attachment.index,
+        );
+        AttachmentView {
+            can_open: !open_blocked(&file_name),
+            index: attachment.index,
+            name: attachment.name,
+            content_type: attachment.content_type,
+            content_id: attachment.content_id,
+            size: attachment.size,
+            inline: attachment.inline,
+            is_message: attachment.is_message,
+        }
+    }
+}
+
+/// The outcome of "Save all": where and how many.
+#[derive(Debug, Clone, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct SaveAllReport {
+    pub dir: String,
+    pub saved: usize,
 }
 
 #[derive(Debug, Clone, Serialize, PartialEq, Eq)]
@@ -199,20 +247,26 @@ pub enum BodyKind {
 #[derive(Debug, Clone, Serialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct PartView {
+    pub index: usize,
     pub depth: usize,
     pub content_type: String,
     pub encoding: Option<String>,
+    pub disposition: Option<String>,
     pub name: Option<String>,
+    pub content_id: Option<String>,
     pub size: usize,
 }
 
 impl From<PartInfo> for PartView {
     fn from(part: PartInfo) -> Self {
         PartView {
+            index: part.index,
             depth: part.depth,
             content_type: part.content_type,
             encoding: part.encoding,
+            disposition: part.disposition,
             name: part.name,
+            content_id: part.content_id,
             size: part.size,
         }
     }
@@ -278,6 +332,45 @@ mod tests {
         assert_eq!(
             reused,
             serde_json::json!({"state": "reused", "builtAtUnix": 7})
+        );
+    }
+
+    #[test]
+    fn attachments_cross_the_bridge_camel_cased() {
+        let view = AttachmentView::from(Attachment {
+            index: 4,
+            name: Some("a.pdf".to_owned()),
+            content_type: "application/pdf".to_owned(),
+            content_id: None,
+            size: 12,
+            inline: false,
+            is_message: false,
+        });
+        assert_eq!(
+            serde_json::to_value(&view).unwrap(),
+            serde_json::json!({
+                "index": 4, "name": "a.pdf", "contentType": "application/pdf",
+                "contentId": null, "size": 12, "inline": false, "isMessage": false,
+                "canOpen": true
+            })
+        );
+        let exe = AttachmentView::from(Attachment {
+            index: 5,
+            name: Some("Report.EXE".to_owned()),
+            content_type: "application/octet-stream".to_owned(),
+            content_id: None,
+            size: 1,
+            inline: false,
+            is_message: false,
+        });
+        assert!(!exe.can_open);
+        let report = SaveAllReport {
+            dir: "C:\\x".to_owned(),
+            saved: 2,
+        };
+        assert_eq!(
+            serde_json::to_value(&report).unwrap(),
+            serde_json::json!({"dir": "C:\\x", "saved": 2})
         );
     }
 }

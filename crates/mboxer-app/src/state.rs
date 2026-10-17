@@ -25,12 +25,28 @@ pub struct AppState {
     pub busy: AtomicBool,
     /// Bumped on every open and query change; stamps every page of rows.
     pub generation: AtomicU64,
+    /// Where the last attachment was saved; the next save dialog starts there.
+    pub last_save_dir: Mutex<Option<PathBuf>>,
 }
 
 impl AppState {
     /// The open file; a poisoned lock is recovered, the data is plain values.
     pub fn open(&self) -> MutexGuard<'_, Option<OpenMbox>> {
         self.open.lock().unwrap_or_else(PoisonError::into_inner)
+    }
+
+    pub fn last_save_dir(&self) -> Option<PathBuf> {
+        self.last_save_dir
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+            .clone()
+    }
+
+    pub fn set_last_save_dir(&self, dir: PathBuf) {
+        *self
+            .last_save_dir
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner) = Some(dir);
     }
 }
 

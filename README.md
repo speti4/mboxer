@@ -42,6 +42,16 @@ or mail client (`http`, `https`, `mailto` only). *Copy* puts the text of the cur
 clipboard. In the Text view the mboxrd quoting of body lines (`>From `) is undone; the Source view
 shows the bytes as they are in the file.
 
+Attachments: a strip under the headers lists them (name, size, an `inline` tag on images that
+belong to the HTML body). A click on a chip decodes the attachment from the mbox into a temporary
+file under `%TEMP%\mboxer\` and opens it with the default application; *Save…* asks where to put
+it, *Save all…* writes every attachment of the message into a folder without overwriting
+(`name (2).ext`). Executable attachments (`.exe`, `.bat`, `.ps1`, `.js`, `.lnk` and the like) can
+only be saved. Every written file carries the Mark of the Web, so Office opens it in Protected
+View, as with a file downloaded from a mail client; the temporary copies are removed at the next
+start. Inline images referenced by `cid:` are shown inside the HTML body; text attachments (csv,
+ics) are saved byte for byte in their original charset.
+
 Search: the field in the toolbar (`Ctrl+F` or `Ctrl+K`) narrows the list while you type (words are
 AND-ed, the word you are still typing counts as a prefix until you type a space, `"quotes"` make a
 phrase, accents and case do not matter); the *Filters* panel

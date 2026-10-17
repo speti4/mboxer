@@ -19,13 +19,16 @@
   const STORAGE_FILTERS_OPEN = "mboxer.filtersOpen";
   const STORAGE_BODY_MODE = "mboxer.bodyMode";
   const STATUS_FLASH_MS = 2000;
+  // A saved path deserves a longer look.
+  const SAVED_FLASH_MS = 6000;
 
   const el = {};
   for (const id of [
     "toolbar", "open-btn", "file-name", "search", "filters-btn", "filters-count", "filters",
     "f-from", "f-after", "f-before", "f-att", "f-sort", "filters-clear", "panes", "folders",
     "list", "spacer", "rows", "list-empty", "reader", "reader-empty", "reader-content",
-    "msg-subject", "msg-headers", "msg-body", "msg-html", "msg-parts-list", "view-html", "view-text",
+    "msg-subject", "msg-headers", "attachments", "attachment-list", "save-all-btn", "msg-body",
+    "msg-html", "msg-parts-list", "view-html", "view-text",
     "view-source", "copy-btn", "remote-bar", "remote-text", "remote-allow", "empty", "empty-open-btn",
     "reopen-btn", "error", "error-path", "error-text", "retry-btn", "error-open-btn", "overlay",
     "overlay-title", "overlay-path", "progress", "progress-text", "cancel-btn", "status-left",
@@ -60,6 +63,8 @@
     sanitized: null, // { offset, doc, remote, length } of the HTML in the reader
     allowRemote: false, // the remote content of this message was allowed
     source: null, // { offset, text } the raw source, read on demand
+    cidUrls: new Map(), // attachment index -> Promise<blob URL> of this message's cid images
+    blobUrls: [], // every blob URL made for this message, revoked when it changes
     warnings: [], // the query warnings behind the status bar
     statusTimer: 0,
     query: defaultQuery(), // the one source of truth behind the listing
@@ -110,7 +115,8 @@
   function formatBytes(bytes) {
     if (bytes >= 1e9) return `${(bytes / 1e9).toFixed(2)} GB`;
     if (bytes >= 1e6) return `${(bytes / 1e6).toFixed(1)} MB`;
-    return `${Math.round(bytes / 1e3)} kB`;
+    if (bytes >= 1e3) return `${Math.round(bytes / 1e3)} kB`;
+    return `${bytes} B`;
   }
 
   function fmt(n) {
@@ -637,11 +643,12 @@
   }
 
   // Shows `text` in the status bar for a moment, then the usual text again.
-  function flashStatus(text, className = "") {
+  function flashStatus(text, className = "", duration = STATUS_FLASH_MS) {
     el.statusRight.textContent = text;
+    el.statusRight.title = text;
     el.statusRight.className = className;
     clearTimeout(state.statusTimer);
-    state.statusTimer = setTimeout(() => showWarnings(state.warnings), STATUS_FLASH_MS);
+    state.statusTimer = setTimeout(() => showWarnings(state.warnings), duration);
   }
 
   function clearQuery() {
@@ -1065,6 +1072,9 @@
     state.sanitized = null;
     state.allowRemote = false;
     state.source = null;
+    state.cidUrls = new Map();
+    for (const url of state.blobUrls) URL.revokeObjectURL(url);
+    state.blobUrls = [];
   }
 
   function headerRow(term, value) {
@@ -1087,6 +1097,7 @@
     if (view.messageId) rows.push(...headerRow("Message-Id", view.messageId));
     el.msgHeaders.replaceChildren(...rows);
 
+    renderAttachments(view);
     renderBody(view, { keepScroll: true });
 
     const parts = view.parts.map((part) => {
@@ -1104,6 +1115,166 @@
     el.readerEmpty.hidden = true;
     el.readerContent.hidden = false;
     if (!keepScroll) el.reader.scrollTop = 0;
+  }
+
+  // ---------- attachments ----------
+  //
+  // One chip per listed attachment (named, or a nested message): the chip
+  // opens it with the default application through a temporary file, the Save
+  // button next to it asks where to put it. Executables cannot be opened.
+
+  // The attachments the strip shows; nameless inline parts only serve the cid images.
+  function listedAttachments(view) {
+    return view.attachments.filter((a) => a.name || a.isMessage);
+  }
+
+  function attachmentName(attachment) {
+    return attachment.name || "message.eml";
+  }
+
+  function attachmentIcon(attachment) {
+    if (attachment.isMessage) return "✉";
+    if (attachment.contentType.startsWith("image/")) return "🖼";
+    return "📎";
+  }
+
+  function renderAttachments(view) {
+    const listed = listedAttachments(view);
+    el.attachmentList.replaceChildren(...listed.map((a) => attachmentItem(view, a)));
+    el.saveAllBtn.hidden = listed.length < 2;
+    el.attachments.hidden = listed.length === 0;
+  }
+
+  function attachmentItem(view, attachment) {
+    const name = attachmentName(attachment);
+    const args = { offset: view.offset, len: view.len, index: attachment.index };
+    const item = document.createElement("li");
+    item.className = "attachment-item";
+
+    const open = document.createElement("button");
+    open.type = "button";
+    open.className = "attachment";
+    const icon = document.createElement("span");
+    icon.className = "att-icon";
+    icon.textContent = attachmentIcon(attachment);
+    const label = document.createElement("span");
+    label.className = "att-name";
+    label.textContent = name;
+    const size = document.createElement("span");
+    size.className = "att-size";
+    size.textContent = formatBytes(attachment.size);
+    open.append(icon, label, size);
+    if (attachment.inline) {
+      const tag = document.createElement("span");
+      tag.className = "att-inline";
+      tag.textContent = "inline";
+      open.appendChild(tag);
+    }
+    if (attachment.canOpen) {
+      open.title = `Open ${name} (${attachment.contentType})`;
+      open.addEventListener("click", () => runAttachmentAction(open, "open_attachment", args));
+    } else {
+      open.disabled = true;
+      open.title = `${name}: executable attachments can only be saved`;
+    }
+
+    const save = document.createElement("button");
+    save.type = "button";
+    save.className = "attachment-save";
+    save.textContent = "Save…";
+    save.title = `Save ${name}…`;
+    save.addEventListener("click", () =>
+      runAttachmentAction(save, "save_attachment", args, (path) => {
+        if (path) flashStatus(`Saved ${path}`, "", SAVED_FLASH_MS);
+      }),
+    );
+
+    item.append(open, save);
+    return item;
+  }
+
+  // Runs one attachment command behind `button`, once at a time; a cancelled
+  // dialog gives `null` and says nothing.
+  async function runAttachmentAction(button, command, args, onDone = () => {}) {
+    if (button.classList.contains("busy")) return;
+    button.classList.add("busy");
+    try {
+      const result = await invoke(command, args);
+      onDone(result);
+    } catch (err) {
+      flashStatus(`${err}`, "error", SAVED_FLASH_MS);
+    } finally {
+      button.classList.remove("busy");
+    }
+  }
+
+  el.saveAllBtn.addEventListener("click", () => {
+    const view = state.view;
+    if (!view) return;
+    runAttachmentAction(
+      el.saveAllBtn,
+      "save_all_attachments",
+      { offset: view.offset, len: view.len },
+      (report) => {
+        if (report) {
+          const files = report.saved === 1 ? "1 file" : `${report.saved} files`;
+          flashStatus(`${files} saved to ${report.dir}`, "", SAVED_FLASH_MS);
+        }
+      },
+    );
+  });
+
+  // The Content-ID a `cid:` reference names: percent-decoding undone, angle
+  // brackets and surrounding space removed.
+  function normalizeCid(value) {
+    let cid = String(value || "").trim();
+    try {
+      cid = decodeURIComponent(cid);
+    } catch (_) {
+      /* not percent-encoded */
+    }
+    return cid.replace(/^<|>$/g, "").trim();
+  }
+
+  // The attachment a `cid:` reference points at: an exact Content-ID match,
+  // else a case-insensitive one.
+  function findCidAttachment(attachments, reference) {
+    const wanted = normalizeCid(reference);
+    if (!wanted) return null;
+    const exact = attachments.find((a) => a.contentId === wanted);
+    if (exact) return exact;
+    const lower = wanted.toLowerCase();
+    return attachments.find((a) => a.contentId && a.contentId.toLowerCase() === lower) || null;
+  }
+
+  // Gives the cid images of the body frame their bytes: each referenced part
+  // is read once per message and served as a blob URL (the frame's CSP allows
+  // `blob:` images). An image whose cid matches nothing keeps its placeholder.
+  function fillCidImages(doc) {
+    const view = state.view;
+    if (!view || view.attachments.length === 0) return;
+    const offset = view.offset;
+    for (const img of doc.querySelectorAll("img[data-mboxer-cid]")) {
+      const attachment = findCidAttachment(view.attachments, img.getAttribute("data-mboxer-cid"));
+      if (!attachment) continue;
+      let pending = state.cidUrls.get(attachment.index);
+      if (!pending) {
+        pending = invoke("read_part", { offset, len: view.len, index: attachment.index }).then((bytes) => {
+          const url = URL.createObjectURL(new Blob([bytes], { type: attachment.contentType }));
+          state.blobUrls.push(url);
+          return url;
+        });
+        state.cidUrls.set(attachment.index, pending);
+      }
+      pending
+        .then((url) => {
+          if (!state.view || state.view.offset !== offset || !img.isConnected) return;
+          img.addEventListener("load", syncHtmlHeight);
+          img.setAttribute("src", url);
+          img.removeAttribute("data-mboxer-cid");
+        })
+        .catch((err) => console.error("read_part failed", err));
+    }
   }
 
   // ---------- body views ----------
@@ -1221,6 +1392,7 @@
     if (!doc) return;
     syncHtmlHeight();
     for (const img of doc.images) img.addEventListener("load", syncHtmlHeight);
+    fillCidImages(doc);
     doc.addEventListener("click", onFrameClick);
     doc.addEventListener("auxclick", onFrameClick);
     doc.addEventListener("keydown", onFrameKeydown);

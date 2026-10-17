@@ -3,8 +3,8 @@
 use std::path::PathBuf;
 
 use mboxer_core::{
-    Error, MboxReader, RawMessage, TextKind, is_envelope, parse, part_tree, read_at, summarize,
-    text_parts,
+    Error, MboxReader, RawMessage, TextKind, attachments, is_envelope, parse, part_at, part_bytes,
+    part_tree, read_at, summarize, text_parts,
 };
 
 fn fixture(name: &str) -> PathBuf {
@@ -215,4 +215,104 @@ fn read_at_reproduces_every_streamed_message() {
             assert_eq!(seeked, streamed, "{name} at {}", streamed.offset);
         }
     }
+}
+
+#[test]
+fn attachments_are_listed_and_decoded_byte_for_byte() {
+    let messages = read_all("attachments.mbox");
+    assert_eq!(messages.len(), 2);
+    assert_contiguous("attachments.mbox", &messages);
+
+    let m = parse(&messages[0]).unwrap();
+    let s = summarize(&messages[0], &m);
+    assert!(s.has_attachment);
+    let tree = part_tree(&m);
+    for (position, part) in tree.iter().enumerate() {
+        assert_eq!(part.index, position);
+    }
+    let list = attachments(&m);
+    let names: Vec<Option<&str>> = list.iter().map(|a| a.name.as_deref()).collect();
+    assert_eq!(
+        names,
+        [
+            Some("logo.png"),
+            Some("osszesito.csv"),
+            Some("számla-2026-01.pdf"),
+            Some("Forwarded original.eml"),
+            Some("report.exe"),
+            Some(r"..\..\sub/evil.txt"),
+        ]
+    );
+    // Every attachment's address points at the part of the same name in the tree.
+    for attachment in &list {
+        let node = &tree[attachment.index];
+        assert_eq!(node.content_type, attachment.content_type);
+        assert_eq!(node.content_id, attachment.content_id);
+        assert!(node.depth > 0);
+    }
+
+    let logo = &list[0];
+    assert!(logo.inline);
+    assert_eq!(logo.content_type, "image/png");
+    assert_eq!(logo.content_id.as_deref(), Some("logo@example.com"));
+    let png = part_bytes(part_at(&m, logo.index).unwrap());
+    assert!(png.starts_with(b"\x89PNG\r\n\x1a\n"), "{:?}", &png[..8]);
+    assert!(png.ends_with(b"IEND\xaeB`\x82"));
+    assert_eq!(png.len(), logo.size);
+    assert_eq!(tree[logo.index].size, logo.size);
+
+    let csv = &list[1];
+    assert!(!csv.inline);
+    assert_eq!(csv.content_type, "text/csv");
+    let bytes = part_bytes(part_at(&m, csv.index).unwrap());
+    assert_eq!(
+        &bytes[..],
+        b"N\xe9v;\xd6sszeg\r\nSz\xe1mla janu\xe1r;1200\r\nSz\xe1mla febru\xe1r;800\r\n".as_slice(),
+        "{}",
+        String::from_utf8_lossy(&bytes)
+    );
+
+    let pdf = &list[2];
+    assert_eq!(pdf.content_type, "application/pdf");
+    let bytes = part_bytes(part_at(&m, pdf.index).unwrap());
+    assert_eq!(&bytes[..], b"%PDF-1.4 fake pdf for tests");
+
+    let eml = &list[3];
+    assert!(eml.is_message);
+    assert_eq!(eml.content_type, "message/rfc822");
+    let bytes = part_bytes(part_at(&m, eml.index).unwrap());
+    let text = String::from_utf8_lossy(&bytes);
+    assert!(text.starts_with("From: Carol"), "{text}");
+    assert!(text.contains("Subject: Forwarded original"));
+    assert!(
+        text.trim_end().ends_with("Az eredeti levél szövege."),
+        "{text}"
+    );
+    assert!(
+        !text.contains("report.exe"),
+        "the nested message is only its own bytes"
+    );
+    assert_eq!(eml.size, bytes.len());
+    assert_eq!(tree[eml.index].size, bytes.len());
+
+    let exe = &list[4];
+    assert_eq!(exe.content_type, "application/octet-stream");
+    assert!(part_bytes(part_at(&m, exe.index).unwrap()).starts_with(b"MZ"));
+
+    let evil = &list[5];
+    let bytes = part_bytes(part_at(&m, evil.index).unwrap());
+    assert_eq!(&bytes[..], b"plain seven bit text");
+
+    assert!(part_at(&m, tree.len()).is_none());
+
+    // The second message: a nameless inline image serves the cid only.
+    let m2 = parse(&messages[1]).unwrap();
+    assert!(!summarize(&messages[1], &m2).has_attachment);
+    let list2 = attachments(&m2);
+    assert_eq!(list2.len(), 1);
+    assert_eq!(list2[0].name, None);
+    assert!(list2[0].inline);
+    assert_eq!(list2[0].content_id.as_deref(), Some("photo@example.com"));
+    let gif = part_bytes(part_at(&m2, list2[0].index).unwrap());
+    assert!(gif.starts_with(b"GIF89a"));
 }
