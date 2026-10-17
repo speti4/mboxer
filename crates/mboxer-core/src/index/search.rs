@@ -73,6 +73,8 @@ pub struct SearchQuery {
     pub from: Option<String>,
     /// Words that must appear in `To` or `Cc`.
     pub to: Option<String>,
+    /// Words that must appear in the subject.
+    pub subject: Option<String>,
     /// Unix seconds, inclusive.
     pub after: Option<i64>,
     /// Unix seconds, exclusive.
@@ -87,7 +89,7 @@ pub struct SearchQuery {
     /// [`MboxIndex::list`] groups the matches by Gmail thread (`X-GM-THRID`);
     /// `search` ignores it. The CLI leaves it off.
     pub group_threads: bool,
-    /// The last word of `text`, `from` and `to` is still being typed: it
+    /// The last word of `text`, `from`, `to` and `subject` is still being typed: it
     /// matches as a prefix (`szaml` finds `számla`) unless the text ends in
     /// whitespace, the word carries syntax, or a phrase is open before it.
     /// For a search that refreshes on every keystroke; the CLI leaves it off.
@@ -103,6 +105,7 @@ impl Default for SearchQuery {
             text: None,
             from: None,
             to: None,
+            subject: None,
             after: None,
             before: None,
             labels: Vec::new(),
@@ -425,6 +428,17 @@ impl MboxIndex {
             clauses.push((
                 Occur::Must,
                 self.text_clause(vec![f.to, f.cc], to, false, prefix, &mut warnings),
+            ));
+        }
+        if let Some(subject) = query
+            .subject
+            .as_deref()
+            .map(str::trim_start)
+            .filter(|t| !t.trim().is_empty())
+        {
+            clauses.push((
+                Occur::Must,
+                self.text_clause(vec![f.subject], subject, false, prefix, &mut warnings),
             ));
         }
         if query.after.is_some() || query.before.is_some() {

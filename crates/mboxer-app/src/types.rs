@@ -95,6 +95,7 @@ pub struct QueryInput {
     pub text: Option<String>,
     pub from: Option<String>,
     pub to: Option<String>,
+    pub subject: Option<String>,
     pub after: Option<i64>,
     pub before: Option<i64>,
     pub labels: Vec<String>,
@@ -122,6 +123,7 @@ impl From<QueryInput> for SearchQuery {
             text: input.text,
             from: input.from,
             to: input.to,
+            subject: input.subject,
             after: input.after,
             before: input.before,
             labels: input.labels,
@@ -357,7 +359,7 @@ mod tests {
     #[test]
     fn the_full_query_input_shape_maps_onto_a_search_query() {
         let json: QueryInput = serde_json::from_str(
-            r#"{"text":"számla","from":"anna","after":1700000000,"before":1700086400,
+            r#"{"text":"számla","from":"anna","subject":"január","after":1700000000,"before":1700086400,
                 "labels":["Inbox"],"hasAttachment":false,"prefixLastWord":true,"sort":"dateDesc"}"#,
         )
         .unwrap();
@@ -367,6 +369,7 @@ mod tests {
         assert_eq!(query.text.as_deref(), Some("számla"));
         assert_eq!(query.from.as_deref(), Some("anna"));
         assert_eq!(query.to, None);
+        assert_eq!(query.subject.as_deref(), Some("január"));
         assert_eq!(query.after, Some(1_700_000_000));
         assert_eq!(query.before, Some(1_700_086_400));
         assert_eq!(query.labels, vec!["Inbox".to_owned()]);

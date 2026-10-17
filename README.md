@@ -22,7 +22,7 @@ target\release\mboxer.exe [file.mbox]                  # the viewer (Tauri 2 / W
 target\release\mboxer-cli.exe scan <file.mbox> [--sample 3] [--limit N] [--quiet]
 target\release\mboxer-cli.exe index <file.mbox> [--force] [--threads N] [--quiet]
 target\release\mboxer-cli.exe search <file.mbox> [query words] [--from WORDS] [--to WORDS]
-    [--after YYYY-MM-DD] [--before YYYY-MM-DD] [--label NAME]... [--has-attachment | --no-attachment]
+    [--subject WORDS] [--after YYYY-MM-DD] [--before YYYY-MM-DD] [--label NAME]... [--has-attachment | --no-attachment]
     [--limit 20] [--offset N] [--count] [--relevance]
 ```
 
@@ -69,13 +69,28 @@ ics) are saved byte for byte in their original charset.
 
 Search: the field in the toolbar (`Ctrl+F` or `Ctrl+K`) narrows the list while you type (words are
 AND-ed, the word you are still typing counts as a prefix until you type a space, `"quotes"` make a
-phrase, accents and case do not matter); the *Filters* panel
-(`Ctrl+Shift+F`) adds a sender, a date range (local days, both ends inclusive), an attachment
-filter and the sort order (newest first, or best match when there are words to score); clicking a
-label in the folder pane narrows further. All of it combines into one query; the words you searched
-for are highlighted in the list and in the message body, the selected message stays selected when
-it is still in the result, and *Clear* returns to all mail. Keyboard: `Ctrl+O` opens, `Enter` or
-`ArrowDown` in the search field moves to the list, `Esc` clears the field, arrows / `PageUp` /
+phrase, `OR` and `-word` work, accents and case do not matter). The field also takes Gmail-style
+operators, and it is the one source of truth: the *Filters* panel (`Ctrl+Shift+F`) and a click on a
+label in the folder pane write their operator into the field, and an operator you type shows up in
+the panel and in the folder selection.
+
+| Operator | Meaning |
+|---|---|
+| `from:anna`, `from:"anna példa"` | words in the sender (several `from:` add up) |
+| `to:konyveles` | words in a recipient (To or Cc) |
+| `subject:számla` | words in the subject |
+| `after:2026-01-01`, `before:2026-01-31` | local days, both inclusive (`before:` includes the day, unlike Gmail; `2026/1/31` is accepted) |
+| `has:attachment`, `-has:attachment` | with, without an attachment |
+| `label:Inbox`, `label:"Work/Invoices"` | the first `label:` is the folder-pane node (it and its sub-labels), further ones are exact labels that must all be present; a container name (`label:Work`, `label:Categories`) selects the container |
+
+Operator names are case-insensitive; `-` only negates `has:`. An unknown `foo:bar` is passed to the
+search engine as is (it warns in the status bar), a bad date or `has:` value is a warning and the
+token is ignored. The panel adds the sort order (newest first, or best match when there are words to
+score) and the *Conversations* view. All of it is one query; the words you searched for (and the
+`from:` / `subject:` values) are highlighted in the list and in the message body, the selected
+message stays selected when it is still in the result, and *Clear* or `Esc` in the field empties the
+whole query, label included. Keyboard: `Ctrl+O` opens, `Enter` or
+`ArrowDown` in the search field moves to the list, `Esc` clears the query, arrows / `PageUp` /
 `PageDown` / `Home` / `End` move in the list, `Enter` focuses the reader and `Esc` returns. The
 UI is plain HTML/CSS/JS embedded in the exe: no Node toolchain, no
 bundler, no Tauri CLI needed; a change under `crates/mboxer-app/ui/` takes effect on the next

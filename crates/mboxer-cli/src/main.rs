@@ -80,6 +80,9 @@ struct SearchArgs {
     /// Words that must appear in a recipient (To or Cc).
     #[arg(long, value_name = "WORDS")]
     to: Option<String>,
+    /// Words that must appear in the subject.
+    #[arg(long, value_name = "WORDS")]
+    subject: Option<String>,
     /// Only messages dated on or after this day (YYYY-MM-DD, UTC) or RFC 3339 instant.
     #[arg(long, value_name = "DATE", value_parser = parse_date)]
     after: Option<i64>,
@@ -311,6 +314,7 @@ fn search(args: &SearchArgs) -> Result<(), Box<dyn Error>> {
         text: Some(text.clone()),
         from: args.from.clone(),
         to: args.to.clone(),
+        subject: args.subject.clone(),
         after: args.after,
         before: args.before,
         labels: args.label.clone(),
@@ -381,6 +385,9 @@ fn describe_filters(query: &SearchQuery) -> String {
     }
     if let Some(to) = &query.to {
         parts.push(format!("to \"{to}\""));
+    }
+    if let Some(subject) = &query.subject {
+        parts.push(format!("subject \"{subject}\""));
     }
     if let Some(after) = query.after {
         parts.push(format!(
@@ -546,6 +553,7 @@ mod tests {
         assert_eq!(describe_filters(&SearchQuery::default()), "-");
         let query = SearchQuery {
             from: Some("anna".into()),
+            subject: Some("számla".into()),
             after: Some(0),
             labels: vec!["Inbox".into()],
             has_attachment: Some(false),
@@ -553,7 +561,7 @@ mod tests {
         };
         assert_eq!(
             describe_filters(&query),
-            "from \"anna\", after 1970-01-01T00:00:00Z, label \"Inbox\", no attachment"
+            "from \"anna\", subject \"számla\", after 1970-01-01T00:00:00Z, label \"Inbox\", no attachment"
         );
     }
 }

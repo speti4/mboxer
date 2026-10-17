@@ -5,6 +5,8 @@
   "use strict";
 
   const { invoke, Channel } = window.__TAURI__.core;
+  // The query syntax of the search field (query.js, loaded first).
+  const Query = window.MboxerQuery;
 
   const ROW_H = 28;
   const BLOCK = 200;
@@ -44,14 +46,13 @@
     return storageGet(STORAGE_GROUP_THREADS) !== "0";
   }
 
+  // The query model: the text of the search field is the one source of
+  // truth (task 010); the filter panel and the folder pane edit it through
+  // its operators and render from `state.parsed`. Only the view mode and
+  // the sort order live beside it.
   function defaultQuery() {
     return {
       text: "",
-      from: "",
-      after: "", // YYYY-MM-DD from the date input, or ""
-      before: "",
-      label: null, // key of the selected node of the label tree, or null for all mail
-      hasAttachment: null, // true | false | null
       groupThreads: groupThreadsPref(),
       sort: "dateDesc",
     };
@@ -85,6 +86,9 @@
     queryTimer: 0,
     queryDirty: false, // an edit the backend has not seen yet
     highlightTerms: [], // folded words of the query behind the current listing
+    parsed: Query.parse(""), // the operators and the free text of query.text (syncFromText)
+    labelIndex: new Map(), // every node of the label tree by key, collapsed ones included
+    labelKeys: new Map(), // label name or container path → node key
     lastPath: null,
     opening: null, // { path, startedAt }
     readTimer: 0,
@@ -165,59 +169,14 @@
 
   // ---------- highlighting ----------
   //
-  // Mirrors the index's tokenizer: lower-cased, accents folded (`Számla` and
-  // `szamla` are the same word), so a highlighted word is one the index matched.
-
-  const foldCache = new Map();
-
-  function foldChar(ch) {
-    let folded = foldCache.get(ch);
-    if (folded === undefined) {
-      folded = ch.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
-      foldCache.set(ch, folded);
-    }
-    return folded;
-  }
-
-  // Folds `text`; `map[k]` is the index in `text` of the character behind folded position `k`.
-  function foldWithMap(text) {
-    let folded = "";
-    const map = [];
-    let i = 0;
-    for (const ch of text) {
-      const f = foldChar(ch);
-      for (let k = 0; k < f.length; k++) map.push(i);
-      folded += f;
-      i += ch.length;
-    }
-    map.push(text.length);
-    return { folded, map };
-  }
-
-  function foldText(text) {
-    let out = "";
-    for (const ch of text) out += foldChar(ch);
-    return out;
-  }
-
-  // The words of a query worth highlighting: quotes stripped, negated words
-  // and `field:value` operators left alone (task 010 owns the syntax).
-  function highlightTerms(text) {
-    const terms = new Set();
-    for (const raw of (text || "").split(/\s+/)) {
-      const word = raw.replace(/^["'(]+|["')]+$/g, "");
-      if (!word || word.startsWith("-") || word.includes(":")) continue;
-      const folded = foldText(word);
-      if (folded) terms.add(folded);
-    }
-    return Array.from(terms).sort((a, b) => b.length - a.length);
-  }
+  // Folding and the words worth highlighting live in query.js
+  // (`Query.foldWithMap`, `Query.highlightTerms`); the marks are made here.
 
   // The nodes that show `text` with the occurrences of `terms` wrapped in
   // <mark>, or null when no term occurs.
   function highlightFragments(text, terms) {
     if (terms.length === 0 || !text) return null;
-    const { folded, map } = foldWithMap(text);
+    const { folded, map } = Query.foldWithMap(text);
     const ranges = [];
     for (const term of terms) {
       let at = folded.indexOf(term);
@@ -530,6 +489,7 @@
     el.statusLeft.textContent = summary.path;
     el.statusLeft.title = summary.path;
     showWarnings([]);
+    indexLabelTree();
     resetQueryModel();
     state.foldersCollapsed.clear();
     renderFolders();
@@ -560,16 +520,40 @@
     state.query = defaultQuery();
     state.highlightTerms = [];
     el.search.value = "";
-    el.fFrom.value = "";
-    el.fAfter.value = "";
-    el.fBefore.value = "";
-    el.fAtt.value = "";
     el.fThreads.checked = state.query.groupThreads;
     el.fSort.value = "dateDesc";
     el.search.disabled = false;
     el.filtersBtn.disabled = false;
+    syncFromText();
     updateFilterBadge();
+  }
+
+  // Re-parses the field text into `state.parsed` and renders the panel and
+  // the folder selection from it. An input keeps its value (and its caret)
+  // when it already shows the parsed one.
+  function syncFromText() {
+    state.parsed = Query.parse(state.query.text, findLabelKey);
+    const p = state.parsed;
+    setInputValue(el.fFrom, p.from);
+    setInputValue(el.fAfter, p.after);
+    setInputValue(el.fBefore, p.before);
+    setInputValue(el.fAtt, p.hasAttachment == null ? "" : String(p.hasAttachment));
     updateFolderSelection();
+  }
+
+  function setInputValue(input, value) {
+    if (input.value !== value) input.value = value;
+  }
+
+  // Sets the operator `name` of the field text to `value` (the panel inputs
+  // and the folder pane edit the text this way) and runs the query.
+  function rewrite(name, value, { debounce = 0 } = {}) {
+    const text = Query.setOperator(state.query.text, name, value);
+    if (text === state.query.text) return;
+    el.search.value = text;
+    state.query.text = text;
+    syncFromText();
+    applyQuery({ debounce });
   }
 
   // Unix seconds of local midnight starting `ymd` (YYYY-MM-DD), or null.
@@ -580,40 +564,47 @@
     return Number.isNaN(time) ? null : Math.floor(time / 1000);
   }
 
-  // The QueryInput for the backend: empty fields left out, dates as local
-  // days (`to` inclusive: the core's `before` is the next midnight). The
-  // text keeps its trailing space: it tells the backend the last word is
-  // finished, otherwise that word matches as a prefix while it is typed.
+  // The QueryInput for the backend from the parsed text: empty fields left
+  // out, dates as local days (`before:` inclusive like the panel's "to": the
+  // core's `before` is the next midnight). The free text keeps its trailing
+  // space: it tells the backend the last word is finished, otherwise that
+  // word matches as a prefix while it is typed.
   function queryInput() {
     const q = state.query;
+    const p = state.parsed;
     const input = {
-      labels: [],
-      anyLabels: labelsUnder(q.label),
+      labels: p.labels,
+      anyLabels: labelsUnder(p.label),
       groupThreads: q.groupThreads,
       prefixLastWord: true,
     };
-    const text = q.text.trim();
-    if (text) input.text = q.text.trimStart();
-    const from = q.from.trim();
-    if (from) input.from = q.from.trimStart();
-    const after = localDayStart(q.after, 0);
+    const text = p.free.trim();
+    if (text) input.text = p.free;
+    if (p.from) input.from = p.from;
+    if (p.to) input.to = p.to;
+    if (p.subject) input.subject = p.subject;
+    const after = localDayStart(p.after, 0);
     if (after != null) input.after = after;
-    const before = localDayStart(q.before, 1);
+    const before = localDayStart(p.before, 1);
     if (before != null) input.before = before;
-    if (q.hasAttachment != null) input.hasAttachment = q.hasAttachment;
+    if (p.hasAttachment != null) input.hasAttachment = p.hasAttachment;
     // Relevance means nothing without words to score.
     input.sort = text && q.sort === "relevance" ? "relevance" : "dateDesc";
     return input;
   }
 
+  // The filters beyond the free text and the selected label: the badge count.
   function activeFilterCount() {
-    const q = state.query;
+    const p = state.parsed;
     let n = 0;
-    if (q.from.trim()) n++;
-    if (q.after) n++;
-    if (q.before) n++;
-    if (q.hasAttachment != null) n++;
-    if (q.sort !== "dateDesc") n++;
+    if (p.from) n++;
+    if (p.to) n++;
+    if (p.subject) n++;
+    if (p.after) n++;
+    if (p.before) n++;
+    if (p.hasAttachment != null) n++;
+    n += p.labels.length;
+    if (state.query.sort !== "dateDesc") n++;
     return n;
   }
 
@@ -624,8 +615,8 @@
   }
 
   function anyNarrowing() {
-    const q = state.query;
-    return Boolean(q.text.trim() || q.label || activeFilterCount() > 0);
+    const p = state.parsed;
+    return Boolean(p.free.trim() || p.label || activeFilterCount() > 0);
   }
 
   // Sends the model to the backend; `debounce` delays it for a typist.
@@ -648,7 +639,7 @@
     state.queryDirty = false;
     const token = ++state.queryToken;
     const input = queryInput();
-    const terms = highlightTerms(input.text);
+    const terms = Query.highlightTerms(state.query.text);
     try {
       const info = await invoke("set_query", { query: input });
       if (token !== state.queryToken) return;
@@ -664,12 +655,14 @@
     }
   }
 
+  // Shows the backend's query warnings after the syntax ones of the field.
   function showWarnings(warnings) {
     state.warnings = warnings || [];
     clearTimeout(state.statusTimer);
     el.statusRight.title = "";
-    if (state.warnings.length > 0) {
-      el.statusRight.textContent = `Query: ${state.warnings.join("; ")}`;
+    const all = state.parsed.warnings.concat(state.warnings);
+    if (all.length > 0) {
+      el.statusRight.textContent = `Query: ${all.join("; ")}`;
       el.statusRight.className = "warn";
     } else {
       el.statusRight.textContent = state.file ? indexStateText(state.file.index) : "";
@@ -705,6 +698,7 @@
 
   el.search.addEventListener("input", () => {
     state.query.text = el.search.value;
+    syncFromText();
     applyQuery({ debounce: SEARCH_DEBOUNCE_MS });
   });
 
@@ -718,6 +712,7 @@
       if (el.search.value) {
         el.search.value = "";
         state.query.text = "";
+        syncFromText();
         applyQuery();
       } else {
         el.list.focus();
@@ -725,21 +720,18 @@
     }
   });
 
+  // The panel inputs edit the operators of the field text.
   el.fFrom.addEventListener("input", () => {
-    state.query.from = el.fFrom.value;
-    applyQuery({ debounce: SEARCH_DEBOUNCE_MS });
+    rewrite("from", el.fFrom.value, { debounce: SEARCH_DEBOUNCE_MS });
   });
   el.fAfter.addEventListener("change", () => {
-    state.query.after = el.fAfter.value;
-    applyQuery();
+    rewrite("after", el.fAfter.value);
   });
   el.fBefore.addEventListener("change", () => {
-    state.query.before = el.fBefore.value;
-    applyQuery();
+    rewrite("before", el.fBefore.value);
   });
   el.fAtt.addEventListener("change", () => {
-    state.query.hasAttachment = el.fAtt.value === "" ? null : el.fAtt.value === "true";
-    applyQuery();
+    rewrite("has", el.fAtt.value === "" ? null : el.fAtt.value === "true");
   });
   el.fSort.addEventListener("change", () => {
     state.query.sort = el.fSort.value;
@@ -780,8 +772,46 @@
   // The exact labels a click on the node with `key` sends (`anyLabels`).
   function labelsUnder(key) {
     if (key == null) return [];
-    const node = state.folderNodes.get(key);
+    const node = state.labelIndex.get(key);
     return node ? node.labels : [key];
+  }
+
+  // Every node of the label tree by key, and the keys by the name the
+  // field text uses: a label's own name, or the `/`-joined path of a
+  // container (`Work`, `Categories`); a label wins over a container.
+  function indexLabelTree() {
+    state.labelIndex.clear();
+    state.labelKeys.clear();
+    const containers = new Map();
+    const walk = (nodes, parentKey, parentPath) => {
+      for (const node of nodes) {
+        const key = nodeKey(node, parentKey);
+        const path = parentPath == null ? node.name : `${parentPath}/${node.name}`;
+        state.labelIndex.set(key, node);
+        if (node.label != null) state.labelKeys.set(node.label, key);
+        else if (!containers.has(path)) containers.set(path, key);
+        walk(node.children, key, path);
+      }
+    };
+    walk(state.file ? state.file.labels : [], null, null);
+    for (const [path, key] of containers) {
+      if (!state.labelKeys.has(path)) state.labelKeys.set(path, key);
+    }
+  }
+
+  // The node key behind a `label:` value; an unknown name is its own key
+  // (an exact label the index may not have).
+  function findLabelKey(name) {
+    return state.labelKeys.get(name) ?? name;
+  }
+
+  // The name the field text carries for the node with `key`: the label
+  // itself, or the container path without the `#` marks.
+  function labelName(key) {
+    return key
+      .split("/")
+      .map((part) => part.replace(/#$/, ""))
+      .join("/");
   }
 
   function renderFolders() {
@@ -850,15 +880,14 @@
     for (const item of el.folders.children) {
       if (!item.classList.contains("folder")) continue;
       const label = item.dataset.label === "" ? null : item.dataset.label;
-      item.setAttribute("aria-selected", label === state.query.label ? "true" : "false");
+      item.setAttribute("aria-selected", label === state.parsed.label ? "true" : "false");
     }
   }
 
+  // A click on a node writes `label:` into the field; All mail drops every label.
   function selectLabel(label) {
-    if (label === state.query.label) return;
-    state.query.label = label;
-    updateFolderSelection();
-    applyQuery();
+    if (label === state.parsed.label) return;
+    rewrite("label", label == null ? null : labelName(label));
   }
 
   function folderIndexOf(label) {
@@ -873,10 +902,10 @@
   el.folders.addEventListener("keydown", (event) => {
     const items = folderItems();
     if (items.length === 0) return;
-    let index = folderIndexOf(state.query.label);
-    const node = state.query.label == null ? null : state.folderNodes.get(state.query.label);
+    let index = folderIndexOf(state.parsed.label);
+    const node = state.parsed.label == null ? null : state.folderNodes.get(state.parsed.label);
     const hasChildren = Boolean(node && node.children.length > 0);
-    const collapsed = hasChildren && state.foldersCollapsed.has(state.query.label);
+    const collapsed = hasChildren && state.foldersCollapsed.has(state.parsed.label);
     if (event.key === "ArrowDown") index = Math.min(items.length - 1, index + 1);
     else if (event.key === "ArrowUp") index = Math.max(0, index - 1);
     else if (event.key === "Home") index = 0;
@@ -884,11 +913,11 @@
     else if (event.key === "ArrowRight" && collapsed) {
       // Open the node first; a second press moves on to the list.
       event.preventDefault();
-      toggleFolder(state.query.label);
+      toggleFolder(state.parsed.label);
       return;
     } else if (event.key === "ArrowLeft") {
       event.preventDefault();
-      if (hasChildren && !collapsed) toggleFolder(state.query.label);
+      if (hasChildren && !collapsed) toggleFolder(state.parsed.label);
       return;
     } else if (event.key === "Enter" || event.key === "ArrowRight") {
       el.list.focus();

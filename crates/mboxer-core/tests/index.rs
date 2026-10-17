@@ -195,6 +195,31 @@ fn structured_filters_and_paging() {
         .unwrap();
     assert_eq!(to_konyveles.total, 1, "cc counts as a recipient");
 
+    let subject = |words: &str| {
+        index
+            .search(&SearchQuery {
+                subject: Some(words.into()),
+                ..SearchQuery::default()
+            })
+            .unwrap()
+            .total
+    };
+    assert_eq!(subject("szamla"), 1, "folded, subject only");
+    assert_eq!(subject("valasz"), 1);
+    assert_eq!(subject("köszönöm"), 0, "a body word is not a subject word");
+    assert_eq!(total(&index, "köszönöm"), 1);
+    let subject_prefix = index
+        .search(&SearchQuery {
+            subject: Some("janu".into()),
+            prefix_last_word: true,
+            ..SearchQuery::default()
+        })
+        .unwrap();
+    assert_eq!(
+        subject_prefix.total, 1,
+        "the subject word being typed is a prefix"
+    );
+
     let personal = index
         .search(&SearchQuery {
             labels: vec!["Category personal".into()],

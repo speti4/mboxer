@@ -97,6 +97,8 @@ fn filters_narrow_the_result_and_work_without_text() {
     assert_eq!(hits(&mbox, &["--from", "anna"]), "1");
     assert_eq!(hits(&mbox, &["--from", "anna", "--no-attachment"]), "0");
     assert_eq!(hits(&mbox, &["--to", "konyveles"]), "1");
+    assert_eq!(hits(&mbox, &["--subject", "szamla"]), "1");
+    assert_eq!(hits(&mbox, &["--subject", "köszönöm"]), "0");
     assert_eq!(hits(&mbox, &["--label", "Inbox"]), "1");
     assert_eq!(hits(&mbox, &["--label", "Sent", "--label", "Opened"]), "1");
     assert_eq!(hits(&mbox, &["--label", "Sent", "--label", "Inbox"]), "0");
