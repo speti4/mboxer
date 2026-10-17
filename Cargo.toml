@@ -36,6 +36,11 @@ tauri-plugin-dialog = "2"
 # from Rust, so no capability entry); task 008 opens attachments with `open_path` — see task 007.
 tauri-plugin-opener = "2"
 
+# The portable exe (task 012): fat LTO and one codegen unit for size and speed, symbols
+# stripped. Panics keep unwinding: a panicking command returns an error instead of taking the
+# window down.
 [profile.release]
-lto = "thin"
+opt-level = 3
+lto = "fat"
 codegen-units = 1
+strip = true

@@ -32,6 +32,12 @@ pub fn initial_path() -> Option<String> {
     std::env::args().nth(1)
 }
 
+/// The version of the exe (the workspace `Cargo.toml`, stamped by `tauri-build`).
+#[tauri::command]
+pub fn app_version(app: AppHandle) -> String {
+    app.package_info().version.to_string()
+}
+
 /// Opens `path`, or the file the user picks when `path` is `None`. Progress
 /// and the outcome arrive on `on_event`; the `Err` is only for a second open
 /// while one is running.

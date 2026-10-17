@@ -188,7 +188,7 @@ body:not([data-view="ready"]) .filters {
 
 #status {
   display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  grid-template-columns: 1fr auto 1fr auto;
   gap: 12px;
   padding: 3px 10px;
   border-top: 1px solid var(--border);
@@ -209,6 +209,16 @@ body:not([data-view="ready"]) .filters {
 
 #status-right.error {
   color: var(--error);
+}
+
+#status-version {
+  padding-left: 8px;
+  border-left: 1px solid var(--border);
+  font-variant-numeric: tabular-nums;
+}
+
+#status-version:empty {
+  display: none;
 }
 
 /* Three panes */

@@ -8,6 +8,7 @@ and a handful of colleagues, each with their own mbox file.
   `tasks/decisions/`).
 - Status and backlog: `tasks/README.md` (generated), milestones in `tasks/roadmap.md`.
 - Why this exists: `docs/origin.md`; why build and not buy: `docs/research/`.
+- For the people who only run it: `docs/usage.md` (ships in the release zip).
 
 ## Build
 
@@ -109,7 +110,12 @@ both sides (`szamla` finds `Számla`), the filters narrow the result, and every 
 the message's byte offset and length in the mbox. Dates are UTC days; `--before` is exclusive.
 
 Checks before a commit: `cargo fmt --check`, `cargo clippy --all-targets -- -D warnings`,
-`cargo test`. Peak memory of a run: `scripts\peak-memory.ps1 -- target\release\mboxer-cli.exe scan <file.mbox> --quiet`.
+`cargo test`; `.github/workflows/ci.yml` runs the same three on every push and pull request
+(windows-latest). Release: `scripts\release.ps1` builds the release profile (fat LTO, stripped) and
+packs `target\release\mboxer.exe` + `docs\usage.md` into `dist\mboxer-<version>.zip`, the version
+being the workspace `Cargo.toml` one (the only place it is written; `tauri-build` stamps it into
+the exe's properties and the status bar shows it). Pushing a tag `v<version>` runs the tests and
+publishes that zip as a GitHub release. Peak memory of a run: `scripts\peak-memory.ps1 -- target\release\mboxer-cli.exe scan <file.mbox> --quiet`.
 The full benchmark (build time, peak memory, index size, re-open and search latency as a Markdown
 report): `scripts\benchmark.ps1 -Mbox <file.mbox> -Out docs\benchmarks\<date>.md`; results for the
 author's archive are under `docs/benchmarks/`.
@@ -124,5 +130,6 @@ author's archive are under `docs/benchmarks/`.
   the open-or-build flow, the message view, the label order), the static UI under `ui/`, the
   capability file and the icon.
 - `crates/mboxer-cli` — the `mboxer-cli` executable; its end-to-end tests under `tests/`.
-- `scripts/` — helper scripts for measurements and the icon.
-- `docs/` — origin, research, dated benchmarks.
+- `scripts/` — helper scripts for measurements, the icon and the release zip.
+- `docs/` — origin, research, dated benchmarks, the usage guide for the other users.
+- `.github/workflows/` — CI (fmt, clippy, test) and the tagged release.

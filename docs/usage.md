@@ -1,0 +1,77 @@
+# mboxer — using it
+
+A viewer for a Gmail Takeout mbox archive on Windows 11. One file, nothing to install.
+
+## What you need
+
+- Windows 11 (the viewer runs on the WebView2 that is part of Windows).
+- Your archive: the `.mbox` file from Google Takeout, anywhere on a disk you can read.
+- Free space next to the mbox for the search index: about 1 % of the mbox size (a 14 GB
+  archive gets a 135 MB index).
+
+## Getting the program
+
+1. Download `mboxer-<version>.zip` from the project's GitHub releases page and unzip it anywhere
+   (next to the mbox, on the desktop, it does not matter). It holds `mboxer.exe` and this guide.
+2. The exe is not code-signed, so Windows may show a SmartScreen warning on the first start:
+   click *More info*, then *Run anyway*. If the exe refuses to start at all, right-click it,
+   *Properties*, tick *Unblock*, *OK*.
+
+## First open
+
+Start `mboxer.exe` and pick the mbox with *Open* (`Ctrl+O`), or drop the mbox path on the exe
+as its argument (a shortcut with `mboxer.exe "D:\mail\All mail.mbox"` opens it straight away).
+
+The first open builds the search index: a progress bar counts the messages, and the index of a
+14 GB archive takes about two minutes on an SSD. *Cancel* stops it and leaves nothing behind.
+Every later open reuses the index and takes well under a second. A new Takeout export is a new
+file: its first open builds a new index.
+
+## Where mboxer writes
+
+Everything below is a cache: deleting it costs a rebuild, never data.
+
+| What | Where |
+|---|---|
+| The search index | `.mboxer\<mbox file name>\` next to the mbox (a hidden-by-convention folder) |
+| The index when that folder is not writable (a read-only share, a DVD) | `%LOCALAPPDATA%\mboxer\index\` |
+| Attachments you open from a message | `%TEMP%\mboxer\` (cleaned at the next start) |
+| The web view's own profile (window state, cache) | `%LOCALAPPDATA%\io.github.speti4.mboxer\` |
+
+The mbox itself is never modified.
+
+## Finding mail
+
+The folder pane on the left shows your Gmail labels as a tree with counts; a click narrows
+the list to that label and everything under it. The list shows one row per conversation
+(newest first); the chevron or `ArrowRight` opens the conversation, `ArrowLeft` closes it.
+The reader on the right shows the message with its attachments (click to open, *Save…* to keep).
+
+The search field (`Ctrl+F`) narrows the list as you type. Words are AND-ed, `"quotes"` make a
+phrase, `OR` and `-word` work, accents and case do not matter (`szamla` finds `Számla`). It
+also takes Gmail-style operators, and the *Filters* panel (`Ctrl+Shift+F`) writes the same
+operators into the field:
+
+| Operator | Meaning |
+|---|---|
+| `from:anna`, `from:"anna példa"` | words in the sender |
+| `to:konyveles` | words in a recipient (To or Cc) |
+| `subject:számla` | words in the subject |
+| `after:2026-01-01`, `before:2026-01-31` | local days, both inclusive |
+| `has:attachment`, `-has:attachment` | with, without an attachment |
+| `label:Inbox`, `label:"Work/Invoices"` | a label and its sub-labels |
+
+Keyboard: `Ctrl+O` open, `Ctrl+F` search, `Esc` in the field clears the whole query, `Enter`
+or `ArrowDown` moves to the list, arrows / `PageUp` / `PageDown` / `Home` / `End` move in the
+list, `Enter` focuses the reader, `Esc` returns to the list.
+
+## When something is off
+
+- *Open failed* in red: the file is not an mbox (the message names the byte offset), or the path
+  does not exist any more. Pick the file again with *Open*.
+- The index rebuilds although nothing changed: the mbox was touched (copied with a new
+  modification time, re-exported). A rebuild is safe, it only takes the time of the first open.
+- To force a rebuild, delete the `.mboxer\<mbox file name>\` folder next to the mbox (or the
+  folder under `%LOCALAPPDATA%\mboxer\index\`) and open the mbox again.
+- The version you run is at the right end of the status bar; the one on the releases page is
+  the latest.

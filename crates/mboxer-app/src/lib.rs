@@ -22,6 +22,7 @@ pub fn run() {
         .manage(state::AppState::default())
         .invoke_handler(tauri::generate_handler![
             commands::initial_path,
+            commands::app_version,
             commands::open_mbox,
             commands::cancel_open,
             commands::set_query,

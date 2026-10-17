@@ -35,7 +35,7 @@
     "view-source", "copy-btn", "remote-bar", "remote-text", "remote-allow", "empty", "empty-open-btn",
     "reopen-btn", "error", "error-path", "error-text", "retry-btn", "error-open-btn", "overlay",
     "overlay-title", "overlay-path", "progress", "progress-text", "cancel-btn", "status-left",
-    "status-center", "status-right",
+    "status-center", "status-right", "status-version",
   ]) {
     el[id.replace(/-([a-z])/g, (_, c) => c.toUpperCase())] = document.getElementById(id);
   }
@@ -1769,8 +1769,20 @@
 
   document.addEventListener("keydown", globalShortcut);
 
+  // The exe's version at the right end of the status bar (task 012).
+  async function showVersion() {
+    try {
+      const version = await invoke("app_version");
+      el.statusVersion.textContent = `v${version}`;
+      el.statusVersion.title = `mboxer ${version}`;
+    } catch (_) {
+      el.statusVersion.textContent = "";
+    }
+  }
+
   async function start() {
     loadWidths();
+    showVersion();
     setFiltersOpen(storageGet(STORAGE_FILTERS_OPEN) === "1");
     if (storageGet(STORAGE_BODY_MODE) === "text") state.bodyMode = "text";
     state.lastPath = storageGet(STORAGE_LAST_PATH);

@@ -11,7 +11,7 @@ Closing a task files every follow-up as a `backlog/` item now or deletes it with
 <!-- tasks:index:start -->
 _Generated 2026-10-17 — edit the files, not this section._
 
-**State:** 4 backlog (0 ready · 0 blocked · 0 waiting · 4 ideas) · 0 in progress · 13 done · 0 dropped · 5 decisions
+**State:** 3 backlog (0 ready · 0 blocked · 0 waiting · 3 ideas) · 0 in progress · 14 done · 0 dropped · 5 decisions
 
 ### Ready
 
@@ -32,7 +32,6 @@ _none_
 | # | Task | Size | Created |
 |---|---|---|---|
 | 011 | [Export a message: .eml, PDF, print](backlog/011-export-eml-pdf-print.md) | M | 2026-10-17 |
-| 012 | [Portable release build for other users](backlog/012-portable-exe-release-build.md) | S | 2026-10-17 |
 | 016 | [Open multiple mbox files](backlog/016-open-multiple-mbox-files.md) | M | 2026-10-17 |
 | 017 | [Dark mode toggle with OS default](backlog/017-dark-mode-toggle.md) | S | 2026-10-17 |
 
@@ -51,15 +50,15 @@ _none_
 | 015 | [Decode RFC 2047-encoded Gmail label names](done/015-decode-rfc2047-gmail-label-names.md) | 2026-10-17 |
 | 014 | [Index fallback when the mbox folder is not writable](done/014-index-fallback-for-read-only-mbox-locations.md) | 2026-10-17 |
 | 013 | [Unescape >From  lines in message bodies for display](done/013-unescape-from-lines-in-message-bodies.md) | 2026-10-17 |
+| 012 | [Portable release build for other users](done/012-portable-exe-release-build.md) | 2026-10-17 |
 | 010 | [Gmail-style query syntax in the search field](done/010-gmail-style-query-syntax.md) | 2026-10-17 |
 | 009 | [Gmail labels and conversation threads](done/009-gmail-labels-and-threads.md) | 2026-10-17 |
 | 008 | [Attachments: list, open, save](done/008-attachments-list-open-save.md) | 2026-10-17 |
 | 007 | [Message reader with sanitized HTML](done/007-message-reader-sanitized-html.md) | 2026-10-17 |
 | 006 | [Search field and filter panel](done/006-search-field-and-filter-panel.md) | 2026-10-17 |
 | 005 | [Tauri 2 shell with the three-pane layout](done/005-tauri2-shell-three-pane-layout.md) | 2026-10-17 |
-| 004 | [Index CLI filters and the 14 GB benchmark](done/004-index-cli-and-14gb-benchmark.md) | 2026-10-17 |
 
-_3 more in `done/`._
+_4 more in `done/`._
 
 ### Decisions
 
