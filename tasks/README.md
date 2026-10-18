@@ -13,7 +13,7 @@ file, never the issue.
 <!-- tasks:index:start -->
 _Generated 2026-10-18 — edit the files, not this section._
 
-**State:** 10 backlog (6 ready · 0 blocked · 1 waiting · 3 ideas) · 1 in progress · 24 done · 0 dropped · 11 decisions
+**State:** 9 backlog (5 ready · 0 blocked · 1 waiting · 3 ideas) · 2 in progress · 24 done · 0 dropped · 11 decisions
 
 ### Ready
 
@@ -30,7 +30,6 @@ _Generated 2026-10-18 — edit the files, not this section._
 | # | Task | Size | Created |
 |---|---|---|---|
 | 025 | [Release notes and changelog from the task files, checksums and third-party lice…](backlog/025-release-notes-changelog-and-checksums.md) | M | 2026-10-18 |
-| 033 | [Install the Rust toolchain in CI without a third-party action](backlog/033-install-the-toolchain-without-a-third-party-action.md) | S | 2026-10-18 |
 | 035 | [CLAUDE.md fit for a public repo: no personal settings, no contradictions, a com…](backlog/035-claude-md-review-before-publication.md) | S | 2026-10-18 |
 
 ### Needs decision
@@ -66,6 +65,7 @@ _none_
 
 | # | Task | Started | Plan |
 |---|---|---|---|
+| 033 | [Install the Rust toolchain in CI without a third-party action](wip/033-install-the-toolchain-without-a-third-party-action.md) | 2026-10-18 | `none` |
 | 034 | [Git workflow policy for contributors and parallel sessions, with the commit rul…](wip/034-git-workflow-policy-and-commit-hooks.md) | 2026-10-18 | `cuddly-painting-trinket.md` |
 
 ### Closed – do not reopen
