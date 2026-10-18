@@ -13,7 +13,7 @@ file, never the issue.
 <!-- tasks:index:start -->
 _Generated 2026-10-18 — edit the files, not this section._
 
-**State:** 3 backlog (3 ready · 0 blocked · 0 waiting · 0 ideas) · 1 in progress · 18 done · 0 dropped · 8 decisions
+**State:** 3 backlog (3 ready · 0 blocked · 0 waiting · 0 ideas) · 0 in progress · 19 done · 0 dropped · 8 decisions
 
 ### Ready
 
@@ -39,11 +39,7 @@ _none_
 
 ### In progress
 
-#### (no milestone)
-
-| # | Task | Started | Plan |
-|---|---|---|---|
-| 022 | [One-way sync of tasks/ to GitHub issues and milestones](wip/022-sync-tasks-to-github-issues.md) | 2026-10-18 | `local-repoban-profi-a-clever-pie.md` |
+_none_
 
 ### Closed – do not reopen
 
@@ -53,6 +49,7 @@ _none_
 
 | # | Task | Closed |
 |---|---|---|
+| 022 | [One-way sync of tasks/ to GitHub issues and milestones](done/022-sync-tasks-to-github-issues.md) | 2026-10-18 |
 | 021 | [GitHub milestones from the roadmap and the first release v0.1.0](done/021-github-milestones-and-first-release.md) | 2026-10-18 |
 | 017 | [Dark mode toggle with OS default](done/017-dark-mode-toggle.md) | 2026-10-18 |
 | 016 | [Open multiple mbox files](done/016-open-multiple-mbox-files.md) | 2026-10-18 |
@@ -62,9 +59,8 @@ _none_
 | 013 | [Unescape >From  lines in message bodies for display](done/013-unescape-from-lines-in-message-bodies.md) | 2026-10-17 |
 | 012 | [Portable release build for other users](done/012-portable-exe-release-build.md) | 2026-10-17 |
 | 010 | [Gmail-style query syntax in the search field](done/010-gmail-style-query-syntax.md) | 2026-10-17 |
-| 009 | [Gmail labels and conversation threads](done/009-gmail-labels-and-threads.md) | 2026-10-17 |
 
-_8 more in `done/`._
+_9 more in `done/`._
 
 ### Decisions
 
