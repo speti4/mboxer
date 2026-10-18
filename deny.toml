@@ -13,8 +13,9 @@ unmaintained = "workspace"
 ignore = []
 
 [licenses]
-# Every licence the exe may carry; 025 turns them into the third-party notices. MPL-2.0 (cssparser,
-# selectors, dtoa-short, option-ext under Tauri and dirs) is file-level copyleft, used unmodified.
+# Every licence the exe may carry; about.toml accepts the same list for the third-party licence page of the
+# release zip (task 025), so a licence added here is added there. MPL-2.0 (cssparser, selectors, dtoa-short,
+# option-ext under Tauri and dirs) is file-level copyleft, used unmodified.
 allow = ["MIT", "Apache-2.0", "Unicode-3.0", "BSD-3-Clause", "Zlib", "MPL-2.0"]
 confidence-threshold = 0.9
 
