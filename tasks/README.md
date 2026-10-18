@@ -13,7 +13,7 @@ file, never the issue.
 <!-- tasks:index:start -->
 _Generated 2026-10-18 — edit the files, not this section._
 
-**State:** 9 backlog (6 ready · 0 blocked · 1 waiting · 2 ideas) · 0 in progress · 28 done · 0 dropped · 11 decisions
+**State:** 9 backlog (6 ready · 0 blocked · 1 waiting · 2 ideas) · 0 in progress · 29 done · 0 dropped · 12 decisions
 
 ### Ready
 
@@ -29,9 +29,9 @@ _Generated 2026-10-18 — edit the files, not this section._
 
 | # | Task | Size | Created |
 |---|---|---|---|
-| 025 | [Release notes and changelog from the task files, checksums and third-party lice…](backlog/025-release-notes-changelog-and-checksums.md) | M | 2026-10-18 |
 | 036 | [Git workflow doc: current decision reference, the deps type, the expected index…](backlog/036-git-workflow-references-and-commit-types.md) | S | 2026-10-18 |
 | 037 | [Refresh the README screenshot after the date column fix](backlog/037-refresh-the-viewer-screenshot.md) | S | 2026-10-18 |
+| 038 | [README links the changelog next to the releases](backlog/038-readme-links-the-changelog.md) | S | 2026-10-18 |
 
 ### Needs decision
 
@@ -78,11 +78,11 @@ _none_
 | 030 | [Scrub the repo and rewrite the history per D-09](done/030-scrub-and-rewrite-history-per-d-09.md) | 2026-10-18 |
 | 027 | [Pre-publish audit of the history and the content](done/027-pre-publish-history-and-content-audit.md) | 2026-10-18 |
 | 026 | [README as a front page, the reference moved into docs](done/026-readme-front-page.md) | 2026-10-18 |
+| 025 | [Release notes and changelog from the task files, checksums and third-party lice…](done/025-release-notes-changelog-and-checksums.md) | 2026-10-18 |
 | 024 | [Supply chain and CI hardening: dependabot, cargo-deny, pinned actions](done/024-supply-chain-and-ci-hardening.md) | 2026-10-18 |
 | 023 | [Community health files: licence, security policy, contributing guide, issue and…](done/023-community-health-files.md) | 2026-10-18 |
-| 022 | [One-way sync of tasks/ to GitHub issues and milestones](done/022-sync-tasks-to-github-issues.md) | 2026-10-18 |
 
-_18 more in `done/`._
+_19 more in `done/`._
 
 ### Decisions
 
@@ -93,6 +93,7 @@ _18 more in `done/`._
 | D-08 | [GitHub issues and milestones mirror tasks/ one-way through a script; nothing is edited on GitHub by hand; a release tag closes the milestones it ships](decisions/D-08-github-milestones-mirror-roadmap-one-way.md) | decided | 2026-10-18 |
 | D-07 | [macOS builds ship as an ad-hoc signed universal .app in a zip, without notarization](decisions/D-07-macos-distribution-adhoc-signed-app-zip.md) | decided | 2026-10-18 |
 | D-06 | [Several mbox files are open side by side, one active at a time; there is no merged view](decisions/D-06-several-files-open-one-active-no-merged-view.md) | decided | 2026-10-18 |
+| D-012 | [Release notes and the changelog come from the done task files, the licence page from cargo-about](decisions/D-012-release-notes-from-task-files-licences-by-cargo-about.md) | decided | 2026-10-18 |
 | D-011 | [Crates come from crates.io only, under a fixed licence allowlist that includes MPL-2.0, and an advisory fails CI](decisions/D-011-dependency-licence-and-source-policy.md) | decided | 2026-10-18 |
 | D-05 | [When .mboxer/ beside the mbox cannot be created, the index lives under %LOCALAPPDATA%\mboxer\index\<name>-<path hash>\](decisions/D-05-index-fallback-under-localappdata.md) | decided | 2026-10-17 |
 | D-04 | [The sidecar index lives in .mboxer/<mbox name>/ beside the mbox and is rebuilt whole when stale](decisions/D-04-sidecar-index-location-and-freshness.md) | decided | 2026-10-17 |

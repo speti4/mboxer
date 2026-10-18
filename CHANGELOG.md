@@ -19,11 +19,13 @@ not the list. The summary under a heading is written by hand and kept by the gen
 - Scrub the repo and rewrite the history per D-09 ([030](https://github.com/speti4/mboxer/blob/main/tasks/done/030-scrub-and-rewrite-history-per-d-09.md))
 - Install the Rust toolchain in CI without a third-party action ([033](https://github.com/speti4/mboxer/blob/main/tasks/done/033-install-the-toolchain-without-a-third-party-action.md))
 - Git workflow policy for contributors and parallel sessions, with the commit rules enforced ([034](https://github.com/speti4/mboxer/blob/main/tasks/done/034-git-workflow-policy-and-commit-hooks.md))
+- CLAUDE.md fit for a public repo: no personal settings, no contradictions, a commands block ([035](https://github.com/speti4/mboxer/blob/main/tasks/done/035-claude-md-review-before-publication.md))
 
 ### Other
 
 - GitHub milestones from the roadmap and the first release v0.1.0 ([021](https://github.com/speti4/mboxer/blob/main/tasks/done/021-github-milestones-and-first-release.md))
 - One-way sync of tasks/ to GitHub issues and milestones ([022](https://github.com/speti4/mboxer/blob/main/tasks/done/022-sync-tasks-to-github-issues.md))
+- Date column misaligned between conversation rows and plain rows in the list ([032](https://github.com/speti4/mboxer/blob/main/tasks/done/032-list-date-column-alignment-in-conversation-view.md))
 
 ## 0.1.0 — 2026-10-18
 
