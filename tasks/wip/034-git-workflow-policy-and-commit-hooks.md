@@ -33,8 +33,8 @@ Done when: a commit with the trailer fails locally and in CI, and a second sessi
 7. [x] `.gitignore`: `.claude/worktrees/`
 8. [x] `CONTRIBUTING.md`, `.github/pull_request_template.md`, `docs/development.md` point to the policy
 9. [x] Repo merge settings (`gh api`): squash only, squash message = PR title + description, delete head branches
-10. [ ] 034 itself through the flow: branch `task/034-git-workflow-policy`, PR, CI red with a trailer commit, green
-    without, squash merge on the user's go
+10. [ ] 034 itself through the flow: branch `task/034-git-workflow-policy`, PR #48, CI red with a trailer commit,
+    green without (done), squash merge on the user's go
 11. [x] `cargo fmt --check`, clippy, test, `uvx zizmor .github`
 12. [ ] Done-when, second half: 033 runs in a worktree session and follows the file (PR, no new id, follow-ups in
     the PR body)
@@ -63,7 +63,12 @@ Done when: a commit with the trailer fails locally and in CI, and a second sessi
 
 ## Verification
 
-- 
+- 2026-10-18 — hook helyben (scratch worktree, `scratch/hook-test`, utána törölve): `Claude-Session:` trailer,
+  session link, `-c user.email=x@example.com` a maintainer nevével → mind exit 1 a saját üzenetével; más név +
+  saját cím → exit 0; tiszta commit → átmegy (c04a34d, 3deb730 ezzel készült).
+- 2026-10-18 — CI a PR #48-on: első futás (39145607833) mind zöld, `commit-rules` 4 s. Ideiglenes commit trailerrel
+  (`fdfb64a`, `--no-verify`) → `commit-rules` failure (39145901495): "no Claude-Session: trailer … in fdfb64a…",
+  exit 1. Eldobva (`reset --hard 3deb730`, `--force-with-lease`) → újra minden zöld (39145983395).
 
 ## Closing checklist
 
