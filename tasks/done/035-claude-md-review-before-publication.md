@@ -24,15 +24,19 @@ Run as a task session under docs/git-workflow.md, in parallel with 025 and 032.
 
 ## Steps
 
-1. [ ] CLAUDE.md: the cuts and the Commands block listed in Context; the `@docs/git-workflow.md` import stays
-2. [ ] The dependency justification rule: the `Cargo.toml` comment (as CONTRIBUTING says), CLAUDE.md points there
-3. [ ] Every rule CLAUDE.md drops is still stated somewhere the repo keeps (CONTRIBUTING, docs, decisions)
-4. [ ] Pull request, CI green
+1. [x] CLAUDE.md: the cuts and the Commands block listed in Context; the `@docs/git-workflow.md` import stays
+2. [x] The dependency justification rule: the `Cargo.toml` comment (as CONTRIBUTING says), CLAUDE.md points there
+3. [x] Every rule CLAUDE.md drops is still stated somewhere the repo keeps (CONTRIBUTING, docs, decisions)
+4. [x] Pull request, CI green
 
 ## Log
 
 - 2026-10-18 — promoted by the main session; worked in `.claude/worktrees/035-claude-md-review` on branch
   `task/035-claude-md-review`
+- 2026-10-18 — CLAUDE.md átírva (Layout, Commands, Data, Conventions, Tasks), PR #52, CI zöld; lezárva a branchen
+- 2026-10-18 — main session a merge előtt: a záró commit csak a `git mv`-t vitte, a fájl szerkesztései (Steps,
+  Log, Verification, `closed`) commitolatlanul maradtak a worktree-ben — most commitolva; a két follow-up
+  (D-10 hivatkozás, `deps:` a CONTRIBUTING-ban, plusz a várt index-hiba) → `backlog/036`; index újragenerálva.
 
 ## Deviations from the plan
 
@@ -40,11 +44,27 @@ Run as a task session under docs/git-workflow.md, in parallel with 025 and 032.
 
 ## Verification
 
-- 
+- 2026-10-18 — CLAUDE.md előtte: Scope (crate-ok + build/run/test + docs-leltár), Data, Conventions (7 sor),
+  Tasks (1 hosszú sor); utána: Layout, Commands, Data (változatlan szabályok), Conventions (2 sor), Tasks (1 sor).
+  Hová kerültek az elhagyott szabályok (mind megvolt már, új helyre nem kellett költöztetni):
+  - "User communication: Hungarian" — a szerző globális CLAUDE.md-je fedi; a repóba nem kell
+  - Rust edition 2024 — `Cargo.toml` (`edition = "2024"`) és CONTRIBUTING.md Conventions
+  - fmt + clippy lista — CONTRIBUTING.md "Checks before a commit" (cargo deny, zizmor is); CLAUDE.md oda mutat
+  - English / kebab-case — CONTRIBUTING.md Conventions
+  - függőség-indoklás — egy szabály: `Cargo.toml` komment (CONTRIBUTING.md "Dependencies: one exe", PR template);
+    a "task fájlban" változat törölve, CLAUDE.md a CONTRIBUTING szakaszra mutat
+  - docs/ leltár — docs/development.md Layout
+  - "closing files every follow-up with /tasks add", "/tasks check before a task commit" — ellentmondott a
+    docs/git-workflow.md-nek (id-t és follow-upot a main session ad); a standard a `tasks/README.md`-ben, a
+    tasks_check tool leírásában
+  - megtartva: `@docs/git-workflow.md` import, Data outside the repo, D-08 (H1 + Context angol), decision
+    `proposed` amíg a user meg nem erősíti (máshol nem áll kimondva, ezért CLAUDE.md-ben maradt)
+- 2026-10-18 — PR #52: CI run 39153999869 zöld (test, deny, workflow-lint, commit-rules); `scripts/check-commit.sh`
+  a commit üzenetre és a PR body-ra exit 0; `tasks_check` (write nélkül) 0 hiba
 
 ## Closing checklist
 
-- [ ] every follow-up is listed in the pull request under `## Follow-ups` (the main session files it)
-- [ ] Verification written, dated
-- [ ] `tasks_check` green, README index regenerated (the main session, before the merge)
-- [ ] moved to `done/` with `closed: YYYY-MM-DD`
+- [x] every follow-up is listed in the pull request under `## Follow-ups` (the main session files it)
+- [x] Verification written, dated
+- [x] `tasks_check` green, README index regenerated (the main session, before the merge)
+- [x] moved to `done/` with `closed: 2026-10-18`
