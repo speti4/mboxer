@@ -13,7 +13,7 @@ file, never the issue.
 <!-- tasks:index:start -->
 _Generated 2026-10-18 — edit the files, not this section._
 
-**State:** 9 backlog (7 ready · 0 blocked · 1 waiting · 1 idea) · 1 in progress · 20 done · 0 dropped · 10 decisions
+**State:** 9 backlog (7 ready · 0 blocked · 1 waiting · 1 idea) · 0 in progress · 21 done · 0 dropped · 10 decisions
 
 ### Ready
 
@@ -44,7 +44,7 @@ _none_
 
 | # | Task | Waits for | Size | Created |
 |---|---|---|---|---|
-| 028 | [Publication day: visibility switch and the public-only repo settings](backlog/028-publication-day-repo-settings.md) | 030 (the scrub and history rewrite per D-09) and 023-026 done | S | 2026-10-18 |
+| 028 | [Publication day: visibility switch and the public-only repo settings](backlog/028-publication-day-repo-settings.md) | 023-026 done (030, the scrub and rewrite per D-10, closed 2026-10-18) | S | 2026-10-18 |
 
 ### Ideas
 
@@ -56,11 +56,7 @@ _none_
 
 ### In progress
 
-#### M5 Public release
-
-| # | Task | Started | Plan |
-|---|---|---|---|
-| 030 | [Scrub the repo and rewrite the history per D-09](wip/030-scrub-and-rewrite-history-per-d-09.md) | 2026-10-18 | `folytassuk-a-030-task-replicated-fairy.md` |
+_none_
 
 ### Closed – do not reopen
 
@@ -70,6 +66,7 @@ _none_
 
 | # | Task | Closed |
 |---|---|---|
+| 030 | [Scrub the repo and rewrite the history per D-09](done/030-scrub-and-rewrite-history-per-d-09.md) | 2026-10-18 |
 | 027 | [Pre-publish audit of the history and the content](done/027-pre-publish-history-and-content-audit.md) | 2026-10-18 |
 | 022 | [One-way sync of tasks/ to GitHub issues and milestones](done/022-sync-tasks-to-github-issues.md) | 2026-10-18 |
 | 021 | [GitHub milestones from the roadmap and the first release v0.1.0](done/021-github-milestones-and-first-release.md) | 2026-10-18 |
@@ -79,9 +76,8 @@ _none_
 | 015 | [Decode RFC 2047-encoded Gmail label names](done/015-decode-rfc2047-gmail-label-names.md) | 2026-10-17 |
 | 014 | [Index fallback when the mbox folder is not writable](done/014-index-fallback-for-read-only-mbox-locations.md) | 2026-10-17 |
 | 013 | [Unescape >From  lines in message bodies for display](done/013-unescape-from-lines-in-message-bodies.md) | 2026-10-17 |
-| 012 | [Portable release build](done/012-portable-exe-release-build.md) | 2026-10-17 |
 
-_10 more in `done/`._
+_11 more in `done/`._
 
 ### Decisions
 

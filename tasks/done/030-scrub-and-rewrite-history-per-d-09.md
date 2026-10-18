@@ -3,6 +3,7 @@ size: M
 origin: wip/027-pre-publish-history-and-content-audit.md
 created: 2026-10-18
 started: 2026-10-18
+closed: 2026-10-18
 plan: folytassuk-a-030-task-replicated-fairy.md
 milestone: M5 Public release
 ---
@@ -53,14 +54,14 @@ Phase B — rewrite in a fresh clone
 
 Phase C — recreate the remote
 
-12. [ ] `delete_repo` scope (user), last confirmation, `gh repo delete`, `gh repo create` (private, same description)
-13. [ ] push `main` → CI and sync green, 40 issues; M1–M3 closed
-14. [ ] push `v0.1.0` → release job green; title and notes restored
+12. [x] `delete_repo` scope (user), last confirmation, `gh repo delete`, `gh repo create` (private, same description)
+13. [x] push `main` → CI and sync green, 40 issues; M1–M3 closed
+14. [x] push `v0.1.0` → release job green; title and notes restored
 
 Phase D — working copy and close
 
-15. [ ] working copy: fetch, hard reset, reflog expire, gc; the step-10 greps → 0 here too
-16. [ ] Verification on a fresh clone from GitHub; close (follow-ups, memory note), commit, push
+15. [x] working copy: fetch, hard reset, reflog expire, gc; the step-10 greps → 0 here too
+16. [x] Verification on a fresh clone from GitHub; close (follow-ups, memory note), commit, push
 
 ## Log
 
@@ -84,18 +85,47 @@ Phase D — working copy and close
   messages (16 hits of the bare word are the rule's own text in D-09, D-10, CLAUDE.md, 027, 030); one identity,
   the noreply address, tagger included; `Co-Authored-By` 35/35; `HEAD^{tree}` `7fd061e` equal to the scrubbed
   working copy. `remap_shas.py` (scratchpad): 11 cited SHAs in 9 files remapped, none ambiguous.
+- 2026-10-18 — Phase C: the user added the `delete_repo` scope and confirmed the delete; `gh repo delete` +
+  `gh repo create --private --disable-wiki` with the saved description (new repo: size 0, 0 issues). Push of
+  `main` (`7ae3275`): `ci` 39133653751 and `sync-issues` 39133653556 green; the sync created the labels, M1–M5 and
+  40 issues, #1–#30 = tasks 001–030 (0 mismatches), #31–#40 = D-01–D-10; M1–M3 closed by `gh api -X PATCH`. Push
+  of `v0.1.0` (tag object `d28c3de`): `ci` 39134794224 test + release green, `mboxer-0.1.0.zip` published;
+  `gh release edit` restored the title `mboxer 0.1.0` and the saved notes (byte-equal after trim).
+- 2026-10-18 — Phase D: working copy `git fetch --force --prune --tags` (main forced, tag updated), `reset --hard
+  origin/main`, `reflog expire --expire=now --all`, `gc --prune=now`: 0 loose objects, `fsck --unreachable` 0, the
+  repo's `user.email` (noreply) and `target/` kept. Greps as in Phase B → 0, except two lines of this Log that list
+  the search patterns themselves (a bare `D:\mail\` prefix and a bare domain, no file name, no address).
+- 2026-10-18 — follow-ups: deleting the backup folder after the switch → appended to 028 (its `waits-for` no longer
+  names 030); nothing else open. The `#N` issue numbers in the `done/021` and `done/022` Logs describe the old repo
+  and stay as history.
 
 ## Deviations from the plan
 
-- none yet
+- The remote was recreated instead of force-pushed: decided by the user in the planning round (D-10), so the plan
+  already carried it; against the backlog item and D-09 this is the deviation, recorded in D-10.
+- The working copy was reset and pruned in place instead of re-cloned: same object set as a clone (0 unreachable),
+  keeps the 6 GB `target/` cache and the repo-local noreply `user.email`.
+- Issue numbers changed: D-01–D-08 moved from #23–#30 to #31–#38, tasks 023–029 from #31–#37 to #23–#29; nothing
+  outside the repo referenced them.
+- The framing sweep reached 6 lines the 027 inventory did not list (see Log); the plan's step 4 list was extended.
 
 ## Verification
 
-- 
+- 2026-10-18 — fresh `git clone https://github.com/speti4/mboxer.git`: 36 commits; employer name, its folder name,
+  the archive folder, `Users\<name>`, the full 011 file name, any `@gmail.com` address, `Claude-Session:` lines and
+  `claude.ai/code/session` URLs → 0 each in `git log -p --all` + messages + the tag; one identity (the noreply
+  address) for author and committer, tagger likewise; `Co-Authored-By` 36/36.
+- 2026-10-18 — `gh release view v0.1.0`: not a draft, title `mboxer 0.1.0`, notes equal to the saved ones, asset
+  `mboxer-0.1.0.zip` 5 341 404 byte; downloaded and unpacked: `mboxer.exe` 15 118 336 byte (ProductVersion 0.1.0) +
+  `usage.md` 6 299 byte.
+- 2026-10-18 — `python -I scripts/sync-issues.py --check`: created 0, updated 0, unchanged 40 (30 tasks, 10
+  decisions), exit 0; milestones M1–M3 closed, M4–M5 open; `gh run list`: 3 runs, all of the new history, all
+  success; `tasks_check` 0 errors, 0 warnings.
 
 ## Closing checklist
 
-- [ ] every follow-up is a `backlog/` file (`/tasks add`) or deleted with a reason in the Log
-- [ ] Verification written, dated
-- [ ] `tasks_check` green, README index regenerated
-- [ ] moved to `done/` with `closed: YYYY-MM-DD`
+- [x] every follow-up is a `backlog/` file (`/tasks add`) or deleted with a reason in the Log — the backup cleanup
+  went into 028
+- [x] Verification written, dated
+- [x] `tasks_check` green, README index regenerated
+- [x] moved to `done/` with `closed: 2026-10-18`
