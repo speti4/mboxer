@@ -13,6 +13,12 @@ on:
 permissions:
   contents: read
 
+# The cargo settings the former toolchain action exported: no incremental build in CI (it only grows the target
+# cache, and the Rust cache keys on it) and coloured cargo output in the log.
+env:
+  CARGO_INCREMENTAL: 0
+  CARGO_TERM_COLOR: always
+
 concurrency:
   group: ci-${{ github.ref }}
   # A newer push supersedes a pull request run; a main or tag run always finishes.
