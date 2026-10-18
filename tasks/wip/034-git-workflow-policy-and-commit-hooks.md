@@ -53,11 +53,18 @@ Done when: a commit with the trailer fails locally and in CI, and a second sessi
   `squash_merge_commit_title=PR_TITLE`, `squash_merge_commit_message=PR_BODY`, `delete_branch_on_merge` true.
   Ezért a PR body végére kell a `Co-Authored-By` trailer — beírva a git-workflow.md-be.
 - 2026-10-18 — `cargo fmt --check`, `clippy -D warnings`, `cargo test` zöld; `uvx zizmor .github`: no findings.
+- 2026-10-18 — PR #48 squash-merge-ölve (`dda4e86`), main CI zöld. A squash commitban két meglepetés: a GitHub
+  `---------` után magától hozzáfűzi a commitok `Co-authored-by` sorait (a PR body-ban lévő trailer így duplán
+  jelent meg), és az author `speti4 <noreply>`, nem `Szőke Péter`. Javítás a `task/034-commit-rule-fixes`
+  branchen: a git-workflow.md már nem kéri a trailert a PR body-ba; a `check-commit.sh` a `speti4` nevet is
+  maintainernek veszi (speti4 + idegen cím → exit 1, speti4 + noreply → 0, más név → 0).
 
 ## Deviations from the plan
 
-- The PR description carries the `Co-Authored-By` trailer at its end (the squash message is the PR body), not
-  only the `🤖 Generated with Claude Code` line the plan named.
+- The PR description ends with `🤖 Generated with Claude Code` only, as planned; a detour through a
+  `Co-Authored-By` trailer in the body was reverted after PR #48 showed that GitHub appends the commits'
+  co-authors to the squash message itself.
+- The maintainer check knows two names: `Szőke Péter` (git config) and `speti4` (the author of a web merge).
 - The 034 promote commit lives only on the task branch; local `main` is set back to `origin/main` before the push,
   so the squash merge is the one commit `main` gets.
 

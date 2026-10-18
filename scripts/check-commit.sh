@@ -8,7 +8,8 @@
 # Every NAME EMAIL pair is one identity of the commit (author, committer). Exits 1 with a reason per broken rule.
 set -eu
 
-maintainer_name='Szőke Péter'
+# The maintainer's names: the git config one, and the GitHub login a merge on the web writes.
+is_maintainer() { [ "$1" = 'Szőke Péter' ] || [ "$1" = 'speti4' ]; }
 maintainer_email='20753030+speti4@users.noreply.github.com'
 
 message_file=$1
@@ -29,7 +30,7 @@ fi
 
 reported=
 while [ $# -ge 2 ]; do
-  if [ "$1" = "$maintainer_name" ] && [ "$2" != "$maintainer_email" ] && [ "$2" != "$reported" ]; then
+  if is_maintainer "$1" && [ "$2" != "$maintainer_email" ] && [ "$2" != "$reported" ]; then
     echo "commit rules: $1 commits as $maintainer_email, not $2 (D-10)" >&2
     reported=$2
     status=1
