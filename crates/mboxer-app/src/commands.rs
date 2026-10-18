@@ -7,15 +7,15 @@ use std::path::PathBuf;
 use std::sync::Arc;
 use std::sync::atomic::Ordering;
 
-use mboxer_core::{Error, Progress, SearchQuery, read_at};
+use mboxer_core::{Error, Progress, SearchQuery, eml_bytes, parse, read_at, summarize};
 use tauri::ipc::{Channel, Response};
 use tauri::{AppHandle, Manager, State};
 use tauri_plugin_dialog::{DialogExt, FileDialogBuilder};
 use tauri_plugin_opener::OpenerExt;
 
 use crate::attachments::{
-    extension_of, open_blocked, read_attachment, read_listed_attachments, unique_path, write_temp,
-    write_with_motw,
+    eml_file_name, extension_of, open_blocked, read_attachment, read_listed_attachments,
+    unique_path, write_temp, write_with_motw,
 };
 use crate::state::{AppState, OpenMbox};
 use crate::types::{
@@ -424,6 +424,40 @@ pub async fn save_all_attachments(
             dir: dir.display().to_string(),
             saved,
         }))
+    })
+    .await
+}
+
+/// Saves the message at `offset`/`len` as an `.eml` file where the user picks:
+/// the raw bytes with the mboxrd quoting undone (task 011). `None` when the
+/// dialog is cancelled; the saved path otherwise.
+#[tauri::command]
+pub async fn save_message_eml(
+    app: AppHandle,
+    state: State<'_, AppState>,
+    offset: u64,
+    len: u64,
+) -> Result<Option<String>, String> {
+    let path = open_path(&state)?;
+    blocking(move || {
+        let raw = read_at(&path, offset, len).map_err(|err| err.to_string())?;
+        let subject = parse(&raw).and_then(|message| summarize(&raw, &message).subject);
+        let file_name = eml_file_name(subject.as_deref(), offset);
+        let Some(picked) = save_dialog(&app, "Save message as .eml")
+            .set_file_name(&file_name)
+            .add_filter("EML files", &["eml"])
+            .add_filter("All files", &["*"])
+            .blocking_save_file()
+        else {
+            return Ok(None);
+        };
+        let target = picked
+            .into_path()
+            .map_err(|err| format!("unusable path from the dialog: {err}"))?;
+        write_with_motw(&target, &eml_bytes(&raw))
+            .map_err(|err| format!("could not write {}: {err}", target.display()))?;
+        remember_dir(&app, target.parent());
+        Ok(Some(target.display().to_string()))
     })
     .await
 }

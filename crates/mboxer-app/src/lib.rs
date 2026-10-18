@@ -36,6 +36,7 @@ pub fn run() {
             commands::open_attachment,
             commands::save_attachment,
             commands::save_all_attachments,
+            commands::save_message_eml,
         ])
         .run(tauri::generate_context!())
         .expect("error while running the mboxer window");

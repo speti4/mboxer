@@ -136,6 +136,16 @@ pub fn safe_file_name(name: Option<&str>, content_type: &str, index: usize) -> S
     }
 }
 
+/// The file name of a message saved as `.eml`: the subject made safe, or
+/// `message-<offset>.eml` when there is none.
+pub fn eml_file_name(subject: Option<&str>, offset: u64) -> String {
+    let subject = subject.map(str::trim).filter(|s| !s.is_empty());
+    match subject {
+        Some(subject) => safe_file_name(Some(&format!("{subject}.eml")), "message/rfc822", 0),
+        None => format!("message-{offset}.eml"),
+    }
+}
+
 /// `(stem, extension)` of a file name; the extension is after the last dot
 /// and never the whole name (`.gitignore` has none).
 fn split_extension(name: &str) -> (&str, Option<&str>) {
@@ -302,6 +312,17 @@ mod tests {
         let safe = safe_file_name(Some(&long), "application/octet-stream", 0);
         assert_eq!(safe.chars().count(), MAX_NAME_CHARS);
         assert!(safe.ends_with(".docx"));
+    }
+
+    #[test]
+    fn eml_file_names_come_from_the_subject() {
+        assert_eq!(eml_file_name(Some("Re: Számla"), 5), "Re_ Számla.eml");
+        assert_eq!(eml_file_name(Some("  "), 5), "message-5.eml");
+        assert_eq!(eml_file_name(None, 123), "message-123.eml");
+        assert_eq!(eml_file_name(Some("a/b\\c"), 0), "c.eml");
+        let long = eml_file_name(Some(&"x".repeat(300)), 0);
+        assert_eq!(long.chars().count(), MAX_NAME_CHARS);
+        assert!(long.ends_with(".eml"));
     }
 
     #[test]

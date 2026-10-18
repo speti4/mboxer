@@ -11,7 +11,7 @@ Closing a task files every follow-up as a `backlog/` item now or deletes it with
 <!-- tasks:index:start -->
 _Generated 2026-10-18 — edit the files, not this section._
 
-**State:** 2 backlog (0 ready · 0 blocked · 0 waiting · 2 ideas) · 0 in progress · 15 done · 0 dropped · 5 decisions
+**State:** 1 backlog (0 ready · 0 blocked · 0 waiting · 1 idea) · 1 in progress · 15 done · 0 dropped · 5 decisions
 
 ### Ready
 
@@ -31,12 +31,15 @@ _none_
 
 | # | Task | Size | Created |
 |---|---|---|---|
-| 011 | [Export a message: .eml, PDF, print](backlog/011-export-eml-pdf-print.md) | M | 2026-10-17 |
 | 016 | [Open multiple mbox files](backlog/016-open-multiple-mbox-files.md) | M | 2026-10-17 |
 
 ### In progress
 
-_none_
+#### M3 Comfort
+
+| # | Task | Started | Plan |
+|---|---|---|---|
+| 011 | [Export a message: .eml, print / PDF](wip/011-export-eml-pdf-print.md) | 2026-10-18 | `backlogb-l-a-task-011-jaunty-castle.md` |
 
 ### Closed – do not reopen
 

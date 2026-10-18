@@ -35,7 +35,8 @@
     "list", "spacer", "rows", "list-empty", "reader", "reader-empty", "reader-content",
     "msg-subject", "msg-headers", "attachments", "attachment-list", "save-all-btn", "msg-body",
     "msg-html", "msg-parts-list", "view-html", "view-text",
-    "view-source", "copy-btn", "remote-bar", "remote-text", "remote-allow", "empty", "empty-open-btn",
+    "view-source", "copy-btn", "save-eml-btn", "print-btn", "print-frame", "remote-bar", "remote-text",
+    "remote-allow", "empty", "empty-open-btn",
     "reopen-btn", "error", "error-path", "error-text", "retry-btn", "error-open-btn", "overlay",
     "overlay-title", "overlay-path", "progress", "progress-text", "cancel-btn", "status-left",
     "status-center", "status-right", "status-version",
@@ -82,6 +83,7 @@
     source: null, // { offset, text } the raw source, read on demand
     cidUrls: new Map(), // attachment index -> Promise<blob URL> of this message's cid images
     blobUrls: [], // every blob URL made for this message, revoked when it changes
+    printing: false, // a print document is loading into the print frame
     warnings: [], // the query warnings behind the status bar
     statusTimer: 0,
     query: defaultQuery(), // the one source of truth behind the listing
@@ -248,6 +250,21 @@
     "pre{white-space:pre-wrap}",
     "mark{background:#ffe58f;color:inherit}",
     "img[data-mboxer-cid]{min-width:16px;min-height:16px;border:1px dashed #d9dee3}",
+  ].join("");
+  // The print document (task 011): a header block over the body, on a light page.
+  const PRINT_STYLE = [
+    "@page{margin:15mm}",
+    ":root{color-scheme:light}",
+    'body{font-family:"Segoe UI",system-ui,sans-serif;font-size:13px;overflow-wrap:anywhere;background:#fff;color:#1f2328}',
+    ".mboxer-print-header{margin:0 0 14px;padding:0 0 10px;border-bottom:1px solid #999}",
+    ".mboxer-print-header h1{margin:0 0 8px;font-size:17px;font-weight:600}",
+    ".mboxer-print-header dl{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:2px 12px;margin:0}",
+    ".mboxer-print-header dt{color:#666}",
+    ".mboxer-print-header dd{margin:0}",
+    ".mboxer-print-note{margin:0 0 8px;color:#666;font-style:italic}",
+    "pre.mboxer-print-body{margin:0;font:inherit;white-space:pre-wrap;overflow-wrap:anywhere}",
+    "pre.mboxer-print-body.source{font-family:Consolas,monospace;font-size:12px}",
+    "img{max-width:100%;height:auto}",
   ].join("");
 
   // The kind of a URL by its scheme: "empty", "fragment", "data", "cid",
@@ -1302,6 +1319,7 @@
     state.view = null;
     resetBodyState();
     if (el.msgHtml.hasAttribute("srcdoc")) el.msgHtml.removeAttribute("srcdoc");
+    if (el.printFrame.hasAttribute("srcdoc")) el.printFrame.removeAttribute("srcdoc");
     el.readerContent.hidden = true;
     el.readerEmpty.hidden = false;
     el.readerEmpty.textContent = "Select a message";
@@ -1317,6 +1335,8 @@
     state.cidUrls = new Map();
     for (const url of state.blobUrls) URL.revokeObjectURL(url);
     state.blobUrls = [];
+    state.printing = false;
+    if (el.printFrame.hasAttribute("srcdoc")) el.printFrame.removeAttribute("srcdoc");
   }
 
   function headerRow(term, value) {
@@ -1707,6 +1727,137 @@
 
   el.copyBtn.addEventListener("click", copyBody);
 
+  // ---------- export: save as .eml, print / PDF (task 011) ----------
+  //
+  // Print lays the message out as its own document in the hidden print frame
+  // (the headers, then the body as the reader shows it) and prints that frame
+  // alone: WebView2's print preview lists the printers and "Save as PDF". The
+  // frame's sandbox keeps `allow-same-origin` (the document is ours) and adds
+  // `allow-modals`, without which Chromium ignores print(); no script runs in it.
+
+  function printHeader(doc, view) {
+    const header = doc.createElement("header");
+    header.className = "mboxer-print-header";
+    const h1 = doc.createElement("h1");
+    h1.textContent = subjectText(view.subject);
+    const dl = doc.createElement("dl");
+    const row = (term, value) => {
+      const dt = doc.createElement("dt");
+      dt.textContent = term;
+      const dd = doc.createElement("dd");
+      dd.textContent = value;
+      dl.append(dt, dd);
+    };
+    row("From", view.from.length ? view.from.join(", ") : "(unknown sender)");
+    if (view.to.length) row("To", view.to.join(", "));
+    if (view.cc.length) row("Cc", view.cc.join(", "));
+    row("Date", fullDate(view.date));
+    if (view.labels.length) row("Labels", view.labels.join(", "));
+    const listed = listedAttachments(view);
+    if (listed.length) {
+      row("Attachments", listed.map((a) => `${attachmentName(a)} (${formatBytes(a.size)})`).join(", "));
+    }
+    header.append(h1, dl);
+    return header;
+  }
+
+  // The print document of the current view: the HTML view is a copy of the
+  // body frame's live document (cid and allowed remote images included, the
+  // search marks unwrapped), the Text and Source views a <pre>. Null when the
+  // HTML frame has nothing yet.
+  function printDocument(view) {
+    const mode = bodyMode(view);
+    let doc;
+    if (mode === "html") {
+      const live = el.msgHtml.contentDocument;
+      if (!live || !live.documentElement || !live.body) return null;
+      doc = document.implementation.createHTMLDocument("");
+      doc.replaceChild(doc.importNode(live.documentElement, true), doc.documentElement);
+      for (const mark of doc.querySelectorAll("mark")) mark.replaceWith(...mark.childNodes);
+    } else {
+      doc = document.implementation.createHTMLDocument("");
+      const charset = doc.createElement("meta");
+      charset.setAttribute("charset", "utf-8");
+      const csp = doc.createElement("meta");
+      csp.setAttribute("http-equiv", "Content-Security-Policy");
+      csp.setAttribute("content", "default-src 'none'; style-src 'unsafe-inline'");
+      doc.head.append(charset, csp);
+      const pre = doc.createElement("pre");
+      pre.className = "mboxer-print-body";
+      let note = "";
+      if (mode === "source") {
+        pre.classList.add("source");
+        pre.textContent = state.source && state.source.offset === view.offset ? state.source.text : "";
+      } else if (!view.body) {
+        pre.textContent = "(no text body)";
+      } else {
+        pre.textContent = view.body.text;
+        if (view.body.kind === "htmlAsText") note = "HTML message shown as text";
+        else if (view.body.kind === "raw") note = "This message could not be parsed; raw source shown";
+      }
+      if (note) {
+        const p = doc.createElement("p");
+        p.className = "mboxer-print-note";
+        p.textContent = note;
+        doc.body.appendChild(p);
+      }
+      doc.body.appendChild(pre);
+    }
+    doc.title = subjectText(view.subject);
+    const style = doc.createElement("style");
+    style.textContent = PRINT_STYLE;
+    doc.head.appendChild(style);
+    doc.body.prepend(printHeader(doc, view));
+    return `<!doctype html>${doc.documentElement.outerHTML}`;
+  }
+
+  function printMessage() {
+    const view = state.view;
+    if (!view || state.printing) return;
+    if (bodyMode(view) === "source" && !(state.source && state.source.offset === view.offset)) {
+      flashStatus("The source is still loading, try again in a moment", "error");
+      return;
+    }
+    const html = printDocument(view);
+    if (!html) {
+      flashStatus("The message is still loading, try again in a moment", "error");
+      return;
+    }
+    state.printing = true;
+    el.printFrame.srcdoc = html;
+  }
+
+  // The frame has loaded the print document and its images: print it. The
+  // document stays in the frame until the message changes, so the preview
+  // keeps its content whether or not print() returns before it closes.
+  el.printFrame.addEventListener("load", () => {
+    if (!state.printing) return;
+    state.printing = false;
+    const win = el.printFrame.contentWindow;
+    if (!win) return;
+    try {
+      win.print();
+    } catch (err) {
+      flashStatus(`Print failed: ${err}`, "error");
+    }
+  });
+
+  function saveEml() {
+    const view = state.view;
+    if (!view) return;
+    runAttachmentAction(
+      el.saveEmlBtn,
+      "save_message_eml",
+      { offset: view.offset, len: view.len },
+      (path) => {
+        if (path) flashStatus(`Saved ${path}`, "", SAVED_FLASH_MS);
+      },
+    );
+  }
+
+  el.saveEmlBtn.addEventListener("click", saveEml);
+  el.printBtn.addEventListener("click", printMessage);
+
   el.reader.addEventListener("keydown", (event) => {
     if (event.key === "Escape" || event.key === "ArrowLeft") {
       el.list.focus();
@@ -1774,13 +1925,21 @@
     });
   });
 
-  // Ctrl+O / Ctrl+F / Ctrl+K / Ctrl+Shift+F, from the document or the body iframe.
+  // Ctrl+O / Ctrl+F / Ctrl+K / Ctrl+Shift+F / Ctrl+P / Ctrl+S, from the document or the
+  // body iframe. Ctrl+P is taken over even without a message: the webview's own
+  // default would print the whole window.
   function globalShortcut(event) {
     if (!(event.ctrlKey || event.metaKey)) return;
     const key = event.key.toLowerCase();
     if (key === "o") {
       event.preventDefault();
       openMbox(null);
+    } else if (key === "p") {
+      event.preventDefault();
+      printMessage();
+    } else if (key === "s") {
+      event.preventDefault();
+      saveEml();
     } else if (key === "f" && event.shiftKey) {
       event.preventDefault();
       if (state.file) setFiltersOpen(el.filters.hidden, { focus: true });

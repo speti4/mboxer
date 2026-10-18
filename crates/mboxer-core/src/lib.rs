@@ -29,5 +29,6 @@ pub use message::{
     walk_parts,
 };
 pub use reader::{
-    DEFAULT_BUFFER_BYTES, DEFAULT_MAX_MESSAGE_BYTES, MboxReader, RawMessage, read_at, read_at_from,
+    DEFAULT_BUFFER_BYTES, DEFAULT_MAX_MESSAGE_BYTES, MboxReader, RawMessage, eml_bytes, read_at,
+    read_at_from,
 };

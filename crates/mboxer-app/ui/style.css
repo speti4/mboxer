@@ -591,6 +591,26 @@ body:not([data-view="ready"]) .panes {
   margin: 0 0 10px;
 }
 
+.reader-actions {
+  display: inline-flex;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.reader-actions button.busy {
+  color: var(--muted);
+  cursor: progress;
+}
+
+/* The print frame is laid out (a `display: none` frame cannot print) but never seen. */
+#print-frame {
+  position: absolute;
+  width: 0;
+  height: 0;
+  border: 0;
+  visibility: hidden;
+}
+
 .segmented {
   display: inline-flex;
 }

@@ -3,8 +3,8 @@
 use std::path::PathBuf;
 
 use mboxer_core::{
-    Error, MboxReader, RawMessage, TextKind, attachments, is_envelope, parse, part_at, part_bytes,
-    part_tree, read_at, summarize, text_parts,
+    Error, MboxReader, RawMessage, TextKind, attachments, eml_bytes, is_envelope, parse, part_at,
+    part_bytes, part_tree, read_at, summarize, text_parts,
 };
 
 fn fixture(name: &str) -> PathBuf {
@@ -217,6 +217,33 @@ fn text_file_is_rejected_at_offset_zero() {
         .unwrap()
         .unwrap_err();
     assert!(matches!(err, Error::NotAnMbox { offset: 0 }), "{err}");
+}
+
+#[test]
+fn eml_export_keeps_the_bytes_and_unquotes_from_lines() {
+    let messages = read_all("gmail-crlf.mbox");
+    let raw = &messages[0];
+    let eml = eml_bytes(raw);
+    // Headers byte for byte, CRLF kept, the quoted body line unquoted, the plain one untouched.
+    let header_end = raw
+        .bytes
+        .windows(4)
+        .position(|w| w == b"\r\n\r\n")
+        .expect("the header block ends");
+    assert_eq!(&eml[..header_end], &raw.bytes[..header_end]);
+    let text = String::from_utf8_lossy(&eml);
+    assert!(text.contains("\r\nFrom a k=C3=B6nyvel"), "{text}");
+    assert!(!text.contains(">From"), "{text}");
+    assert!(
+        text.contains("\r\nFrom Anna wrote: ez nem envelope.\r\n"),
+        "{text}"
+    );
+    assert!(!eml.starts_with(b"From "), "no envelope line in an eml");
+    // Nothing but the quoting changed: same length minus the one `>`.
+    assert_eq!(eml.len() + 1, raw.bytes.len());
+    // A message without quoted lines comes out identical.
+    let second = &messages[1];
+    assert_eq!(eml_bytes(second), second.bytes);
 }
 
 #[test]

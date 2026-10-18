@@ -63,7 +63,20 @@ operators into the field:
 
 Keyboard: `Ctrl+O` open, `Ctrl+F` search, `Esc` in the field clears the whole query, `Enter`
 or `ArrowDown` moves to the list, arrows / `PageUp` / `PageDown` / `Home` / `End` move in the
-list, `Enter` focuses the reader, `Esc` returns to the list.
+list, `Enter` focuses the reader, `Esc` returns to the list, `Ctrl+S` saves the message as
+`.eml`, `Ctrl+P` prints it.
+
+## Handing a message on
+
+Two buttons at the right end of the reader's view bar take the shown message out of the archive:
+
+- *Save .eml…* (`Ctrl+S`) writes the message as it sits in the mbox, with the subject as the
+  file name. The file opens in Outlook, Thunderbird or any mail client, attachments included.
+- *Print…* (`Ctrl+P`) opens the print preview of Windows' web view with the message laid out
+  as the reader shows it: the headers, the attachment names, then the body in the view you have
+  selected (HTML with its inline images, Text or Source). Pick a printer, or *Save as PDF* /
+  *Microsoft Print to PDF* as the destination to get a PDF file. Remote images blocked in the
+  reader stay out of the printout; click *Show* first if you want them in.
 
 ## Light and dark
 

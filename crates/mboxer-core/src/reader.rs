@@ -241,6 +241,24 @@ pub fn read_at_from<R: Read + Seek>(mut source: R, offset: u64, len: u64) -> Res
     })
 }
 
+/// The message as an `.eml` file: the bytes after the envelope line with the
+/// mboxrd quoting undone — one `>` comes off every line that is `>`s followed
+/// by `From `. Line endings and everything else stay as written (task 011; the
+/// text-only variant for display is task 013). mboxo and mboxrd cannot be told
+/// apart, so this is the inverse of the quoting Gmail Takeout applies.
+pub fn eml_bytes(raw: &RawMessage) -> Vec<u8> {
+    let mut out = Vec::with_capacity(raw.bytes.len());
+    for line in raw.bytes.split_inclusive(|&b| b == b'\n') {
+        let quoted = line.iter().take_while(|&&b| b == b'>').count();
+        if quoted > 0 && line[quoted..].starts_with(b"From ") {
+            out.extend_from_slice(&line[1..]);
+        } else {
+            out.extend_from_slice(line);
+        }
+    }
+    out
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -313,6 +331,26 @@ mod tests {
                 limit: 100
             }
         ));
+    }
+
+    #[test]
+    fn eml_bytes_undo_the_mboxrd_quoting_only() {
+        let raw = RawMessage {
+            offset: 0,
+            len: 0,
+            envelope: String::new(),
+            bytes: b"Subject: x\r\n\r\n>From one\r\n>>From two\nFrom plain\n>Frome not\n> From spaced\n>From"
+                .to_vec(),
+        };
+        assert_eq!(
+            eml_bytes(&raw),
+            b"Subject: x\r\n\r\nFrom one\r\n>From two\nFrom plain\n>Frome not\n> From spaced\n>From"
+        );
+        let empty = RawMessage {
+            bytes: Vec::new(),
+            ..raw
+        };
+        assert!(eml_bytes(&empty).is_empty());
     }
 
     #[test]

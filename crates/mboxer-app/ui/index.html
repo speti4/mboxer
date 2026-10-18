@@ -75,6 +75,10 @@
               <button id="view-source" type="button" data-mode="source" aria-pressed="false" title="The raw source of the message">Source</button>
             </span>
             <button id="copy-btn" type="button" title="Copy the text of this view">Copy</button>
+            <span class="reader-actions">
+              <button id="save-eml-btn" type="button" title="Save this message as an .eml file (Ctrl+S)">Save .eml…</button>
+              <button id="print-btn" type="button" title="Print this message or save it as PDF (Ctrl+P)">Print…</button>
+            </span>
           </div>
           <div id="remote-bar" hidden>
             <span id="remote-text"></span>
@@ -86,6 +90,8 @@
             <summary>MIME parts</summary>
             <ul id="msg-parts-list"></ul>
           </details>
+          <!-- Print: the message is laid out here and printed as its own document; `allow-modals` is what lets print() run. -->
+          <iframe id="print-frame" sandbox="allow-same-origin allow-modals" referrerpolicy="no-referrer" title="Print" aria-hidden="true" tabindex="-1"></iframe>
         </div>
       </section>
     </main>
