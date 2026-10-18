@@ -13,7 +13,7 @@ file, never the issue.
 <!-- tasks:index:start -->
 _Generated 2026-10-18 — edit the files, not this section._
 
-**State:** 9 backlog (5 ready · 0 blocked · 1 waiting · 3 ideas) · 2 in progress · 21 done · 0 dropped · 10 decisions
+**State:** 9 backlog (5 ready · 0 blocked · 1 waiting · 3 ideas) · 0 in progress · 23 done · 0 dropped · 10 decisions
 
 ### Ready
 
@@ -61,12 +61,7 @@ _none_
 
 ### In progress
 
-#### M5 Public release
-
-| # | Task | Started | Plan |
-|---|---|---|---|
-| 023 | [Community health files: licence, security policy, contributing guide, issue and…](wip/023-community-health-files.md) | 2026-10-18 | `peppy-imagining-pony.md` |
-| 026 | [README as a front page, the reference moved into docs](wip/026-readme-front-page.md) | 2026-10-18 | `peppy-imagining-pony.md` |
+_none_
 
 ### Closed – do not reopen
 
@@ -78,16 +73,16 @@ _none_
 |---|---|---|
 | 030 | [Scrub the repo and rewrite the history per D-09](done/030-scrub-and-rewrite-history-per-d-09.md) | 2026-10-18 |
 | 027 | [Pre-publish audit of the history and the content](done/027-pre-publish-history-and-content-audit.md) | 2026-10-18 |
+| 026 | [README as a front page, the reference moved into docs](done/026-readme-front-page.md) | 2026-10-18 |
+| 023 | [Community health files: licence, security policy, contributing guide, issue and…](done/023-community-health-files.md) | 2026-10-18 |
 | 022 | [One-way sync of tasks/ to GitHub issues and milestones](done/022-sync-tasks-to-github-issues.md) | 2026-10-18 |
 | 021 | [GitHub milestones from the roadmap and the first release v0.1.0](done/021-github-milestones-and-first-release.md) | 2026-10-18 |
 | 017 | [Dark mode toggle with OS default](done/017-dark-mode-toggle.md) | 2026-10-18 |
 | 016 | [Open multiple mbox files](done/016-open-multiple-mbox-files.md) | 2026-10-18 |
 | 011 | [Export a message: .eml, print / PDF](done/011-export-eml-pdf-print.md) | 2026-10-18 |
 | 015 | [Decode RFC 2047-encoded Gmail label names](done/015-decode-rfc2047-gmail-label-names.md) | 2026-10-17 |
-| 014 | [Index fallback when the mbox folder is not writable](done/014-index-fallback-for-read-only-mbox-locations.md) | 2026-10-17 |
-| 013 | [Unescape >From  lines in message bodies for display](done/013-unescape-from-lines-in-message-bodies.md) | 2026-10-17 |
 
-_11 more in `done/`._
+_13 more in `done/`._
 
 ### Decisions
 

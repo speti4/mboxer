@@ -3,6 +3,7 @@ size: S
 origin: session 2026-10-18
 created: 2026-10-18
 started: 2026-10-18
+closed: 2026-10-18
 milestone: M5 Public release
 plan: peppy-imagining-pony.md
 ---
@@ -31,7 +32,7 @@ the git author; CONTRIBUTING takes over the README's build prerequisites and che
 4. [x] `.github/ISSUE_TEMPLATE/bug-report.yml`, `feature-request.yml`, `config.yml`
 5. [x] `.github/pull_request_template.md`, `.github/CODEOWNERS`
 6. [x] `tasks/backlog/028-…`: a Community Standards oldal ellenőrzése a checklistre
-7. [ ] Ellenőrzés: YAML parse, linkek, `gh api …/community/profile` push után; `tasks_check`; commit
+7. [x] Ellenőrzés: YAML parse, linkek, `gh api …/community/profile` push után; `tasks_check`; commit
 
 ## Log
 
@@ -49,13 +50,24 @@ the git author; CONTRIBUTING takes over the README's build prerequisites and che
   private reportinggal vagy a GitHub *Report content* menüjével megy, e-mail nélkül
 - `SECURITY.md`: nincs e-mailes tartalék (a terv szerint, D-09: nincs publikált valódi postafiók)
 
+- 2026-10-18 — commit `bc9dc2b`, a user jóváhagyásával pusholva (`3c9ccb8..f640447`)
+- 2026-10-18 — follow-up sweep: nincs nyitott tétel. A private vulnerability reporting bekapcsolása és a Community
+  Standards oldal végső ellenőrzése a 028 checklistjén van
+
 ## Verification
 
-- 
+- 2026-10-18 — push után `gh api repos/speti4/mboxer/community/profile`: `health_percentage` 28 → **100**;
+  code_of_conduct, contributing, license, pull_request_template, readme mind megvan. Az `issue_template` mező `null`
+  marad, mert az API csak a régi markdown template-eket nézi, a YAML formokat nem; a GraphQL `issueTemplates` is
+  üres, a `contactLinks` viszont visszaadja a security linket (a `config.yml` tehát parse-olt)
+- 2026-10-18 — Chrome, `issues/new/choose`: Bug report és Feature request form; Blank issue „Maintainers only”;
+  „Report a security vulnerability” contact link. A `?template=bug-report.yml` oldal hiba nélkül renderel: minden
+  mező, a mbox méret dropdown, a kötelező Privacy checkbox, a `bug` label előre beállítva, alul a contributing
+  guidelines / security policy / code of conduct linkek
 
 ## Closing checklist
 
-- [ ] every follow-up is a `backlog/` file (`/tasks add`) or deleted with a reason in the Log
-- [ ] Verification written, dated
-- [ ] `tasks_check` green, README index regenerated
-- [ ] moved to `done/` with `closed: YYYY-MM-DD`
+- [x] every follow-up is a `backlog/` file (`/tasks add`) or deleted with a reason in the Log
+- [x] Verification written, dated
+- [x] `tasks_check` green, README index regenerated
+- [x] moved to `done/` with `closed: 2026-10-18`

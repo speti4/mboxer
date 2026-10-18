@@ -3,6 +3,7 @@ size: S
 origin: session 2026-10-18
 created: 2026-10-18
 started: 2026-10-18
+closed: 2026-10-18
 milestone: M5 Public release
 plan: peppy-imagining-pony.md
 ---
@@ -59,11 +60,16 @@ to `CONTRIBUTING.md` (023). The screenshot is taken over a demo mbox that `scrip
 
 ## Verification
 
-- 
+- 2026-10-18 — `README.md` 71 sor (a „két képernyő” határon belül); 0 törött relatív link a 8 érintett fájlban;
+  a régi README minden bekezdésének van otthona (`docs/reference.md`, `docs/development.md`, `CONTRIBUTING.md`),
+  50 kifejezéses greppel ellenőrizve
+- 2026-10-18 — a user megnézte a README-t és a képernyőképet, rendben („szuper, mehet a push”); commit `f640447`,
+  pusholva, a `sync-issues` futás zöld
+- A badge-ek a privát repón nem renderelnek; ez a 028 checklistjére került (README badges a switch után)
 
 ## Closing checklist
 
-- [ ] every follow-up is a `backlog/` file (`/tasks add`) or deleted with a reason in the Log
-- [ ] Verification written, dated
-- [ ] `tasks_check` green, README index regenerated
-- [ ] moved to `done/` with `closed: YYYY-MM-DD`
+- [x] every follow-up is a `backlog/` file (`/tasks add`) or deleted with a reason in the Log
+- [x] Verification written, dated
+- [x] `tasks_check` green, README index regenerated
+- [x] moved to `done/` with `closed: 2026-10-18`
