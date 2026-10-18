@@ -47,7 +47,9 @@ cargo clippy --all-targets -- -D warnings
 cargo test
 ```
 
-CI (`.github/workflows/ci.yml`) runs the same three on every push and pull request. A change in behaviour
+A change to `Cargo.toml`, `Cargo.lock` or `.github/` also runs `cargo deny check` and `uvx zizmor .github`
+(see [docs/development.md](docs/development.md#ci-and-releases)). CI (`.github/workflows/ci.yml`) runs all of
+them on every push and pull request. A change in behaviour
 comes with a test: Rust tests sit beside the code or under each crate's `tests/`, and the UI modules have
 Node tests under `crates/mboxer-app/tests/ui/`.
 
@@ -58,6 +60,8 @@ The shipped artifact is one portable exe, with nothing for the user to install (
 it earns its place. Add it to `[workspace.dependencies]` in `Cargo.toml` with a one-line comment saying why
 it is needed and why the existing ones do not cover it. Crates that compile C code or pull a runtime
 download need a strong reason.
+The crate's licence has to be on the allowlist in `deny.toml` and its source has to be crates.io (D-011);
+`cargo deny check` says so before CI does.
 
 ## Tasks, decisions and the mirrored issues
 

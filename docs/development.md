@@ -17,7 +17,9 @@ checks before a commit and the project rules are in [CONTRIBUTING.md](../CONTRIB
 - `docs/` — the usage guide that ships in the release zip, the full reference, this page, origin, research,
   dated benchmarks and the README screenshot.
 - `tasks/` — the backlog, the work in flight, the history and the decisions (the task standard).
-- `.github/workflows/` — CI (fmt, clippy, test), the tagged release and the issue sync.
+- `.github/workflows/` — CI (fmt, clippy, test, the dependency policy, the workflow lint), the tagged release
+  and the issue sync; `.github/dependabot.yml` — the weekly dependency updates.
+- `deny.toml` — the dependency policy `cargo deny` checks: licences, advisories, bans, sources (D-011).
 
 ## The UI
 
@@ -29,13 +31,28 @@ change under `crates/mboxer-app/ui/` takes effect on the next `cargo run`. The p
 
 ## CI and releases
 
-`.github/workflows/ci.yml` runs `cargo fmt --check`, `cargo clippy --all-targets -- -D warnings` and
-`cargo test` on every push and pull request (windows-latest).
+`.github/workflows/ci.yml` runs three jobs on every push and pull request: `test` (windows-latest: `cargo fmt
+--check`, `cargo clippy --all-targets -- -D warnings`, `cargo test`), `deny` (`cargo deny check` against
+`deny.toml`: licences from the allowlist, no RustSec advisory or yanked crate, crates.io as the only source,
+D-011) and `workflow-lint` (zizmor over the workflows and `dependabot.yml`). The workflows run with a
+read-only token by default; only the release job may write contents and only the issue sync may write issues.
+
+Every action is pinned by commit SHA with the version in a comment. Dependabot proposes the updates for the
+actions and for `Cargo.lock` once a week, a release only after it is a week old; a pin is changed through such a
+pull request, never by retagging by hand. Before a change to the dependencies or the workflows, the same
+checks run locally:
+
+```powershell
+cargo install cargo-deny --locked   # once
+cargo deny check
+uvx zizmor .github
+```
 
 `scripts\release.ps1` builds the release profile (fat LTO, stripped) and packs `target\release\mboxer.exe` and
 `docs\usage.md` into `dist\mboxer-<version>.zip`. The version is the workspace `Cargo.toml` one, the only place
 it is written: `tauri-build` stamps it into the exe's properties and the status bar shows it. Pushing a tag
-`v<version>` runs the tests and publishes that zip as a GitHub release.
+`v<version>` runs the three jobs and, when they pass, publishes that zip as a GitHub release with the runner's
+`gh` CLI. The release job builds without the Rust cache, so nothing a pull request run cached reaches the zip.
 
 ## The issue mirror
 

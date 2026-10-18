@@ -9,6 +9,8 @@ license = "MIT"
 repository = "https://github.com/speti4/mboxer"
 # Tauri 2.12 and tauri-plugin-dialog require 1.90 (task 005).
 rust-version = "1.90"
+# Never published to crates.io; also lets cargo-deny accept the path dependencies (task 024).
+publish = false
 
 [workspace.dependencies]
 mboxer-core = { path = "crates/mboxer-core" }

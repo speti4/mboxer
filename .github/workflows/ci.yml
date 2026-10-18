@@ -1,5 +1,6 @@
-# Tests on every push and pull request; a `v<version>` tag also packs and publishes the
-# portable zip (task 012). The toolchain is the one `rust-toolchain.toml` names (stable).
+# Tests, the dependency policy and the workflow lint on every push and pull request; a `v<version>` tag
+# also packs and publishes the portable zip (task 012). The toolchain is the one `rust-toolchain.toml`
+# names (stable). Actions are pinned by commit SHA and bumped by dependabot (task 024).
 name: ci
 
 on:
@@ -8,33 +9,83 @@ on:
     tags: ["v*"]
   pull_request:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  # A newer push supersedes a pull request run; a main or tag run always finishes.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   test:
     runs-on: windows-latest
+    timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # master 2026-10-16
+        with:
+          toolchain: stable
           components: rustfmt, clippy
-      - uses: Swatinem/rust-cache@v2
+      # The cache only speeds up the tests; the release job builds without it, so nothing it holds is published.
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2 # zizmor: ignore[cache-poisoning]
       - run: cargo fmt --check
       - run: cargo clippy --all-targets -- -D warnings
       - run: cargo test
 
+  # Advisories, licences, bans and sources of the shipped graph (deny.toml, D-011).
+  deny:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: EmbarkStudios/cargo-deny-action@3c6349835b2b7b196a839186cb8b78e02f7b5f25 # v2.1.1
+        with:
+          # The default features, as the exe is built; the action's own default is --all-features.
+          arguments: ""
+          command: check
+
+  # zizmor over the workflows and dependabot.yml; findings fail the job as annotations (the private repo
+  # has no code scanning to upload SARIF to).
+  workflow-lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: zizmorcore/zizmor-action@85b2b9fb8e3325e7a23d7d0a9d7ba5ae0f999e3e # v0.7.1
+        with:
+          advanced-security: false
+
   release:
-    needs: test
+    needs: [test, deny, workflow-lint]
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: windows-latest
+    timeout-minutes: 45
     permissions:
-      contents: write
+      contents: write # creates the release and uploads the zip
     steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # master 2026-10-16
+        with:
+          toolchain: stable
+      # No rust-cache here: a release is built from a clean target, never from a cache a pull request wrote.
       - name: Build and pack
         shell: pwsh
-        run: scripts/release.ps1 -Tag "${{ github.ref_name }}"
-      - uses: softprops/action-gh-release@v2
-        with:
-          files: dist/*.zip
-          generate_release_notes: true
+        env:
+          TAG: ${{ github.ref_name }}
+        run: scripts/release.ps1 -Tag $env:TAG
+      # The runner's own gh CLI publishes the release: no third-party action holds the write token.
+      - name: Publish the release
+        shell: pwsh
+        env:
+          TAG: ${{ github.ref_name }}
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create $env:TAG (Resolve-Path dist/*.zip).Path --verify-tag --generate-notes
