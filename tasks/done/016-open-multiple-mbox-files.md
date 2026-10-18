@@ -3,6 +3,7 @@ size: M
 origin: session 2026-10-17
 created: 2026-10-17
 started: 2026-10-18
+closed: 2026-10-18
 milestone: M3 Comfort
 plan: task-016-glimmering-meadow.md
 ---
@@ -37,7 +38,7 @@ indexűek halvány root-ként várnak; nincs új crate (D-02).
 9. [x] `docs/usage.md` "Several files" bekezdés, `README.md` egy sor
 10. [x] `/tasks decide` → D-06 (proposed)
 11. [x] `cargo fmt`, `cargo clippy --all-targets -- -D warnings`, `cargo test`, `node --test`; Chrome stub-check; `tasks_check`; commit
-12. [ ] User kézi kör: a 14 GB archívum + egy második mbox az igazi Tauri ablakban
+12. [x] User kézi kör: a 14 GB archívum + egy második mbox az igazi Tauri ablakban
 
 ## Log
 
@@ -54,6 +55,12 @@ indexűek halvány root-ként várnak; nincs új crate (D-02).
   tároló frissül; Open… (B újra + D): B megtartja a lekérdezését, D nem aktív root; × az aktív B-n: D veszi át; az
   utolsó × után empty nézet, kereső letiltva, tároló üres. Két hibát a check talált és javítottam: az aktív fájl
   újranyitása törölte a keresőszöveget; a billentyűs navigáció az aktív rooton ragadt. Képernyőkép dark + light: rendben
+- 2026-10-18 — commit `9347db1` (feat, task 016)
+- 2026-10-18 — a usernek egy mbox-a van, ezért két szintetikus minta (`target/manual-round/sample-threads.mbox`,
+  `sample-attachments.mbox`, a core fixture-ökből) állt a második és harmadik fájl szerepébe; a debug exe a 14 GB
+  archívummal indult. A user kézi köre (multi-select Open…, váltás és keresés fájlonként, melléklet mindkét fájlból,
+  bezárás nem aktív és aktív soron, újraindítás utáni visszatöltés, stale index halvány rootként): "minden ok". Nincs
+  follow-up; D-06 `decided`; closed
 
 ## Deviations from the plan
 
@@ -67,11 +74,13 @@ indexűek halvány root-ként várnak; nincs új crate (D-02).
 
 - 2026-10-18 — `cargo fmt --check` clean, `cargo clippy --all-targets -- -D warnings` clean, `cargo test` pass (35 app,
   köztük 4 új `OpenFiles` teszt; UI-node runner 3 fájl, 30 pass). Chrome stub-check a Log szerint, 2 javított hibával
-- (pending) user kézi kör az igazi Tauri ablakban, 14 GB + második mbox
+- 2026-10-18 — User kézi kör az igazi Tauri ablakban, a 14 GB archívum + két minta mbox: több fájl egyszerre nyitva,
+  egymás alatt a panelen, egy aktív; váltás, keresés, mellékletek, bezárás, újraindítás utáni visszatöltés — "minden ok".
+  Done-when met
 
 ## Closing checklist
 
-- [ ] every follow-up is a `backlog/` file (`/tasks add`) or deleted with a reason in the Log
-- [ ] Verification written, dated
-- [ ] `tasks_check` green, README index regenerated
-- [ ] moved to `done/` with `closed: YYYY-MM-DD`
+- [x] every follow-up is a `backlog/` file (`/tasks add`) or deleted with a reason in the Log — none
+- [x] Verification written, dated
+- [x] `tasks_check` green, README index regenerated
+- [x] moved to `done/` with `closed: 2026-10-18`

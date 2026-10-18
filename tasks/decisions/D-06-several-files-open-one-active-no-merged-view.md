@@ -1,8 +1,8 @@
 ---
-status: proposed
+status: decided
 date: 2026-10-18
 cost: medium
-sources: [wip/016-open-multiple-mbox-files.md, D-03-message-identity-is-envelope-byte-offset.md, task-016-glimmering-meadow.md]
+sources: [done/016-open-multiple-mbox-files.md, D-03-message-identity-is-envelope-byte-offset.md, task-016-glimmering-meadow.md]
 ---
 
 # D-06 — Several mbox files are open side by side, one active at a time; there is no merged view
@@ -32,7 +32,8 @@ index tells one file from another.
   wait in the pane until clicked.
 
 Proposed by the session on 2026-10-18 from the user's choice of the stacked reading
-("egymás alatt/felett jelenjen meg, egyszerre csak egyiknek legyen kinyitva a struktúrája").
+("egymás alatt/felett jelenjen meg, egyszerre csak egyiknek legyen kinyitva a struktúrája");
+confirmed by the user on 2026-10-18 with the plan approval and the manual round of task 016.
 
 ## Not chosen
 
