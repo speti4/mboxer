@@ -3,6 +3,7 @@ size: S
 origin: session 2026-10-17
 created: 2026-10-17
 started: 2026-10-18
+closed: 2026-10-18
 milestone: M3 Comfort
 plan: n-zz-k-t-a-backlogot-virtual-mango.md
 ---
@@ -35,7 +36,7 @@ témában világos vásznon marad (a HTML levelek világos lapra készülnek, Th
 7. [x] `docs/usage.md` bekezdés a témáról
 8. [x] `node --check`, `cargo fmt`, `cargo clippy --all-targets -- -D warnings`, `cargo test`; Chrome stub-check;
    `tasks_check`; commit
-9. [ ] User kézi kör a 14 GB archívumon dark módú Windows alatt (indulás, címsor, váltás, újraindítás)
+9. [x] User kézi kör a 14 GB archívumon dark módú Windows alatt (indulás, címsor, váltás, újraindítás)
 
 ## Log
 
@@ -50,6 +51,9 @@ témában világos vásznon marad (a HTML levelek világos lapra készülnek, Th
   `setTheme` induláskor `["dark"]`; HTML nézet iframe body `#fff` / `#1f2328` / `color-scheme light` dark módban;
   Text nézet `--fg`; mark a sorban `#a37c00` + világos fg, a bodyban `#7a5c00`. Képernyőkép: remote bar, warn státusz,
   overlay olvasható. A Chrome maga is dark módú volt, így az auto ág (`prefers-color-scheme`) is lefutott
+- 2026-10-18 — commit `53a49b6` (feat, task 017)
+- 2026-10-18 — a user kézi köre az igazi Tauri ablakban, a 14 GB archívumon: "sikeres a teszt". A tervben feltételesen
+  említett follow-up (WebView2 fehér villanás a betöltés előtt) nem merült fel, nem kerül backlogra; closed
 
 ## Deviations from the plan
 
@@ -59,12 +63,13 @@ témában világos vásznon marad (a HTML levelek világos lapra készülnek, Th
 
 - 2026-10-18 — `cargo fmt --check` clean, `cargo clippy --all-targets -- -D warnings` clean, `cargo test` pass
   (új: `tests/ui/theme.test.js` 6 teszt a `node --test` alatt, az `ui_query.rs` mindkét Node fájlt futtatja).
-  Chrome stub-check 25/25 (részletek a Logban). Nyitva: a user kézi köre dark módú Windows alatt (9. lépés) — a natív
-  címsor `setTheme`-je csak az igazi Tauri ablakban ellenőrizhető.
+  Chrome stub-check 25/25 (részletek a Logban).
+- 2026-10-18 — User kézi kör dark módú Windows alatt, a 14 GB archívummal: sötét indulás, a gomb élőben vált, a
+  beállítás megmarad újraindítás után — done-when met.
 
 ## Closing checklist
 
-- [ ] every follow-up is a `backlog/` file (`/tasks add`) or deleted with a reason in the Log
-- [ ] Verification written, dated
-- [ ] `tasks_check` green, README index regenerated
-- [ ] moved to `done/` with `closed: YYYY-MM-DD`
+- [x] every follow-up is a `backlog/` file (`/tasks add`) or deleted with a reason in the Log — none
+- [x] Verification written, dated
+- [x] `tasks_check` green, README index regenerated
+- [x] moved to `done/` with `closed: 2026-10-18`
