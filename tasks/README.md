@@ -13,7 +13,7 @@ file, never the issue.
 <!-- tasks:index:start -->
 _Generated 2026-10-18 — edit the files, not this section._
 
-**State:** 9 backlog (7 ready · 0 blocked · 1 waiting · 1 idea) · 0 in progress · 21 done · 0 dropped · 10 decisions
+**State:** 7 backlog (5 ready · 0 blocked · 1 waiting · 1 idea) · 2 in progress · 21 done · 0 dropped · 10 decisions
 
 ### Ready
 
@@ -29,10 +29,8 @@ _Generated 2026-10-18 — edit the files, not this section._
 
 | # | Task | Size | Created |
 |---|---|---|---|
-| 023 | [Community health files: licence, security policy, contributing guide, issue and…](backlog/023-community-health-files.md) | S | 2026-10-18 |
 | 024 | [Supply chain and CI hardening: dependabot, cargo-deny, pinned actions](backlog/024-supply-chain-and-ci-hardening.md) | M | 2026-10-18 |
 | 025 | [Release notes and changelog from the task files, checksums and third-party lice…](backlog/025-release-notes-changelog-and-checksums.md) | M | 2026-10-18 |
-| 026 | [README as a front page, the reference moved into docs](backlog/026-readme-front-page.md) | S | 2026-10-18 |
 
 ### Needs decision
 
@@ -56,7 +54,12 @@ _none_
 
 ### In progress
 
-_none_
+#### M5 Public release
+
+| # | Task | Started | Plan |
+|---|---|---|---|
+| 023 | [Community health files: licence, security policy, contributing guide, issue and…](wip/023-community-health-files.md) | 2026-10-18 | `peppy-imagining-pony.md` |
+| 026 | [README as a front page, the reference moved into docs](wip/026-readme-front-page.md) | 2026-10-18 | `peppy-imagining-pony.md` |
 
 ### Closed – do not reopen
 
