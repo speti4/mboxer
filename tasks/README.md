@@ -13,7 +13,7 @@ file, never the issue.
 <!-- tasks:index:start -->
 _Generated 2026-10-18 — edit the files, not this section._
 
-**State:** 8 backlog (4 ready · 0 blocked · 1 waiting · 3 ideas) · 1 in progress · 26 done · 0 dropped · 11 decisions
+**State:** 9 backlog (5 ready · 0 blocked · 1 waiting · 3 ideas) · 0 in progress · 27 done · 0 dropped · 11 decisions
 
 ### Ready
 
@@ -30,6 +30,7 @@ _Generated 2026-10-18 — edit the files, not this section._
 | # | Task | Size | Created |
 |---|---|---|---|
 | 025 | [Release notes and changelog from the task files, checksums and third-party lice…](backlog/025-release-notes-changelog-and-checksums.md) | M | 2026-10-18 |
+| 036 | [Git workflow doc: current decision reference, the deps type, the expected index…](backlog/036-git-workflow-references-and-commit-types.md) | S | 2026-10-18 |
 
 ### Needs decision
 
@@ -60,11 +61,7 @@ _none_
 
 ### In progress
 
-#### M5 Public release
-
-| # | Task | Started | Plan |
-|---|---|---|---|
-| 035 | [CLAUDE.md fit for a public repo: no personal settings, no contradictions, a com…](wip/035-claude-md-review-before-publication.md) | 2026-10-18 | `none` |
+_none_
 
 ### Closed – do not reopen
 
@@ -74,6 +71,7 @@ _none_
 
 | # | Task | Closed |
 |---|---|---|
+| 035 | [CLAUDE.md fit for a public repo: no personal settings, no contradictions, a com…](done/035-claude-md-review-before-publication.md) | 2026-10-18 |
 | 034 | [Git workflow policy for contributors and parallel sessions, with the commit rul…](done/034-git-workflow-policy-and-commit-hooks.md) | 2026-10-18 |
 | 033 | [Install the Rust toolchain in CI without a third-party action](done/033-install-the-toolchain-without-a-third-party-action.md) | 2026-10-18 |
 | 030 | [Scrub the repo and rewrite the history per D-09](done/030-scrub-and-rewrite-history-per-d-09.md) | 2026-10-18 |
@@ -83,9 +81,8 @@ _none_
 | 023 | [Community health files: licence, security policy, contributing guide, issue and…](done/023-community-health-files.md) | 2026-10-18 |
 | 022 | [One-way sync of tasks/ to GitHub issues and milestones](done/022-sync-tasks-to-github-issues.md) | 2026-10-18 |
 | 021 | [GitHub milestones from the roadmap and the first release v0.1.0](done/021-github-milestones-and-first-release.md) | 2026-10-18 |
-| 017 | [Dark mode toggle with OS default](done/017-dark-mode-toggle.md) | 2026-10-18 |
 
-_16 more in `done/`._
+_17 more in `done/`._
 
 ### Decisions
 
