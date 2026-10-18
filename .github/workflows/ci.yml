@@ -1,6 +1,7 @@
 # Tests, the dependency policy, the workflow lint and the commit rules (task 034) on every push and pull
 # request; a `v<version>` tag also packs and publishes the portable zip (task 012). The toolchain is the one
-# `rust-toolchain.toml` names (stable). Actions are pinned by commit SHA and bumped by dependabot (task 024).
+# `rust-toolchain.toml` names (stable), installed by the runner's own rustup, not by an action (task 033).
+# Actions are pinned by commit SHA and bumped by dependabot (task 024).
 name: ci
 
 on:
@@ -25,10 +26,16 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # master 2026-10-16
-        with:
-          toolchain: stable
-          components: rustfmt, clippy
+      # The runner's preinstalled rustup installs what rust-toolchain.toml names: without an argument (rustup
+      # 1.28+) the toolchain and its components, then by name to bring an older preinstalled stable up to date,
+      # which the argumentless install leaves as it is. The last two lines put the result in the log.
+      - name: Install the Rust toolchain from rust-toolchain.toml
+        shell: bash
+        run: |
+          rustup toolchain install --no-self-update
+          rustup toolchain install --no-self-update "$(rustup show active-toolchain | cut -d' ' -f1)"
+          rustup show
+          rustup component list --installed
       # The cache only speeds up the tests; the release job builds without it, so nothing it holds is
       # published (the zizmor cache-poisoning finding is ignored in .github/zizmor.yml).
       - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
@@ -114,9 +121,13 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # master 2026-10-16
-        with:
-          toolchain: stable
+      # The same toolchain as the test job, from rust-toolchain.toml (see the comment there).
+      - name: Install the Rust toolchain from rust-toolchain.toml
+        shell: bash
+        run: |
+          rustup toolchain install --no-self-update
+          rustup toolchain install --no-self-update "$(rustup show active-toolchain | cut -d' ' -f1)"
+          rustup show
       # No rust-cache here: a release is built from a clean target, never from a cache a pull request wrote.
       - name: Build and pack
         shell: pwsh
