@@ -71,5 +71,5 @@ Run as a task session under docs/git-workflow.md, in parallel with 035 and 025; 
 
 - [x] every follow-up is listed in the pull request under `## Follow-ups` (the main session files it)
 - [x] Verification written, dated
-- [ ] `tasks_check` green, README index regenerated (the main session, before the merge)
+- [x] `tasks_check` green, README index regenerated (the main session, before the merge)
 - [x] moved to `done/` with `closed: 2026-10-18`
