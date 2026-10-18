@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: decided
 date: 2026-10-17
 cost: cheap
 sources: [wip/014-index-fallback-for-read-only-mbox-locations.md, D-04-sidecar-index-location-and-freshness.md, 12-14-15-taskokat-fejlessz-k-le-keen-whale.md]
@@ -32,7 +32,7 @@ has a lasting effect on where mboxer writes on a user's machine, so it is record
   exists per mbox. The CLI prints the fallback on `index`, the viewer shows the index directory
   in the status bar tooltip.
 
-Proposed by the session on 2026-10-17 (task 014).
+Proposed by the session on 2026-10-17 (task 014); confirmed by the user on 2026-10-18 ("Megerősítem").
 
 ## Not chosen
 

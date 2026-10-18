@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: decided
 date: 2026-10-18
 cost: cheap
 sources: [done/021-github-milestones-and-first-release.md, done/022-sync-tasks-to-github-issues.md, local-repoban-profi-a-clever-pie.md]
@@ -30,7 +30,7 @@ source of truth that drifts within days. The repo is private; the issues are for
   The script never changes a milestone's state.
 
 Proposed by the session on 2026-10-18 from the user's choices "milestone-ok + v0.1.0 release" and then
-"one-way sync from CI, decisions too, English bodies"; awaiting the user's confirmation.
+"one-way sync from CI, decisions too, English bodies"; confirmed by the user on 2026-10-18 ("Megerősítem").
 
 ## Not chosen
 

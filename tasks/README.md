@@ -66,10 +66,10 @@ _9 more in `done/`._
 
 | # | Decision | Status | Date |
 |---|---|---|---|
-| D-08 | [GitHub issues and milestones mirror tasks/ one-way through a script; nothing is edited on GitHub by hand; a release tag closes the milestones it ships](decisions/D-08-github-milestones-mirror-roadmap-one-way.md) | proposed | 2026-10-18 |
+| D-08 | [GitHub issues and milestones mirror tasks/ one-way through a script; nothing is edited on GitHub by hand; a release tag closes the milestones it ships](decisions/D-08-github-milestones-mirror-roadmap-one-way.md) | decided | 2026-10-18 |
 | D-07 | [macOS builds ship as an ad-hoc signed universal .app in a zip, without notarization](decisions/D-07-macos-distribution-adhoc-signed-app-zip.md) | decided | 2026-10-18 |
 | D-06 | [Several mbox files are open side by side, one active at a time; there is no merged view](decisions/D-06-several-files-open-one-active-no-merged-view.md) | decided | 2026-10-18 |
-| D-05 | [When .mboxer/ beside the mbox cannot be created, the index lives under %LOCALAPPDATA%\mboxer\index\<name>-<path hash>\](decisions/D-05-index-fallback-under-localappdata.md) | proposed | 2026-10-17 |
+| D-05 | [When .mboxer/ beside the mbox cannot be created, the index lives under %LOCALAPPDATA%\mboxer\index\<name>-<path hash>\](decisions/D-05-index-fallback-under-localappdata.md) | decided | 2026-10-17 |
 | D-04 | [The sidecar index lives in .mboxer/<mbox name>/ beside the mbox and is rebuilt whole when stale](decisions/D-04-sidecar-index-location-and-freshness.md) | decided | 2026-10-17 |
 | D-03 | [A message is identified by the byte offset of its From  envelope line](decisions/D-03-message-identity-is-envelope-byte-offset.md) | decided | 2026-10-17 |
 | D-02 | [Rust + Tauri 2 (WebView2) with a one-time sidecar full-text index](decisions/D-02-rust-tauri2-sidecar-fulltext-index.md) | decided | 2026-10-17 |
