@@ -40,6 +40,8 @@ D-011), `workflow-lint` (zizmor over the workflows and `dependabot.yml`; a findi
 listed with its reason in `.github/zizmor.yml`) and `commit-rules` (`scripts/check-commit.sh` over every pushed
 commit and the pull request text, the rules of [git-workflow.md](git-workflow.md)). The workflows run with a
 read-only token by default; only the release job may write contents and only the issue sync may write issues.
+The Rust toolchain comes from the runner's own rustup, which installs the channel and the components that
+`rust-toolchain.toml` names, so no action is involved.
 
 Every action is pinned by commit SHA with the version in a comment. Dependabot proposes the updates for the
 actions and for `Cargo.lock` once a week, a release only after it is a week old; a pin is changed through such a
