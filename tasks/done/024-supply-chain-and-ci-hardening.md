@@ -3,6 +3,7 @@ size: M
 origin: session 2026-10-18
 created: 2026-10-18
 started: 2026-10-18
+closed: 2026-10-18
 milestone: M5 Public release
 plan: steady-baking-kurzweil.md
 ---
@@ -41,7 +42,7 @@ D-02 lines (no new crate enters the exe or the build):
 7. [x] D-011 recorded, decided 2026-10-18
 8. [x] fmt, clippy, test locally
 9. [x] commit, push (after the user's go), CI run green with `test`, `deny`, `workflow-lint`; `sync-issues` green
-10. [ ] first dependabot PR(s) arrive and their CI is green
+10. [x] first dependabot PR(s) arrive and their CI is green
 
 ## Log
 
@@ -73,6 +74,11 @@ D-02 lines (no new crate enters the exe or the build):
   The first security-update run failed with `security_update_not_possible` for glib: alert #1 GHSA-wrw7-89jp-8q8g
   (medium, `VariantStrIter` unsoundness, fixed in 0.20) on glib 0.18.5, which gtk pins under Tauri's Linux
   backend; `cargo tree -i glib --target x86_64-pc-windows-msvc` prints nothing, so the exe does not contain it
+- 2026-10-18 — PR #44 rebased by dependabot after `80cba01`: `c193711 # v2.9.1` → `6323deb # v2.9.2`, checks
+  test/deny/workflow-lint pass (release skipped), squash-merged as `95c8ffe`. Alert #1 dismissed (user go) as
+  `not_used` with the `cargo tree` reason
+- 2026-10-18 — closing sweep: the dtolnay master pin, which dependabot cannot follow → backlog/033; the macOS
+  targets for `deny.toml` → a line in backlog/018
 
 ## Deviations from the plan
 
@@ -89,11 +95,13 @@ D-02 lines (no new crate enters the exe or the build):
   `cargo test` 109 passed
 - 2026-10-18 GitHub: ci run 39140529071 on `8cb91e5` — test, deny, workflow-lint success, release skipped;
   sync-issues success; dependabot cargo + github-actions runs success, no update needed yet
-- The first dependabot PR: pending
+- 2026-10-18 dependabot: PR #44 (rust-cache 2.9.1 → 2.9.2, SHA and version comment updated) green on all three
+  jobs, merged `95c8ffe`; Dependabot alerts and security updates on, alert #1 (glib, Linux-only) dismissed,
+  0 open alerts
 
 ## Closing checklist
 
-- [ ] every follow-up is a `backlog/` file (`/tasks add`) or deleted with a reason in the Log
-- [ ] Verification written, dated
-- [ ] `tasks_check` green, README index regenerated
-- [ ] moved to `done/` with `closed: YYYY-MM-DD`
+- [x] every follow-up is a `backlog/` file (`/tasks add`) or deleted with a reason in the Log
+- [x] Verification written, dated
+- [x] `tasks_check` green, README index regenerated
+- [x] moved to `done/` with `closed: 2026-10-18`
