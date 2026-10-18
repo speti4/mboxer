@@ -1,6 +1,6 @@
 # Roadmap
 
-A Windows 11 mbox viewer for Gmail Takeout archives (14 GB today, up to 50 GB for other users) that
+A Windows 11 mbox viewer for Gmail Takeout archives (14 GB on the author's machine, up to 50 GB as the target) that
 replaces eneam/mboxviewer: fast, stable, searchable. Order: first a headless index core that proves
 search speed on the real 14 GB file, then the Tauri UI on top of it, then the comfort features.
 State lives in the task files and the generated index, never here. The `## ` headings are mirrored one-way as
@@ -22,7 +22,7 @@ user stops opening mboxviewer.
 ## M3 Comfort
 
 Gmail labels and threads, Gmail-style query syntax, export (.eml / PDF / print), a portable release
-build for the other 2–5 users.
+build anyone can run without installing anything.
 
 ## M4 macOS
 

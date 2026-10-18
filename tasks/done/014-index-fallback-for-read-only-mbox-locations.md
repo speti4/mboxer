@@ -15,7 +15,7 @@ plan: 12-14-15-taskokat-fejlessz-k-le-keen-whale.md
 D-04 puts the index next to the mbox (`.mboxer/<név>/`); if that folder is not writable (DVD, read-only share,
 forbidden folder), the build stops with an error today. 014: if the primary `.building` directory cannot be created,
 the index is built under `%LOCALAPPDATA%\mboxer\index\<fájlnév>-<útvonal-hash>\`, and the open looks there too.
-Why: the other 2–5 users' archives may sit on a network share. Done when: `mboxer index` succeeds on an mbox in a
+Why: a user's archive may sit on a network share. Done when: `mboxer index` succeeds on an mbox in a
 read-only folder, `mboxer search` finds the fallback index, and the test covers both locations.
 Planning decision 2026-10-17: the fallback directory is keyed by the mbox's *path* (not its content fingerprint,
 as the backlog line said): one place = one directory, a new export to the same place replaces the old index, no

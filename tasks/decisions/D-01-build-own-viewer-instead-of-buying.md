@@ -12,7 +12,7 @@ sources: [docs/origin.md, docs/research/2026-10-17-free-mbox-viewer-alternatives
 The draft asked for a free alternative first and own development only as a second round. The
 survey (`docs/research/2026-10-17-free-mbox-viewer-alternatives.md`) looked for a free Windows GUI
 that searches message bodies fast on a 14–50 GB Gmail Takeout mbox. Constraints: free, Windows 11,
-no runtime to install, usable by 2–5 non-technical users, each with their own file.
+no runtime to install, usable by non-technical people, each with their own file.
 
 ## Decision
 

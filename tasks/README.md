@@ -13,7 +13,7 @@ file, never the issue.
 <!-- tasks:index:start -->
 _Generated 2026-10-18 — edit the files, not this section._
 
-**State:** 10 backlog (8 ready · 0 blocked · 1 waiting · 1 idea) · 0 in progress · 20 done · 0 dropped · 9 decisions
+**State:** 9 backlog (7 ready · 0 blocked · 1 waiting · 1 idea) · 1 in progress · 20 done · 0 dropped · 10 decisions
 
 ### Ready
 
@@ -33,7 +33,6 @@ _Generated 2026-10-18 — edit the files, not this section._
 | 024 | [Supply chain and CI hardening: dependabot, cargo-deny, pinned actions](backlog/024-supply-chain-and-ci-hardening.md) | M | 2026-10-18 |
 | 025 | [Release notes and changelog from the task files, checksums and third-party lice…](backlog/025-release-notes-changelog-and-checksums.md) | M | 2026-10-18 |
 | 026 | [README as a front page, the reference moved into docs](backlog/026-readme-front-page.md) | S | 2026-10-18 |
-| 030 | [Scrub the repo and rewrite the history per D-09](backlog/030-scrub-and-rewrite-history-per-d-09.md) | M | 2026-10-18 |
 
 ### Needs decision
 
@@ -57,7 +56,11 @@ _none_
 
 ### In progress
 
-_none_
+#### M5 Public release
+
+| # | Task | Started | Plan |
+|---|---|---|---|
+| 030 | [Scrub the repo and rewrite the history per D-09](wip/030-scrub-and-rewrite-history-per-d-09.md) | 2026-10-18 | `folytassuk-a-030-task-replicated-fairy.md` |
 
 ### Closed – do not reopen
 
@@ -76,7 +79,7 @@ _none_
 | 015 | [Decode RFC 2047-encoded Gmail label names](done/015-decode-rfc2047-gmail-label-names.md) | 2026-10-17 |
 | 014 | [Index fallback when the mbox folder is not writable](done/014-index-fallback-for-read-only-mbox-locations.md) | 2026-10-17 |
 | 013 | [Unescape >From  lines in message bodies for display](done/013-unescape-from-lines-in-message-bodies.md) | 2026-10-17 |
-| 012 | [Portable release build for other users](done/012-portable-exe-release-build.md) | 2026-10-17 |
+| 012 | [Portable release build](done/012-portable-exe-release-build.md) | 2026-10-17 |
 
 _10 more in `done/`._
 
@@ -84,7 +87,8 @@ _10 more in `done/`._
 
 | # | Decision | Status | Date |
 |---|---|---|---|
-| D-09 | [The repo goes public with tasks/ and docs/ scrubbed in place and the history rewritten once before the switch](decisions/D-09-publish-scrubbed-rewrite-history-before-switch.md) | decided | 2026-10-18 |
+| D-10 | [The repo goes public scrubbed, with the history rewritten once and pushed into a recreated GitHub repo](decisions/D-10-publish-scrubbed-rewritten-history-in-a-recreated-repo.md) | decided | 2026-10-18 |
+| D-09 | [The repo goes public with tasks/ and docs/ scrubbed in place and the history rewritten once before the switch](decisions/D-09-publish-scrubbed-rewrite-history-before-switch.md) | superseded | 2026-10-18 |
 | D-08 | [GitHub issues and milestones mirror tasks/ one-way through a script; nothing is edited on GitHub by hand; a release tag closes the milestones it ships](decisions/D-08-github-milestones-mirror-roadmap-one-way.md) | decided | 2026-10-18 |
 | D-07 | [macOS builds ship as an ad-hoc signed universal .app in a zip, without notarization](decisions/D-07-macos-distribution-adhoc-signed-app-zip.md) | decided | 2026-10-18 |
 | D-06 | [Several mbox files are open side by side, one active at a time; there is no merged view](decisions/D-06-several-files-open-one-active-no-merged-view.md) | decided | 2026-10-18 |

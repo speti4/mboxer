@@ -15,8 +15,8 @@ plan: j-backlog-tletek-expressive-breeze.md
 Today the search field's text goes unchanged into tantivy's lenient parser: `"frázis"`, `OR` and
 `-szó` work because of that, and `from:anna` only because `from` is a schema field name. `label:`,
 `has:attachment`, `subject:`, `after:` / `before:` do nothing, and an operator typed into the field does
-not show up on the filter panel or in the label tree. 010 makes the field a real query language for the
-main user, the panel stays for the others. Why: power-user speed. Done when: every operator has a
+not show up on the filter panel or in the label tree. 010 makes the field a real query language for
+keyboard users, the panel stays for everyone else. Why: power-user speed. Done when: every operator has a
 test; a typed operator shows up on the panel and vice versa.
 
 User decisions 2026-10-17 (planning round): **the field's text is the single source of truth** — the panel and

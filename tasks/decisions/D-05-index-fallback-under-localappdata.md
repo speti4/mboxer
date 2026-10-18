@@ -11,7 +11,7 @@ sources: [wip/014-index-fallback-for-read-only-mbox-locations.md, D-04-sidecar-i
 
 D-04 puts the sidecar index beside the mbox and listed `%LOCALAPPDATA%` as a not-chosen default,
 kept as a fallback idea. Task 014 makes that fallback real: an archive on a read-only share, a
-DVD or a denied folder failed the build outright, which the other 2–5 users may hit. The rule
+DVD or a denied folder failed the build outright, which any user may hit. The rule
 has a lasting effect on where mboxer writes on a user's machine, so it is recorded here.
 
 ## Decision

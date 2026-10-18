@@ -14,7 +14,7 @@ This repo is the source of truth for:
 - `tasks/` — the task standard: backlog, work in flight, history, decisions
 
 ## Data outside the repo (never commit)
-- The author's mbox: `<archive path>` (14 GB)
+- The author's mbox: a 14 GB Gmail Takeout export on a local drive (the path stays out of the repo)
 - Index sidecars written next to any mbox (`*.idx`, `.mboxer/`); test fixtures are small synthetic samples only
 - Any real message content: never paste it into task files, docs or commits
 
@@ -24,6 +24,7 @@ This repo is the source of truth for:
 - Runtime dependency rule (D-02): the shipped artifact is one exe; a new build-time crate needs a one-line justification in the task file
 - Decisions with lasting effect go to `tasks/decisions/` (`/tasks decide`), proposed until the user confirms
 - Task files: the H1 and the Context paragraph (what / why / done-when) are English — `scripts/sync-issues.py` mirrors them into GitHub issues (D-08); Log / Verification may be Hungarian
+- Commits (D-09): end with `Co-Authored-By: Claude …`, never a `Claude-Session:` trailer; the author address is the repo's GitHub noreply `user.email`, never a real mailbox
 - User communication: Hungarian, technical terms in English
 
 ## Tasks

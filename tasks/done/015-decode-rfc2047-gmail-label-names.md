@@ -16,8 +16,8 @@ mail-parser returns the `X-Gmail-Labels` header raw as an unknown header (`parse
 encoded-word label (`=?UTF-8?Q?Sz=C3=A1ml=C3=A1k?=`) lands in the index and the folders pane in encoded form,
 and a click does not find it. Solution: setting `header_text("X-Gmail-Labels")` on the parser (unstructured parse,
 RFC 2047 decoded, still one `as_text()` value for `split_labels`) and `FORMAT_VERSION` 1 → 2, because
-the stored labels change. Why: the author's archive has no encoded label (600 MB header sample, 009), but a
-colleague's non-ASCII label names would show up garbled. Done when: a fixture with an encoded label lists the
+the stored labels change. Why: the author's archive has no encoded label (600 MB header sample, 009), but
+another user's non-ASCII label names would show up garbled. Done when: a fixture with an encoded label lists the
 label decoded in `label_counts`, the exact and the `any_labels` filter find the decoded name, and the existing index
 is rebuilt once (format version). User decision 2026-10-17 (planning round): order 015 → 014 → 012, one
 commit per task; no new crate (D-02).

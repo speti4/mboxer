@@ -1,7 +1,8 @@
 ---
-status: decided
+status: superseded
 date: 2026-10-18
 cost: one-way
+superseded-by: D-10-publish-scrubbed-rewritten-history-in-a-recreated-repo.md
 sources: [done/027-pre-publish-history-and-content-audit.md, a-task-021-hez-kapcsol-d-an-mellow-hearth.md]
 ---
 

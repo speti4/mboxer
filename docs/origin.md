@@ -1,36 +1,29 @@
-# draft
+# Origin
 
-ez egy greenfield project
+mboxer started as a greenfield project with one concrete problem behind it.
 
-## alaphelyzet
+## Starting point
 
-van egy ~13 GB méretű mbox fájlom, a céges levelezés korábban Gmailben ment, ezt takeouttal archiváltuk anno, ez lett az output:
+A former work mailbox lived in Gmail and was archived with Google Takeout: one mbox file of about 13 GB
+(`All mail Including Spam and Trash.mbox`, with Takeout's settings files next to it). Until now that archive
+was opened with the open-source [eneam/mboxviewer](https://github.com/eneam/mboxviewer).
 
-"<archive path>"
+## Problem
 
-a mappában mellette settings fájlok
+That viewer:
 
-ezt a teljes archive levelezést az alábbi opensource alkalmazással nyitottam meg eddig:
+1. has a poor UI and UX,
+2. is unstable and slow, and often freezes,
+3. hides search behind an awkward "Advanced Find" dialog with no hotkey, which makes the most common task the
+   least comfortable one.
 
-[eneam/mboxviewer](https://github.com/eneam/mboxviewer)
+## Need
 
-ez itt van a gépemen: "<local folder>"
+First, look for a free alternative (see `docs/research/`); the expectation was that none would fit. Second,
+build an own mbox viewer for Windows 11 that solves the problems above, with as few dependencies as possible,
+ideally none for the person running it.
 
-## probléma
+## Usage profile
 
-ez az mboxviewer app:
-  1. nagyon rossz UI/UX-el rendelkezik
-  2. instabil, lassú, gakran lefagy
-  3. a keresés borzasztó felületen történik (Advanced Find), nincs rá hotkey, és nagyon kényelmetlen, nem felhasználóbarát
-
-## igény
-
-első körben keressünk ingyenes alternatívát, de nem hiszem hogy találunk megfelelőt
-
-második körben fejlesszünk saját mbox viewer alkalmazás windows 11-re, ami a fenti problémákat megoldja
-minél kevesebb (lehetőleg 0) dependency
-
-## egyéb hasznos infok
-
-csak 2-5 felhasználója lesz maximum az alkalmazásnak, main user én vagyok
-heti max 1-2 alkalommal lesz szükségem a régi levelezésemből bármire, nem lesz heavy usage
+Occasional lookups in an old mailbox, once or twice a week at most, no heavy use: opening a large archive has
+to be cheap, and finding a message has to be fast and keyboard-friendly.

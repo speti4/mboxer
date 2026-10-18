@@ -8,13 +8,13 @@ milestone: M3 Comfort
 plan: 12-14-15-taskokat-fejlessz-k-le-keen-whale.md
 ---
 
-# 012 — Portable release build for other users
+# 012 — Portable release build
 
 ## Context
 
 Release profile, a single portable exe (no installer), version stamp in one place and in the UI, a short
-`docs/usage.md` for the other 2–5 users; CI build. Why: the others only have to put one file next to their mbox,
-nothing to install (D-02). Done when: a colleague on a clean Windows 11 opens their own mbox with the bare
+`docs/usage.md` for the people who run it; CI build. Why: a user only has to put one file next to their mbox,
+nothing to install (D-02). Done when: a user on a clean Windows 11 opens their own mbox with the bare
 exe. From 005: the exe is `crates/mboxer-app` (`cargo build --release` → `target\release\mboxer.exe`,
 release = windowed), the WebView2 profile is under `%LOCALAPPDATA%\io.github.speti4.mboxer` (the `tauri.conf.json`
 `identifier`), the usage doc mentions this. User decision 2026-10-17 (planning round): GitHub Actions too,
@@ -26,7 +26,7 @@ with tests ("a gh action with tests"); the package `mboxer-<verzió>.zip` = `mbo
 1. [x] `Cargo.toml` `[profile.release]`: `lto = "fat"`, `opt-level = 3`, `strip = true` (`panic` marad unwind)
 2. [x] `tauri.conf.json`: `version` törlése → a workspace `Cargo.toml` az egyetlen forrás; `app_version` command
 3. [x] UI: `#status-version` a státuszsor jobb szélén (`v0.1.0`, tooltip), induláskor töltve
-4. [x] `docs/usage.md` a kollégáknak
+4. [x] `docs/usage.md` a felhasználóknak
 5. [x] `scripts/release.ps1`: release build, verzió a Cargo.toml-ból, `dist\mboxer-<verzió>.zip`
 6. [x] `.github/workflows/ci.yml`: `test` job (fmt, clippy, test) minden pushra/PR-ra; `release` job `v*` tagre
 7. [x] README: release script, workflow, tag-konvenció, `docs/usage.md` link
@@ -49,7 +49,7 @@ with tests ("a gh action with tests"); the package `mboxer-<verzió>.zip` = `mbo
   a fat LTO + strip 26 KB-ot hozott, a méret az embedded UI + tantivy + Tauri); `ProductVersion` = `FileVersion`
   = 0.1.0; `dist\mboxer-0.1.0.zip` 5,27 MB, benne `mboxer.exe` + `usage.md`. A release exe a `threads.mbox`
   másolatán: `opened threads.mbox: 6 messages, Built, 71 ms`. A workflow a következő push-nál fut először; a
-  "kolléga tiszta gépen" done-when a user körében dől el; closed
+  "tiszta gépen, csak az exe" done-when a user körében dől el; closed
 
 ## Deviations from the plan
 
@@ -64,7 +64,7 @@ with tests ("a gh action with tests"); the package `mboxer-<verzió>.zip` = `mbo
   thin-LTO buildje 14 984 704), `(Get-Item mboxer.exe).VersionInfo` ProductVersion 0.1.0, FileVersion 0.1.0,
   ProductName mboxer; `dist\mboxer-0.1.0.zip` 5 273 947 byte, két fájl (`mboxer.exe`, `usage.md`).
 - 2026-10-17 — a release exe egy fixture-másolaton: 6 üzenet, index épült, 71 ms (stderr). A státuszsor `v0.1.0`
-  chipje és a done-when (kolléga, tiszta Windows 11, csak az exe) a user kézi körére vár; a CI első futása a
+  chipje és a done-when (tiszta Windows 11, csak az exe) a user kézi körére vár; a CI első futása a
   következő push.
 
 ## Closing checklist

@@ -1,8 +1,8 @@
 # mboxer
 
 A Windows 11 viewer for large Gmail Takeout mbox archives (14–50 GB): fast indexed search,
-stable, usable UI. Replaces [eneam/mboxviewer](https://github.com/eneam/mboxviewer) for the author
-and a handful of colleagues, each with their own mbox file.
+stable, usable UI. A faster, steadier alternative to [eneam/mboxviewer](https://github.com/eneam/mboxviewer)
+for anyone who keeps an old mailbox as a Takeout export.
 
 - Stack: Rust, Tauri 2 on WebView2, one-time sidecar full-text index next to the mbox (see
   `tasks/decisions/`).
@@ -142,5 +142,5 @@ author's archive are under `docs/benchmarks/`.
   capability file and the icon.
 - `crates/mboxer-cli` — the `mboxer-cli` executable; its end-to-end tests under `tests/`.
 - `scripts/` — helper scripts for measurements, the icon and the release zip.
-- `docs/` — origin, research, dated benchmarks, the usage guide for the other users.
+- `docs/` — origin, research, dated benchmarks, the usage guide that ships in the release zip.
 - `.github/workflows/` — CI (fmt, clippy, test) and the tagged release.
