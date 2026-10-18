@@ -3,6 +3,7 @@ size: M
 origin: session 2026-10-18
 created: 2026-10-18
 started: 2026-10-18
+closed: 2026-10-18
 plan: none
 milestone: M5 Public release
 ---
@@ -29,7 +30,7 @@ Run as a task session under docs/git-workflow.md, in parallel with 035 and 032; 
    its config, the D-02 justification and the D-011 licence check of the tool)
 3. [x] `ci.yml` release job: notes from the changelog instead of `--generate-notes`, the checksum file uploaded
 4. [x] `docs/development.md` (CI and releases), `docs/usage.md` if the zip's content changes for the user
-5. [ ] Local dry run of the release script: notes, checksum and licence file produced; pull request, CI green
+5. [x] Local dry run of the release script: notes, checksum and licence file produced; pull request, CI green
 
 ## Build-time tools
 
@@ -44,6 +45,9 @@ Run as a task session under docs/git-workflow.md, in parallel with 035 and 032; 
 
 - 2026-10-18 — promoted by the main session; worked in `.claude/worktrees/025-changelog-checksums-licences` on
   branch `task/025-changelog-checksums-licences`
+- 2026-10-18 — `scripts/changelog.py`, `CHANGELOG.md` (0.1.0 a kézzel írt v0.1.0 notes-szal), `about.toml` +
+  `scripts/third-party-licenses.hbs`, `release.ps1` (licence page, SHA256SUMS, notes), `ci.yml` release job és
+  deny-összevetés, docs; PR #54, CI zöld; lezárva a branchen
 
 ## Deviations from the plan
 
@@ -60,11 +64,22 @@ Run as a task session under docs/git-workflow.md, in parallel with 035 and 032; 
 
 ## Verification
 
-- 
+- 2026-10-18 — lokális dry run: `scripts\release.ps1` (release profile, `Finished ... in 2m 08s`), a `dist\`-ben:
+  `mboxer-0.1.0.zip` 5 364 221 B (benne `mboxer.exe` 15 114 240 B, `THIRD-PARTY-LICENSES.html` 272 097 B,
+  `usage.md` 6 453 B), `SHA256SUMS.txt` 83 B
+  (`3a3d42c7adef5042fa4b3776ba9355e602cc27de26e77f8d720c84180e0082b0  mboxer-0.1.0.zip`, `sha256sum -c` → OK),
+  `release-notes-0.1.0.md` 4 558 B (a v0.1.0 kézi szöveg + 17 task M1/M2/M3/Other alatt + "Verify the download").
+- 2026-10-18 — a licence page: MIT 252, Unicode-3.0 19, Apache-2.0 5, MPL-2.0 5, BSD-3-Clause 3, Zlib 1
+  crate-hivatkozás, mind forrás-linkkel; `--frozen` és hálózatos futás bájtra azonos.
+- 2026-10-18 — `changelog.py --check` up to date, `--notes 0.2.0` (tag nélkül) az Unreleased listát adja, a
+  summary-átvitel új tagre és a marker nélküli szakasz olvasása egy importált próbában rendben.
+- 2026-10-18 — lokálisan `cargo fmt --check`, `cargo clippy --all-targets -- -D warnings`, `cargo test` (109 teszt),
+  `cargo deny check`, `uvx zizmor .github` (no findings) zöld; CI run 39154858864 (PR #54): test, deny,
+  workflow-lint, commit-rules pass, release skipping (csak tagen fut, tag nem lett pusholva).
 
 ## Closing checklist
 
-- [ ] every follow-up is listed in the pull request under `## Follow-ups` (the main session files it)
-- [ ] Verification written, dated
+- [x] every follow-up is listed in the pull request under `## Follow-ups` (the main session files it)
+- [x] Verification written, dated
 - [ ] `tasks_check` green, README index regenerated (the main session, before the merge)
-- [ ] moved to `done/` with `closed: YYYY-MM-DD`
+- [x] moved to `done/` with `closed: YYYY-MM-DD`

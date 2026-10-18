@@ -13,6 +13,7 @@ not the list. The summary under a heading is written by hand and kept by the gen
 
 - Community health files: licence, security policy, contributing guide, issue and PR templates ([023](https://github.com/speti4/mboxer/blob/main/tasks/done/023-community-health-files.md))
 - Supply chain and CI hardening: dependabot, cargo-deny, pinned actions ([024](https://github.com/speti4/mboxer/blob/main/tasks/done/024-supply-chain-and-ci-hardening.md))
+- Release notes and changelog from the task files, checksums and third-party licences ([025](https://github.com/speti4/mboxer/blob/main/tasks/done/025-release-notes-changelog-and-checksums.md))
 - README as a front page, the reference moved into docs ([026](https://github.com/speti4/mboxer/blob/main/tasks/done/026-readme-front-page.md))
 - Pre-publish audit of the history and the content ([027](https://github.com/speti4/mboxer/blob/main/tasks/done/027-pre-publish-history-and-content-audit.md))
 - Scrub the repo and rewrite the history per D-09 ([030](https://github.com/speti4/mboxer/blob/main/tasks/done/030-scrub-and-rewrite-history-per-d-09.md))
