@@ -11,7 +11,7 @@ Closing a task files every follow-up as a `backlog/` item now or deletes it with
 <!-- tasks:index:start -->
 _Generated 2026-10-18 — edit the files, not this section._
 
-**State:** 3 backlog (3 ready · 0 blocked · 0 waiting · 0 ideas) · 1 in progress · 17 done · 0 dropped · 8 decisions
+**State:** 3 backlog (3 ready · 0 blocked · 0 waiting · 0 ideas) · 0 in progress · 18 done · 0 dropped · 8 decisions
 
 ### Ready
 
@@ -37,11 +37,7 @@ _none_
 
 ### In progress
 
-#### (no milestone)
-
-| # | Task | Started | Plan |
-|---|---|---|---|
-| 021 | [GitHub milestones from the roadmap and the first release v0.1.0](wip/021-github-milestones-and-first-release.md) | 2026-10-18 | `local-repoban-profi-a-clever-pie.md` |
+_none_
 
 ### Closed – do not reopen
 
@@ -51,6 +47,7 @@ _none_
 
 | # | Task | Closed |
 |---|---|---|
+| 021 | [GitHub milestones from the roadmap and the first release v0.1.0](done/021-github-milestones-and-first-release.md) | 2026-10-18 |
 | 017 | [Dark mode toggle with OS default](done/017-dark-mode-toggle.md) | 2026-10-18 |
 | 016 | [Open multiple mbox files](done/016-open-multiple-mbox-files.md) | 2026-10-18 |
 | 011 | [Export a message: .eml, print / PDF](done/011-export-eml-pdf-print.md) | 2026-10-18 |
@@ -60,9 +57,8 @@ _none_
 | 012 | [Portable release build for other users](done/012-portable-exe-release-build.md) | 2026-10-17 |
 | 010 | [Gmail-style query syntax in the search field](done/010-gmail-style-query-syntax.md) | 2026-10-17 |
 | 009 | [Gmail labels and conversation threads](done/009-gmail-labels-and-threads.md) | 2026-10-17 |
-| 008 | [Attachments: list, open, save](done/008-attachments-list-open-save.md) | 2026-10-17 |
 
-_7 more in `done/`._
+_8 more in `done/`._
 
 ### Decisions
 

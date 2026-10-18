@@ -2,7 +2,7 @@
 status: proposed
 date: 2026-10-18
 cost: cheap
-sources: [wip/021-github-milestones-and-first-release.md, local-repoban-profi-a-clever-pie.md]
+sources: [done/021-github-milestones-and-first-release.md, local-repoban-profi-a-clever-pie.md]
 ---
 
 # D-08 — GitHub milestones mirror `tasks/roadmap.md` one-way; no hand-made issues; a release tag closes the milestones it ships
