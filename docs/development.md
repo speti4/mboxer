@@ -13,7 +13,8 @@ checks before a commit and the project rules are in [CONTRIBUTING.md](../CONTRIB
   open-or-build flow, the message view, the label order), the static UI under `ui/`, the capability file and
   the icon.
 - `crates/mboxer-cli` — the `mboxer-cli` executable, with its end-to-end tests under `tests/`.
-- `scripts/` — helper scripts for measurements, the icon, the demo mbox, the release zip and the issue mirror.
+- `scripts/` — helper scripts for measurements, the icon, the demo mbox, the release zip, the changelog and the
+  issue mirror.
 - `docs/` — the usage guide that ships in the release zip, the full reference, this page, origin, research,
   dated benchmarks and the README screenshot.
 - `tasks/` — the backlog, the work in flight, the history and the decisions (the task standard).
@@ -21,7 +22,10 @@ checks before a commit and the project rules are in [CONTRIBUTING.md](../CONTRIB
   tagged release and the issue sync; `.github/dependabot.yml` — the weekly dependency updates.
 - `.githooks/` — the `commit-msg` hook over `scripts/check-commit.sh`, enabled per clone with
   `git config core.hooksPath .githooks` ([git-workflow.md](git-workflow.md)).
-- `deny.toml` — the dependency policy `cargo deny` checks: licences, advisories, bans, sources (D-011).
+- `deny.toml` — the dependency policy `cargo deny` checks: licences, advisories, bans, sources (D-011);
+  `about.toml` — the same licences for the third-party licence page of the release zip.
+- `CHANGELOG.md` — every release and the tasks it closed, generated from `tasks/done/` (see
+  [The changelog](#the-changelog)).
 
 ## The UI
 
@@ -36,7 +40,7 @@ change under `crates/mboxer-app/ui/` takes effect on the next `cargo run`. The p
 `.github/workflows/ci.yml` runs four jobs on every push and pull request: `test` (windows-latest: `cargo fmt
 --check`, `cargo clippy --all-targets -- -D warnings`, `cargo test`), `deny` (`cargo deny check` against
 `deny.toml`: licences from the allowlist, no RustSec advisory or yanked crate, crates.io as the only source,
-D-011), `workflow-lint` (zizmor over the workflows and `dependabot.yml`; a finding accepted on purpose is
+D-011; and `about.toml` accepts the same licences), `workflow-lint` (zizmor over the workflows and `dependabot.yml`; a finding accepted on purpose is
 listed with its reason in `.github/zizmor.yml`) and `commit-rules` (`scripts/check-commit.sh` over every pushed
 commit and the pull request text, the rules of [git-workflow.md](git-workflow.md)). The workflows run with a
 read-only token by default; only the release job may write contents and only the issue sync may write issues.
@@ -54,11 +58,50 @@ cargo deny check
 uvx zizmor .github
 ```
 
-`scripts\release.ps1` builds the release profile (fat LTO, stripped) and packs `target\release\mboxer.exe` and
-`docs\usage.md` into `dist\mboxer-<version>.zip`. The version is the workspace `Cargo.toml` one, the only place
-it is written: `tauri-build` stamps it into the exe's properties and the status bar shows it. Pushing a tag
-`v<version>` runs the three jobs and, when they pass, publishes that zip as a GitHub release with the runner's
-`gh` CLI. The release job builds without the Rust cache, so nothing a pull request run cached reaches the zip.
+`scripts\release.ps1` builds the release profile (fat LTO, stripped) and packs `target\release\mboxer.exe`,
+`docs\usage.md` and `THIRD-PARTY-LICENSES.html` into `dist\mboxer-<version>.zip`. The version is the workspace
+`Cargo.toml` one, the only place it is written: `tauri-build` stamps it into the exe's properties and the status
+bar shows it. Next to the zip it writes `SHA256SUMS.txt` (the zip's SHA-256 in the `sha256sum -c` format) and
+`release-notes-<version>.md`. The licence page comes from
+[cargo-about](https://github.com/EmbarkStudios/cargo-about) over the crates compiled into the exe: `about.toml`
+accepts the same licences as `deny.toml` (a licence added to one is added to the other; the `deny` job compares
+the two), `scripts/third-party-licenses.hbs` is the page, and every crate links to its source, which the MPL-2.0
+crates ask for (D-011). cargo-about is a build-time tool, never part of the exe:
+
+```powershell
+cargo install cargo-about --version 0.9.2 --locked --features cli   # once; the version the release job pins
+scripts\release.ps1                     # dist\: the zip, SHA256SUMS.txt, release-notes-<version>.md
+```
+
+Pushing a tag `v<version>` runs the three jobs and, when they pass, the release job installs the pinned
+cargo-about, runs the script and publishes the zip and `SHA256SUMS.txt` as a GitHub release titled
+`mboxer <version>`, with the notes file as its text, through the runner's `gh` CLI. The release job builds
+without the Rust cache, so nothing a pull request run cached reaches the zip.
+
+### The changelog
+
+`CHANGELOG.md` is generated from the task files by `scripts/changelog.py`: every file under `tasks/done/` is a
+line (its H1, linked to the file) under its milestone, in the section of the first release tag whose tree holds
+it under `tasks/done/`, or under *Unreleased* when no tag holds it yet. The tag trees decide rather than the
+`closed` date, because tasks close both before and after a tag on the same day. The summary under a heading is
+written by hand and kept by every run; the lists are never edited by hand. The release notes are one section of
+it, with a footer on the checksum and the licence page. A release goes like this:
+
+1. In a pull request: bump the version in `Cargo.toml`, write the summary under *Unreleased* in
+   `CHANGELOG.md`, run `python -I scripts/changelog.py` and merge.
+2. Tag the merge commit `v<version>` and push the tag; the release job takes the notes from the changelog (the
+   new tag takes the *Unreleased* summary).
+3. Afterwards, `python -I scripts/changelog.py` stamps the section with the version and the tag's date; commit
+   it with the next change.
+
+```powershell
+python -I scripts/changelog.py                 # rewrite CHANGELOG.md
+python -I scripts/changelog.py --check         # exit 1 when it is out of date
+python -I scripts/changelog.py --notes 0.2.0   # one release's notes (a version without a tag: Unreleased)
+```
+
+Between releases the committed *Unreleased* list may lag behind `tasks/done/`: closing a task does not touch
+the changelog, so parallel task branches do not conflict over it.
 
 ## The issue mirror
 

@@ -15,7 +15,10 @@ https://github.com/speti4/mboxer/blob/main/docs/reference.md
 
 1. Download `mboxer-<version>.zip` from the project's GitHub releases page
    (https://github.com/speti4/mboxer/releases) and unzip it anywhere (next to the mbox, on the
-   desktop, it does not matter). It holds `mboxer.exe` and this guide.
+   desktop, it does not matter). It holds `mboxer.exe`, this guide and `THIRD-PARTY-LICENSES.html`,
+   the licences of the open-source parts compiled into the exe. To check the download, compare
+   `(Get-FileHash mboxer-<version>.zip).Hash` in PowerShell with the value in `SHA256SUMS.txt`
+   from the same release (the case does not matter).
 2. The exe is not code-signed, so Windows may show a SmartScreen warning on the first start:
    click *More info*, then *Run anyway*. If the exe refuses to start at all, right-click it,
    *Properties*, tick *Unblock*, *OK*.

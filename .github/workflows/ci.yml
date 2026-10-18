@@ -1,6 +1,7 @@
 # Tests, the dependency policy, the workflow lint and the commit rules (task 034) on every push and pull
-# request; a `v<version>` tag also packs and publishes the portable zip (task 012). The toolchain is the one
-# `rust-toolchain.toml` names (stable), installed by the runner's own rustup, not by an action (task 033).
+# request; a `v<version>` tag also packs and publishes the portable zip, its checksum and its notes from the
+# changelog (tasks 012, 025). The toolchain is the one `rust-toolchain.toml` names (stable), installed by the
+# runner's own rustup, not by an action (task 033).
 # Actions are pinned by commit SHA and bumped by dependabot (task 024).
 name: ci
 
@@ -62,6 +63,15 @@ jobs:
           # The default features, as the exe is built; the action's own default is --all-features.
           arguments: ""
           command: check
+      # The licence page of the release zip (about.toml, task 025) accepts exactly the licences deny.toml allows.
+      - name: about.toml accepts the licences of deny.toml
+        run: |
+          python3 -I -c '
+          import tomllib
+          allow = sorted(tomllib.load(open("deny.toml", "rb"))["licenses"]["allow"])
+          accepted = sorted(tomllib.load(open("about.toml", "rb"))["accepted"])
+          raise SystemExit(0 if allow == accepted else f"deny.toml allows {allow}, about.toml accepts {accepted}")
+          '
 
   # zizmor over the workflows and dependabot.yml; findings fail the job as annotations (the private repo
   # has no code scanning to upload SARIF to).
@@ -127,6 +137,8 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          # The whole history with the tags: scripts/changelog.py tells the tasks of a release by the tag trees.
+          fetch-depth: 0
       # The same toolchain as the test job, from rust-toolchain.toml (see the comment there).
       - name: Install the Rust toolchain from rust-toolchain.toml
         shell: bash
@@ -134,16 +146,27 @@ jobs:
           rustup toolchain install --no-self-update
           rustup toolchain install --no-self-update "$(rustup show active-toolchain | cut -d' ' -f1)"
           rustup show
+      # The licence page of the zip (task 025): a pinned cargo-about built from crates.io with its own lock
+      # file; dependabot does not see this pin, so it is bumped by hand.
+      - name: Install cargo-about
+        shell: pwsh
+        env:
+          CARGO_ABOUT_VERSION: 0.9.2
+        run: cargo install cargo-about --version $env:CARGO_ABOUT_VERSION --locked --features cli
       # No rust-cache here: a release is built from a clean target, never from a cache a pull request wrote.
       - name: Build and pack
         shell: pwsh
         env:
           TAG: ${{ github.ref_name }}
         run: scripts/release.ps1 -Tag $env:TAG
-      # The runner's own gh CLI publishes the release: no third-party action holds the write token.
+      # The runner's own gh CLI publishes the release: no third-party action holds the write token. The notes
+      # are the tag's section of the changelog, written by release.ps1 (scripts/changelog.py --notes).
       - name: Publish the release
         shell: pwsh
         env:
           TAG: ${{ github.ref_name }}
           GH_TOKEN: ${{ github.token }}
-        run: gh release create $env:TAG (Resolve-Path dist/*.zip).Path --verify-tag --generate-notes
+        run: |
+          $version = $env:TAG.Substring(1)
+          gh release create $env:TAG "dist/mboxer-$version.zip" dist/SHA256SUMS.txt --verify-tag `
+            --title "mboxer $version" --notes-file "dist/release-notes-$version.md"
