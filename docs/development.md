@@ -17,8 +17,10 @@ checks before a commit and the project rules are in [CONTRIBUTING.md](../CONTRIB
 - `docs/` — the usage guide that ships in the release zip, the full reference, this page, origin, research,
   dated benchmarks and the README screenshot.
 - `tasks/` — the backlog, the work in flight, the history and the decisions (the task standard).
-- `.github/workflows/` — CI (fmt, clippy, test, the dependency policy, the workflow lint), the tagged release
-  and the issue sync; `.github/dependabot.yml` — the weekly dependency updates.
+- `.github/workflows/` — CI (fmt, clippy, test, the dependency policy, the workflow lint, the commit rules), the
+  tagged release and the issue sync; `.github/dependabot.yml` — the weekly dependency updates.
+- `.githooks/` — the `commit-msg` hook over `scripts/check-commit.sh`, enabled per clone with
+  `git config core.hooksPath .githooks` ([git-workflow.md](git-workflow.md)).
 - `deny.toml` — the dependency policy `cargo deny` checks: licences, advisories, bans, sources (D-011).
 
 ## The UI
@@ -31,11 +33,12 @@ change under `crates/mboxer-app/ui/` takes effect on the next `cargo run`. The p
 
 ## CI and releases
 
-`.github/workflows/ci.yml` runs three jobs on every push and pull request: `test` (windows-latest: `cargo fmt
+`.github/workflows/ci.yml` runs four jobs on every push and pull request: `test` (windows-latest: `cargo fmt
 --check`, `cargo clippy --all-targets -- -D warnings`, `cargo test`), `deny` (`cargo deny check` against
 `deny.toml`: licences from the allowlist, no RustSec advisory or yanked crate, crates.io as the only source,
-D-011) and `workflow-lint` (zizmor over the workflows and `dependabot.yml`; a finding accepted on purpose is
-listed with its reason in `.github/zizmor.yml`). The workflows run with a
+D-011), `workflow-lint` (zizmor over the workflows and `dependabot.yml`; a finding accepted on purpose is
+listed with its reason in `.github/zizmor.yml`) and `commit-rules` (`scripts/check-commit.sh` over every pushed
+commit and the pull request text, the rules of [git-workflow.md](git-workflow.md)). The workflows run with a
 read-only token by default; only the release job may write contents and only the issue sync may write issues.
 
 Every action is pinned by commit SHA with the version in a comment. Dependabot proposes the updates for the
