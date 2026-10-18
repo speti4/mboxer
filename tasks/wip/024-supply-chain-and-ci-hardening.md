@@ -67,13 +67,20 @@ D-02 lines (no new crate enters the exe or the build):
   go: `gh api -X PUT …/vulnerability-alerts` + `…/automated-security-fixes` → enabled, not paused; 0 open alerts
 - 2026-10-18 — to see the first dependabot PR today (user go): rust-cache pin set back to v2.9.1 `c193711`
   (2026-03-12, past the cooldown) and a comment line in `dependabot.yml`, which triggers an immediate run
+- 2026-10-18 — PR #44 "deps: Bump Swatinem/rust-cache from 2.9.1 to 2.9.2 in the actions group" arrived in
+  minutes; its diff changed the SHA but kept `# v2.9.1`, because the inline zizmor ignore sat after the version
+  comment → the ignore moved to `.github/zizmor.yml` (`cache-poisoning`, `ci.yml`), zizmor still clean locally.
+  The first security-update run failed with `security_update_not_possible` for glib: alert #1 GHSA-wrw7-89jp-8q8g
+  (medium, `VariantStrIter` unsoundness, fixed in 0.20) on glib 0.18.5, which gtk pins under Tauri's Linux
+  backend; `cargo tree -i glib --target x86_64-pc-windows-msvc` prints nothing, so the exe does not contain it
 
 ## Deviations from the plan
 
 - The release is published with the runner's `gh release create … --verify-tag --generate-notes` instead of
   `softprops/action-gh-release` v3: zizmor flagged it as superfluous, and one third-party action fewer holds the
   `contents: write` token. 025 changes the notes source of this step anyway.
-- `.github/zizmor.yml` not needed: the single accepted finding is an inline ignore with its reason.
+- The accepted `cache-poisoning` finding moved from an inline `# zizmor: ignore` to `.github/zizmor.yml`: the
+  inline comment followed the version comment, and dependabot then left `# v2.9.1` behind a v2.9.2 SHA (PR #44).
 
 ## Verification
 

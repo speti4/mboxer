@@ -1,0 +1,8 @@
+# zizmor findings accepted on purpose, each with its reason (task 024). An inline `# zizmor: ignore` would
+# follow the version comment of a pinned action and keep dependabot from updating that comment.
+rules:
+  cache-poisoning:
+    ignore:
+      # rust-cache in the test job only speeds up the tests; the release job of the same workflow builds
+      # without a cache, so nothing a cache holds reaches the published zip.
+      - ci.yml

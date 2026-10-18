@@ -34,7 +34,8 @@ change under `crates/mboxer-app/ui/` takes effect on the next `cargo run`. The p
 `.github/workflows/ci.yml` runs three jobs on every push and pull request: `test` (windows-latest: `cargo fmt
 --check`, `cargo clippy --all-targets -- -D warnings`, `cargo test`), `deny` (`cargo deny check` against
 `deny.toml`: licences from the allowlist, no RustSec advisory or yanked crate, crates.io as the only source,
-D-011) and `workflow-lint` (zizmor over the workflows and `dependabot.yml`). The workflows run with a
+D-011) and `workflow-lint` (zizmor over the workflows and `dependabot.yml`; a finding accepted on purpose is
+listed with its reason in `.github/zizmor.yml`). The workflows run with a
 read-only token by default; only the release job may write contents and only the issue sync may write issues.
 
 Every action is pinned by commit SHA with the version in a comment. Dependabot proposes the updates for the

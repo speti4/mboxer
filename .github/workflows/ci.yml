@@ -29,8 +29,9 @@ jobs:
         with:
           toolchain: stable
           components: rustfmt, clippy
-      # The cache only speeds up the tests; the release job builds without it, so nothing it holds is published.
-      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1 # zizmor: ignore[cache-poisoning]
+      # The cache only speeds up the tests; the release job builds without it, so nothing it holds is
+      # published (the zizmor cache-poisoning finding is ignored in .github/zizmor.yml).
+      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
       - run: cargo fmt --check
       - run: cargo clippy --all-targets -- -D warnings
       - run: cargo test
