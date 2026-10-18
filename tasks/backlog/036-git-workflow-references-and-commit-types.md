@@ -10,6 +10,9 @@ milestone: M5 Public release
 
 What: `docs/git-workflow.md` cites D-09 for the trailer rule, which D-10 superseded (its point 3 carries the rule);
 CONTRIBUTING's commit types leave out `deps:`, which the workflow doc lists; the doc does not say that a task
-session's `tasks_check` (without `write`) reports the stale index on its own close commit, which is expected.
-Why: found by the 035 task session (PR #52); both files are what a contributor and every session read first.
-Done when: the doc cites D-10, CONTRIBUTING lists `deps:`, and the task-session section names the expected failure.
+session's `tasks_check` (without `write`) reports the stale index on its own close commit, which is expected; and
+a task session must see `git status` clean before it reports (035's close commit left the file's edits behind).
+Why: found by the 035 task session (PR #52) and its merge; both files are what a contributor and every session
+read first.
+Done when: the doc cites D-10, CONTRIBUTING lists `deps:`, and the task-session section names the expected failure
+and the clean-status check before the report.
