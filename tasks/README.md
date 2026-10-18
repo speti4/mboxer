@@ -64,7 +64,7 @@ _7 more in `done/`._
 
 | # | Decision | Status | Date |
 |---|---|---|---|
-| D-07 | [macOS builds ship as an ad-hoc signed universal .app in a zip, without notarization](decisions/D-07-macos-distribution-adhoc-signed-app-zip.md) | proposed | 2026-10-18 |
+| D-07 | [macOS builds ship as an ad-hoc signed universal .app in a zip, without notarization](decisions/D-07-macos-distribution-adhoc-signed-app-zip.md) | decided | 2026-10-18 |
 | D-06 | [Several mbox files are open side by side, one active at a time; there is no merged view](decisions/D-06-several-files-open-one-active-no-merged-view.md) | decided | 2026-10-18 |
 | D-05 | [When .mboxer/ beside the mbox cannot be created, the index lives under %LOCALAPPDATA%\mboxer\index\<name>-<path hash>\](decisions/D-05-index-fallback-under-localappdata.md) | proposed | 2026-10-17 |
 | D-04 | [The sidecar index lives in .mboxer/<mbox name>/ beside the mbox and is rebuilt whole when stale](decisions/D-04-sidecar-index-location-and-freshness.md) | decided | 2026-10-17 |

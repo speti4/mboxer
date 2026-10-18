@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: decided
 date: 2026-10-18
 cost: cheap
 sources: [backlog/018-macos-build-bundle-and-ci.md, D-02-rust-tauri2-sidecar-fulltext-index.md, m-rj-k-fel-hogy-mekkora-scalable-boole.md]
@@ -30,7 +30,8 @@ already goes through a SmartScreen click (task 012). The author has no Mac at th
 - Developer ID signing and notarization stay open as a later decision, when the user count or the
   Gatekeeper friction justifies the yearly fee; the Tauri documentation's CI variables cover it.
 
-Proposed by the session on 2026-10-18 from the user's choice "aláírás nélkül, kézi engedélyezés".
+Proposed by the session on 2026-10-18 from the user's choice "aláírás nélkül, kézi engedélyezés";
+confirmed by the user on 2026-10-18 ("D-07-t megerősítem").
 
 ## Not chosen
 
