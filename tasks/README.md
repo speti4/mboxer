@@ -13,7 +13,7 @@ file, never the issue.
 <!-- tasks:index:start -->
 _Generated 2026-10-18 — edit the files, not this section._
 
-**State:** 3 backlog (3 ready · 0 blocked · 0 waiting · 0 ideas) · 0 in progress · 19 done · 0 dropped · 8 decisions
+**State:** 10 backlog (8 ready · 0 blocked · 1 waiting · 1 idea) · 0 in progress · 19 done · 0 dropped · 8 decisions
 
 ### Ready
 
@@ -25,17 +25,35 @@ _Generated 2026-10-18 — edit the files, not this section._
 | 019 | [macOS runtime differences: index home, quarantine, Finder open, UI keys and fon…](backlog/019-macos-runtime-differences.md) | S | 2026-10-18 |
 | 020 | [Print on macOS through a second webview window](backlog/020-macos-print-second-webview-window.md) | M | 2026-10-18 |
 
+#### M5 Public release
+
+| # | Task | Size | Created |
+|---|---|---|---|
+| 023 | [Community health files: licence, security policy, contributing guide, issue and…](backlog/023-community-health-files.md) | S | 2026-10-18 |
+| 024 | [Supply chain and CI hardening: dependabot, cargo-deny, pinned actions](backlog/024-supply-chain-and-ci-hardening.md) | M | 2026-10-18 |
+| 025 | [Release notes and changelog from the task files, checksums and third-party lice…](backlog/025-release-notes-changelog-and-checksums.md) | M | 2026-10-18 |
+| 026 | [README as a front page, the reference moved into docs](backlog/026-readme-front-page.md) | S | 2026-10-18 |
+| 027 | [Pre-publish audit of the history and the content](backlog/027-pre-publish-history-and-content-audit.md) | M | 2026-10-18 |
+
 ### Needs decision
 
 _none_
 
 ### Waiting on
 
-_none_
+#### M5 Public release
+
+| # | Task | Waits for | Size | Created |
+|---|---|---|---|---|
+| 028 | [Publication day: visibility switch and the public-only repo settings](backlog/028-publication-day-repo-settings.md) | 027 decided and 023-026 done | S | 2026-10-18 |
 
 ### Ideas
 
-_none_
+#### M5 Public release
+
+| # | Task | Size | Created |
+|---|---|---|---|
+| 029 | [Authenticode signing of the release exe](backlog/029-windows-code-signing.md) | M | 2026-10-18 |
 
 ### In progress
 

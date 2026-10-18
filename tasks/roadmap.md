@@ -30,3 +30,11 @@ The same viewer on a Mac with full parity: an ad-hoc signed `.app` from CI, the 
 (index home, quarantine, Finder open, keys and fonts), and a print path that works in WKWebView.
 Done when a Mac user opens their archive from the release zip and every feature of M3 works,
 print / Save as PDF included (assessment 2026-10-18).
+
+## M5 Public release
+
+The repo goes public as a project others can trust and contribute to: community health files, a
+hardened supply chain, reproducible release notes and checksums, a front-page README, an audited
+history, then the visibility switch and the settings GitHub only offers free on public repos. Done
+when the repo is public, the audit is clean, and a release made after the switch carries checksums,
+third-party licences and generated notes. Independent of M4; the order between the two is open.
