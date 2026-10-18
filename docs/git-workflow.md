@@ -12,7 +12,8 @@ CLAUDE.md imports this file, so every Claude Code session starts with it.
   `docs:`, `ci:`, `chore:`, `tasks:`, `deps:` (dependabot).
 - **Trailers.** `Co-Authored-By:` lines are fine, including `Co-Authored-By: Claude …`. A `Claude-Session:`
   trailer and a Claude Code session link are not allowed in a commit message or a pull request description
-  (D-09); a pull request written with Claude Code ends with `🤖 Generated with Claude Code` and nothing else.
+  (D-09). A pull request written with Claude Code ends its description with the line `🤖 Generated with Claude
+  Code`, an empty line and the `Co-Authored-By: Claude …` trailer, which the squash commit keeps.
 - **Author address.** The maintainer commits with the GitHub noreply address (D-10); contributors choose their
   own.
 - **The hook.** Once per clone, `git config core.hooksPath .githooks` enables the `commit-msg` hook, which checks

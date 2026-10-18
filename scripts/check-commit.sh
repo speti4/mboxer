@@ -27,9 +27,11 @@ if printf '%s\n' "$message" | grep -q 'claude\.ai/code/session_'; then
   status=1
 fi
 
+reported=
 while [ $# -ge 2 ]; do
-  if [ "$1" = "$maintainer_name" ] && [ "$2" != "$maintainer_email" ]; then
+  if [ "$1" = "$maintainer_name" ] && [ "$2" != "$maintainer_email" ] && [ "$2" != "$reported" ]; then
     echo "commit rules: $1 commits as $maintainer_email, not $2 (D-10)" >&2
+    reported=$2
     status=1
   fi
   shift 2
