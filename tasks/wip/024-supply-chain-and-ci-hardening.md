@@ -19,7 +19,7 @@ its D-02 justification line.
 Why: a public repo that ships an exe needs a visible, automatic answer to "are the dependencies and the
 pipeline trustworthy", and the licence check is a precondition for the third-party notices (025).
 Done when: CI is green with `cargo deny check` and the workflow lint, and the first dependabot PR has arrived.
-User decision 2026-10-18: MPL-2.0 is allowed globally in the licence allowlist (recorded as D-011, proposed).
+User decision 2026-10-18: MPL-2.0 is allowed globally in the licence allowlist (D-011, confirmed by the user 2026-10-18).
 
 D-02 lines (no new crate enters the exe or the build):
 - `cargo-deny` — CI job (`EmbarkStudios/cargo-deny-action`) and an optional `cargo install` on a dev machine; it
@@ -38,7 +38,7 @@ D-02 lines (no new crate enters the exe or the build):
 4. [x] `sync-issues.yml`: pinned checkout, timeout, `issues: write` on the job, `$GITHUB_REPOSITORY`
 5. [x] local `cargo deny check` and `uvx zizmor .github` green
 6. [x] `docs/development.md` (layout, CI and releases), `CONTRIBUTING.md` (checks, dependency rule)
-7. [x] D-011 recorded (proposed)
+7. [x] D-011 recorded, decided 2026-10-18
 8. [x] fmt, clippy, test locally
 9. [ ] commit, push (after the user's go), CI run green with `test`, `deny`, `workflow-lint`; `sync-issues` green
 10. [ ] first dependabot PR(s) arrive and their CI is green
