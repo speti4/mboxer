@@ -12,17 +12,17 @@ plan: folytassuk-a-004-task-scalable-trinket.md
 
 ## Context
 
-A 003 behozta az `mboxer index` / `mboxer search` parancsot progress-szel és open/search idővel; a
-14 GB-os futás számai a 003 Verification-jében vannak (122 s build, 314 MB peak, 129 MB index,
-keresés < 1 ms). Ami a 004-ből maradt (user döntés 2026-10-17 a 003 tervezésénél): a `search` szűrő
-flag-jei (`--from --to --after --before --label --has-attachment`, a core `SearchQuery` már létező
-mezőire), egy ismételhető benchmark (build idő, indexméret, peak RAM, lekérdezési latency egy
-táblában) és a dátumozott benchmark-tábla a `docs/benchmarks/`-ban, ami az M1-et lezárja.
-Done when: a 14 GB-os mbox dátumozott benchmark-táblája a `docs/`-ban van, és a számok teljesítik
-az M1 roadmap célokat (újranyitás < 1 s, body keresés < 1 s, build elfogadható idő).
+003 brought in the `mboxer index` / `mboxer search` commands with progress and open/search timings; the
+numbers of the 14 GB run are in the 003 Verification (122 s build, 314 MB peak, 129 MB index,
+search < 1 ms). What is left of 004 (user decision 2026-10-17 during the 003 planning): the `search`
+filter flags (`--from --to --after --before --label --has-attachment`, onto the already existing fields
+of the core `SearchQuery`), a repeatable benchmark (build time, index size, peak RAM, query latency in
+one table) and the dated benchmark table in `docs/benchmarks/`, which closes M1.
+Done when: the dated benchmark table of the 14 GB mbox is in `docs/`, and the numbers meet the M1
+roadmap targets (reopen < 1 s, body search < 1 s, build in acceptable time).
 
-Nincs új build-time crate: a dátumot a már behúzott `mail_parser::DateTime` parszolja, a benchmark
-PowerShell script a `scripts/peak-memory.ps1` mintájára (az exe marad vékony, D-02).
+No new build-time crate: the date is parsed by the already pulled-in `mail_parser::DateTime`, the benchmark
+PowerShell script follows the pattern of `scripts/peak-memory.ps1` (the exe stays thin, D-02).
 
 ## Steps
 

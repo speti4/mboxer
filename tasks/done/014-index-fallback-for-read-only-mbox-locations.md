@@ -12,16 +12,16 @@ plan: 12-14-15-taskokat-fejlessz-k-le-keen-whale.md
 
 ## Context
 
-A D-04 az indexet az mbox mellé teszi (`.mboxer/<név>/`); ha ez a mappa nem írható (DVD, read-only share,
-tiltott mappa), az építés ma hibával leáll. A 014: ha az elsődleges `.building` könyvtár nem hozható létre,
-az index `%LOCALAPPDATA%\mboxer\index\<fájlnév>-<útvonal-hash>\` alá épül, és a megnyitás ott is keresi.
-Why: a másik 2–5 user archívuma lehet hálózati megosztáson. Done when: `mboxer index` egy read-only mappában
-lévő mboxon sikerül, `mboxer search` megtalálja a fallback indexet, és a teszt mindkét helyet lefedi.
-Tervezési döntés 2026-10-17: a fallback könyvtár kulcsa az mbox *útvonala* (nem a tartalom-fingerprintje,
-ahogy a backlog sor írta): egy hely = egy könyvtár, egy új export ugyanoda a régi indexet váltja, nem marad
-árva; a frissesség továbbra is a `mboxer.json` (D-04). A trigger bármilyen I/O hiba az elsődleges `.building`
-előkészítésekor (nem jogosultság-próba: Windowson a read-only mappaattribútum nem tilt létrehozást, egy deny
-ACL, read-only share vagy egy `.mboxer` nevű *fájl* igen — a teszt az utóbbival provokálja). D-05 proposed.
+D-04 puts the index next to the mbox (`.mboxer/<név>/`); if that folder is not writable (DVD, read-only share,
+forbidden folder), the build stops with an error today. 014: if the primary `.building` directory cannot be created,
+the index is built under `%LOCALAPPDATA%\mboxer\index\<fájlnév>-<útvonal-hash>\`, and the open looks there too.
+Why: the other 2–5 users' archives may sit on a network share. Done when: `mboxer index` succeeds on an mbox in a
+read-only folder, `mboxer search` finds the fallback index, and the test covers both locations.
+Planning decision 2026-10-17: the fallback directory is keyed by the mbox's *path* (not its content fingerprint,
+as the backlog line said): one place = one directory, a new export to the same place replaces the old index, no
+orphan remains; freshness is still `mboxer.json` (D-04). The trigger is any I/O error while preparing the primary
+`.building` (not a permission probe: on Windows the read-only folder attribute does not forbid creation, a deny
+ACL, a read-only share or a *file* named `.mboxer` does — the test provokes it with the latter). D-05 proposed.
 
 ## Steps
 

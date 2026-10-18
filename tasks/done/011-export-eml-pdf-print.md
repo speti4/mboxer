@@ -12,18 +12,18 @@ plan: backlogb-l-a-task-011-jaunty-castle.md
 
 ## Context
 
-A kiválasztott levél továbbadása: mentés .eml-ként (a nyers bájtok az offsetről, D-03), nyomtatás és
-PDF a WebView2 (Chromium) nyomtatási útvonalán. Why: egy megtalált levél továbbadása a második
-leggyakoribb lépés a keresés után. Done when: a mentett .eml megnyílik Outlookban / Thunderbirdben;
-a nyomtatási kép (és a belőle mentett PDF) ugyanazt mutatja, mint a reader.
+Handing the selected message on: saving as .eml (the raw bytes from the offset, D-03), print and
+PDF through the WebView2 (Chromium) print path. Why: handing a found message on is the second most
+common step after the search. Done when: the saved .eml opens in Outlook / Thunderbird;
+the print preview (and the PDF saved from it) shows the same as the reader.
 
-Tervezési döntések 2026-10-18 (jóváhagyott terv; user döntés: egy `Print…` gomb, a PDF a print preview
-"Save as PDF" célján, nincs külön natív PDF-mentés, nincs új crate — D-02): a nyomtatás egy rejtett,
-script nélküli `sandbox="allow-same-origin allow-modals"` iframe-ből megy (`contentWindow.print()`;
-a WebView2 natív print API-jai mind a top-level dokumentumot nyomtatnák, az a háromsávos app); a print
-dokumentum a reader kész DOM-jából készül (fejlécek + az aktuális nézet törzse, a cid képek blob
-URL-jei same-origin feloldódnak, a keresési `<mark>`-ok kicsomagolva); az .eml az envelope utáni bájtok
-az mboxrd `>From ` idézés bájt szintű visszavonásával, Mark-of-the-Web-bel, a tárgyból képzett névvel;
+Planning decisions 2026-10-18 (approved plan; user decision: one `Print…` button, the PDF via the print
+preview's "Save as PDF" target, no separate native PDF save, no new crate — D-02): printing goes from a hidden,
+script-free `sandbox="allow-same-origin allow-modals"` iframe (`contentWindow.print()`;
+WebView2's native print APIs would all print the top-level document, which is the three-pane app); the print
+document is built from the reader's finished DOM (headers + the body of the current view, the cid images'
+blob URLs resolve same-origin, the search `<mark>`s unwrapped); the .eml is the bytes after the envelope
+with the mboxrd `>From ` quoting undone at byte level, with Mark-of-the-Web, with a name derived from the subject;
 `Ctrl+P` print, `Ctrl+S` save .eml.
 
 ## Steps

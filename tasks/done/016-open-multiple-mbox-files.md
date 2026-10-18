@@ -12,18 +12,18 @@ plan: task-016-glimmering-meadow.md
 
 ## Context
 
-Több mbox egyszerre betöltve, egymás alatt a folder panelen (Thunderbird "account" minta), egyszerre
-egynek kinyitva a struktúrája (All mail + label fa); a lista, a keresés és az olvasó az aktív fájlra
-vonatkozik. Why: a Takeout több fájlra bontja a nagy archívumokat, és a userek több exportot tartanak
-egymás mellett; a váltás egy kattintás, újraindítás és újraindexelés nélkül. Done when: a user egy
-második mbox-ot nyit újraindítás nélkül; a panel minden betöltött fájlt mutat, az aktív kinyitva;
-kattintás a másikra váltja a listát, keresést, label fát; a fájl bezárható; újraindítás után a friss
-indexű fájlok visszatöltődnek. User decision 2026-10-18: nincs egyesített nézet (a backlog (a) olvasata
-elvetve), a fájlok egymás alatt jelennek meg, egyszerre egy aktív. Tervezési döntések (jóváhagyott
-terv): backend `OpenFiles` set + aktív, UI-kulcs `(file id, offset, len)`, a fájl-id folyamaton belüli
-számláló (D-06, proposed); Open… multi-select és hozzáad; keresőszöveg fájlonként megmarad; `mboxer.files`
-+ `mboxer.activePath` a localStorage-ban, induláskor csak a friss indexű fájlok töltődnek vissza, a stale
-indexűek halvány root-ként várnak; nincs új crate (D-02).
+Several mboxes loaded at once, one under the other in the folder panel (Thunderbird "account" pattern), the
+structure of one expanded at a time (All mail + label tree); the list, the search and the reader refer to the
+active file. Why: Takeout splits large archives into several files, and the users keep several exports side
+by side; switching is one click, without a restart and re-indexing. Done when: the user opens a
+second mbox without a restart; the panel shows every loaded file, the active one expanded;
+a click on the other one switches the list, search, label tree; a file can be closed; after a restart the files
+with a fresh index are reloaded. User decision 2026-10-18: no merged view (reading (a) of the backlog
+dropped), the files appear one under the other, one active at a time. Planning decisions (approved
+plan): backend `OpenFiles` set + active, UI key `(file id, offset, len)`, the file id an in-process
+counter (D-06, proposed); Open… multi-select and adds; the search text is kept per file; `mboxer.files`
++ `mboxer.activePath` in localStorage, at start-up only the files with a fresh index are reloaded, the ones with a
+stale index wait as a faded root; no new crate (D-02).
 
 ## Steps
 

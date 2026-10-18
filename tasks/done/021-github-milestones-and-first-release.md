@@ -11,14 +11,14 @@ plan: local-repoban-profi-a-clever-pie.md
 
 ## Context
 
-A lokális task standard kész (roadmap négy milestone-nal, minden task `milestone:` mezővel), a GitHub repón viszont
-nincs milestone, issue, tag, release, miközben a `docs/usage.md` a "GitHub releases page"-re küldi a usereket.
-What: a négy roadmap-milestone tükrözése GitHub milestone-ként (azonos címek, M1–M3 closed, M4 open), `v0.1.0` tag,
-amit a meglévő CI release jobja csomagol és publikál, kézzel írt release notes, egy-egy sor a docsban, D-08.
-Why: a 2–5 usernek a release zip számít, a milestone önmagában üres lenne. User decision 2026-10-18: "milestone-ok +
-v0.1.0 release" variáns; a tasks/ → issues tükröző script nem kell (project-pal feature lenne, csak GitHub-közönség
-esetén). Done when: 4 milestone a megfelelő állapotban, a `v0.1.0` release egy `mboxer-0.1.0.zip` assettel, a zip
-tartalma `mboxer.exe` (ProductVersion 0.1.0) + `usage.md`.
+The local task standard is done (roadmap with four milestones, every task with a `milestone:` field), but the GitHub
+repo has no milestone, issue, tag or release, while `docs/usage.md` sends the users to the "GitHub releases page".
+What: mirroring the four roadmap milestones as GitHub milestones (same titles, M1–M3 closed, M4 open), a `v0.1.0` tag,
+which the existing CI release job packages and publishes, hand-written release notes, one line each in the docs, D-08.
+Why: for the 2–5 users the release zip is what counts, a milestone alone would be empty. User decision 2026-10-18: the
+"milestones + v0.1.0 release" variant; the tasks/ → issues mirror script is not needed (it would be a project-pal
+feature, only for a GitHub audience). Done when: 4 milestones in the right state, the `v0.1.0` release with one
+`mboxer-0.1.0.zip` asset, the zip containing `mboxer.exe` (ProductVersion 0.1.0) + `usage.md`.
 
 ## Steps
 

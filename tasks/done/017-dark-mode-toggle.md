@@ -12,16 +12,16 @@ plan: n-zz-k-t-a-backlogot-virtual-mango.md
 
 ## Context
 
-Sötét téma a shellnek. Az alapértelmezés az OS-t követi (`prefers-color-scheme`), a toolbar gombja
-felülírja (auto / light / dark) és a választás megmarad (`mboxer.theme` a localStorage-ban). A `ui/style.css`
-már minden színt tokenként ad a `:root`-on, így a munka egy második tokenkészlet a media query alatt plusz a
-`data-theme` felülírás. Why: a viewer hosszú munkamenetekre való és a userek gépein gyakori az OS-szintű dark
-mode. Done when: dark módú Windows alatt az app sötéten indul; a gomb élőben vált; a beállítás túléli az
-újraindítást. Tervezési döntések 2026-10-18 (jóváhagyott terv): a felülírás egy `<head>`-ben töltött
-`ui/theme.js`-ből kerül a `<html data-theme>`-re még az első paint előtt (a CSP tiltja az inline scriptet);
-a natív címsor a Tauri `setTheme`-jét kapja (`core:window:allow-set-theme`); a HTML olvasó iframe mindkét
-témában világos vásznon marad (a HTML levelek világos lapra készülnek, Thunderbird/Outlook is így tesz), a Text
-és Source nézet követi a témát. Nincs új crate (D-02).
+A dark theme for the shell. The default follows the OS (`prefers-color-scheme`), the toolbar button
+overrides it (auto / light / dark) and the choice is kept (`mboxer.theme` in localStorage). `ui/style.css`
+already gives every color as a token on `:root`, so the work is a second token set under the media query plus the
+`data-theme` override. Why: the viewer is meant for long sessions and OS-level dark mode is common on the users'
+machines. Done when: under a dark-mode Windows the app starts dark; the button switches live; the setting survives
+a restart. Planning decisions 2026-10-18 (approved plan): the override goes from a `ui/theme.js` loaded in the
+`<head>` onto `<html data-theme>` before the first paint (the CSP forbids inline scripts);
+the native title bar gets Tauri's `setTheme` (`core:window:allow-set-theme`); the HTML reader iframe stays on a
+light canvas in both themes (HTML mails are made for a light page, Thunderbird/Outlook do the same), the Text
+and Source views follow the theme. No new crate (D-02).
 
 ## Steps
 

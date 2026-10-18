@@ -12,14 +12,14 @@ plan: 12-14-15-taskokat-fejlessz-k-le-keen-whale.md
 
 ## Context
 
-Release profil, egyetlen portable exe (telepítő nélkül), verzióbélyeg egy helyen és a UI-ban, rövid
-`docs/usage.md` a másik 2–5 usernek; CI build. Why: a többieknek csak egy fájlt kell az mboxuk mellé tenni,
-semmit nem kell telepíteni (D-02). Done when: egy kolléga tiszta Windows 11-en a puszta exe-vel megnyitja a
-saját mboxát. A 005-ből: az exe a `crates/mboxer-app` (`cargo build --release` → `target\release\mboxer.exe`,
-release = windowed), a WebView2 profilja `%LOCALAPPDATA%\io.github.speti4.mboxer` alatt van (a `tauri.conf.json`
-`identifier`-e), ezt a usage doc említi. User döntés 2026-10-17 (tervezési kör): GitHub Actions is legyen,
-tesztekkel ("legyen gh action tesztekkel"); a csomag `mboxer-<verzió>.zip` = `mboxer.exe` + `usage.md`
-(a CLI exe fejlesztői eszköz, kimarad). Nincs új crate (D-02).
+Release profile, a single portable exe (no installer), version stamp in one place and in the UI, a short
+`docs/usage.md` for the other 2–5 users; CI build. Why: the others only have to put one file next to their mbox,
+nothing to install (D-02). Done when: a colleague on a clean Windows 11 opens their own mbox with the bare
+exe. From 005: the exe is `crates/mboxer-app` (`cargo build --release` → `target\release\mboxer.exe`,
+release = windowed), the WebView2 profile is under `%LOCALAPPDATA%\io.github.speti4.mboxer` (the `tauri.conf.json`
+`identifier`), the usage doc mentions this. User decision 2026-10-17 (planning round): GitHub Actions too,
+with tests ("a gh action with tests"); the package `mboxer-<verzió>.zip` = `mboxer.exe` + `usage.md`
+(the CLI exe is a developer tool, left out). No new crate (D-02).
 
 ## Steps
 

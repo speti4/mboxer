@@ -12,22 +12,22 @@ plan: folytassuk-a-backlog-k-vetkez-purring-cupcake.md
 
 ## Context
 
-Egy keresőmező (Ctrl+F / Ctrl+K fókusz, gépelés közben frissülő lista debounce-szal) és egy
-szűrőpanel (dátumtartomány, feladó, címke, melléklet), ami a szöveges kereséssel kombinálódik; a
-találati szavak kiemelve a listában. Ez a projekt létezésének oka (az mboxviewer Advanced Find
-fájdalma). Done when: egy szintaxist nem ismerő user három interakcióval megtalál egy levelet
-body-szó + feladó alapján, billentyűleütésenként < 1 s.
+A search field (Ctrl+F / Ctrl+K focus, the list refreshing while typing with a debounce) and a
+filter panel (date range, sender, label, attachment) that combines with the text search; the
+matched words highlighted in the list. This is the reason the project exists (the pain of mboxviewer's
+Advanced Find). Done when: a user who knows no syntax finds a message by body word + sender in three
+interactions, at < 1 s per keystroke.
 
-A backend már tud mindent (`QueryInput` → `SearchQuery` → `MboxIndex::list`, a `set_query` és
-`position_of` parancs megvan); a munka zöme a `ui/` alatt van, nincs új crate.
+The backend already knows everything (`QueryInput` → `SearchQuery` → `MboxIndex::list`, the `set_query` and
+`position_of` commands exist); most of the work is under `ui/`, no new crate.
 
-User döntések 2026-10-17 (tervezési kör, a terv jóváhagyásával): a címke-szűrő a folders pane
-marad, a panel nem duplikálja (a címkefa a 009-é); a dátumok helyi napok, a "to" inkluzív
-(a core `before` exkluzív, a CLI UTC-napja marad); a lista szöveges keresésnél is dátum szerint
-rendez, a panelben Sort: Newest first / Best match választó (a `SortInput::Relevance` már a
-backendben van); a kiemelés a listában (from + subject) és a reader plain-text body-jában is, a
-007 viszi át az iframe-be; JS-oldali folding (`NFD` + combining jelek + lowercase), a `-`-szal
-kezdődő és `:`-ot tartalmazó tokenek nem kerülnek kiemelésre (a 010 szintaxisa érintetlen).
+User decisions 2026-10-17 (planning round, with the plan's approval): the label filter stays the folders
+pane, the panel does not duplicate it (the label tree belongs to 009); the dates are local days, the "to"
+is inclusive (the core `before` is exclusive, the CLI's UTC day stays); the list sorts by date for a text
+search too, with a Sort: Newest first / Best match selector in the panel (`SortInput::Relevance` is
+already in the backend); highlighting in the list (from + subject) and in the reader's plain-text body
+too, 007 carries it into the iframe; JS-side folding (`NFD` + combining marks + lowercase), tokens
+starting with `-` or containing `:` are not highlighted (the 010 syntax is untouched).
 
 ## Steps
 

@@ -17,3 +17,4 @@ dist/
 
 # synthetic test fixtures are the one exception to the mbox rule
 !crates/*/tests/fixtures/*.mbox
+__pycache__/

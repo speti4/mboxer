@@ -12,24 +12,24 @@ plan: j-backlog-tletek-expressive-breeze.md
 
 ## Context
 
-A keresőmező szövege ma változtatás nélkül a tantivy lenient parserébe megy: a `"frázis"`, az `OR` és a
-`-szó` ezért működik, a `from:anna` pedig csak azért, mert a `from` séma-mezőnév. A `label:`,
-`has:attachment`, `subject:`, `after:` / `before:` semmit sem csinál, és a mezőbe írt operátor nem
-jelenik meg sem a szűrőpanelen, sem a címkefában. A 010 a mezőt teszi valódi lekérdezőnyelvvé a fő
-user számára, a panel a többieknek marad. Why: power-user sebesség. Done when: minden operátornak van
-tesztje; egy begépelt operátor megjelenik a panelen és fordítva.
+Today the search field's text goes unchanged into tantivy's lenient parser: `"frázis"`, `OR` and
+`-szó` work because of that, and `from:anna` only because `from` is a schema field name. `label:`,
+`has:attachment`, `subject:`, `after:` / `before:` do nothing, and an operator typed into the field does
+not show up on the filter panel or in the label tree. 010 makes the field a real query language for the
+main user, the panel stays for the others. Why: power-user speed. Done when: every operator has a
+test; a typed operator shows up on the panel and vice versa.
 
-User döntések 2026-10-17 (tervezési kör): **a mező szövege az egyetlen igazságforrás** — a panel és a
-címkekattintás a szöveget írja át (`from:anna`, `after:2026-01-01`, `label:Inbox`), a gépelés a panelt
-és a címkekijelölést frissíti; ebből következik, hogy az Esc és a Clear a teljes lekérdezést üríti, a
-címkét is. **`before:` inkluzív** nap, ugyanaz, amit a panel "to" mezője mutat (eltér a Gmailtől,
-README-ben dokumentálva). A parser a UI-ban él (`ui/query.js`, a kétirányú szinkronhoz ott kell), a CLI
-a flag-jeit tartja; a core egyetlen változása a `subject` szűrő. Nincs új runtime crate (D-02). Méret S
-→ M: a mező lett a modell, ami minden panel-handlert érint.
+User decisions 2026-10-17 (planning round): **the field's text is the single source of truth** — the panel and
+a label click rewrite the text (`from:anna`, `after:2026-01-01`, `label:Inbox`), typing updates the panel
+and the label selection; it follows that Esc and Clear empty the whole query, the label too.
+**`before:` is an inclusive** day, the same the panel's "to" field shows (differs from Gmail,
+documented in the README). The parser lives in the UI (`ui/query.js`, it has to be there for the two-way
+sync), the CLI keeps its flags; the core's only change is the `subject` filter. No new runtime crate (D-02).
+Size S → M: the field became the model, which touches every panel handler.
 
-Jegyzet a 006-ból: `state.query` a mező, a panel és a folders pane közös modellje; a core
-`typing_word` / `prefix_last_word` és a UI `highlightTerms` már békén hagyja az operátor-kinézetű
-szavakat.
+Note from 006: `state.query` is the shared model of the field, the panel and the folders pane; the core
+`typing_word` / `prefix_last_word` and the UI `highlightTerms` already leave operator-looking words
+alone.
 
 ## Steps
 

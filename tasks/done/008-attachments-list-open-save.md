@@ -12,20 +12,20 @@ plan: folytassuk-a-008-taskkal-transient-dolphin.md
 
 ## Context
 
-A reader ma csak a MIME-fa listáját mutatja, a mellékletekhez nem lehet hozzáférni; a 007
-sanitizere a `cid:` képeket kiszedte és a content id-t `data-mboxer-cid`-ben hagyta az `<img>`-en.
-A 008 adja a melléklet-sávot a fejlécek alatt (név, méret, típus), a chipre kattintva megnyitás
-az alapértelmezett alkalmazással (temp fájl), Save… és Save all…, és kitölti a cid képeket a
-sandboxolt iframe-ben. A dekódolás on-demand a message offsetről (D-03), az index nem változik.
-Why: az archívumot gyakran egy fájlért nyitják meg (user döntés 2026-10-17, MVP must-have).
-Done when: base64 és quoted-printable mellékletek megnyílnak és elmenthetők bájtra pontosan, a
-cid-hivatkozott inline képek megjelennek a HTML nézetben.
+Today the reader shows only the MIME tree listing, the attachments cannot be reached; the 007
+sanitizer stripped the `cid:` images and left the content id in `data-mboxer-cid` on the `<img>`.
+008 adds the attachment strip under the headers (name, size, type), a click on the chip opens
+with the default application (temp file), Save… and Save all…, and fills in the cid images in the
+sandboxed iframe. Decoding is on demand from the message offset (D-03), the index does not change.
+Why: the archive is often opened for one file (user decision 2026-10-17, MVP must-have).
+Done when: base64 and quoted-printable attachments open and can be saved byte for byte, the
+cid-referenced inline images show in the HTML view.
 
-Tervezési döntések 2026-10-17 (a tervben hozva, a user jóváhagyta a tervet): a sáv a fejlécek
-alatt; nevesített inline képek is a sávban `inline` jelzéssel, név nélküliek csak a cid-et
-szolgálják; futtatható kiterjesztések csak Save (Open tiltva); Mark-of-the-Web a temp és a
-mentett fájlokra; temp `%TEMP%\mboxer\<offset>-<part>\`, indításkor kiürítve; text mellékletek
-a nyers bájtokból transfer-dekódolva (bájtra pontos csv); nincs új crate.
+Planning decisions 2026-10-17 (made in the plan, the user approved the plan): the strip under the
+headers; named inline images in the strip too with an `inline` marker, nameless ones only serve the
+cid; executable extensions are Save only (Open disabled); Mark-of-the-Web on the temp and the
+saved files; temp `%TEMP%\mboxer\<offset>-<part>\`, emptied at start-up; text attachments
+transfer-decoded from the raw bytes (byte-exact csv); no new crate.
 
 ## Steps
 

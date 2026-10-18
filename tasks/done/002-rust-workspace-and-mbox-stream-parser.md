@@ -12,26 +12,26 @@ plan: folytassuk-a-002-task-wise-starfish.md
 
 ## Context
 
-Első kódoló task az M1-ben: Cargo workspace (core lib + CLI, a Tauri app a 005-ben jön) és egy
-streaming mbox reader, ami `From ` envelope soroknál vág, egyszerre egy üzenetet tart memóriában,
-minden üzenethez byte offsetet + hosszt ad, és a headereket / MIME részeket a `mail-parser` crate-tel
-dolgozza fel. Minden későbbi réteg (003 index, viewer) erre épül; a 14 GB-os fájl soha nem kerül
-memóriába. Done when: `mboxer scan <mbox>` végigmegy a 14 GB-on lapos memóriával, kiírja az
-üzenetszámot és egy minta headerjeit; unit tesztek fedik a Gmail Takeout formát nested MIME-mal,
-quoted-printable és base64 részekkel.
+The first coding task in M1: a Cargo workspace (core lib + CLI, the Tauri app comes in 005) and a
+streaming mbox reader that splits at `From ` envelope lines, keeps one message in memory at a time,
+gives every message a byte offset + length, and processes the headers / MIME parts with the `mail-parser`
+crate. Every later layer (003 index, viewer) builds on this; the 14 GB file never goes into memory.
+Done when: `mboxer scan <mbox>` walks the 14 GB with flat memory, prints the message count and the
+headers of a sample; unit tests cover the Gmail Takeout format with nested MIME, quoted-printable and
+base64 parts.
 
-User decisions 2026-10-17: a toolchain-t (VS C++ build tools + Windows SDK, rustup) a session
-telepíti winget / VS installerrel; a seek-szerződés külön döntés (D-03, proposed).
+User decisions 2026-10-17: the session installs the toolchain (VS C++ build tools + Windows SDK, rustup)
+with winget / the VS installer; the seek contract is a separate decision (D-03, proposed).
 
-Felmérés 2026-10-17 (64 MB minta, csak header-nevek): CRLF sorvégek; envelope `From <digits>@xxx
-<ctime-dátum>`; `>From ` escape a body-ban; átlag ~105 KB, max a mintában 5,6 MB; minden üzeneten
-`X-Gmail-Labels` és `X-GM-THRID`; a D: meghajtó SATA HDD (a scan disk-bound).
+Survey 2026-10-17 (64 MB sample, header names only): CRLF line endings; envelope `From <digits>@xxx
+<ctime-dátum>`; `>From ` escape in the body; average ~105 KB, max in the sample 5.6 MB; every message
+carries `X-Gmail-Labels` and `X-GM-THRID`; the D: drive is a SATA HDD (the scan is disk-bound).
 
-Build-time crate-ek (D-02 indoklás, runtime dependency marad nulla):
-- `mail-parser 0.11` — RFC 5322 + MIME, 41 charset (ISO-8859-2, windows-1250), RFC 2047/2231,
-  attachment-kezelés; saját implementáció hónapok lennének.
-- `clap 4` (derive) — a 004 `index`/`search` subcommandokat és flag-eket hoz; kézi arg-parse
-  újraírás lenne.
+Build-time crates (D-02 justification, runtime dependencies stay at zero):
+- `mail-parser 0.11` — RFC 5322 + MIME, 41 charsets (ISO-8859-2, windows-1250), RFC 2047/2231,
+  attachment handling; an own implementation would take months.
+- `clap 4` (derive) — 004 brings the `index`/`search` subcommands and flags; a hand-written arg-parse
+  would be a rewrite.
 
 ## Steps
 

@@ -12,19 +12,19 @@ plan: folytassuk-a-009-taskkal-peaceful-sunbeam.md
 
 ## Context
 
-A 005/006 óta a folders pane lapos címkelistát mutat számokkal és a kattintás exact `labels` szűrő; a
-`thread_id` (X-GM-THRID) indexelve + tárolva + FAST van, de senki nem olvassa vissza. A 009 két dolgot ad:
-beszélgetés-nézet a listában (egy sor = egy thread a legújabb üzenettel és darabszámmal, lenyitható, a
-csoportosítás a core `Listing`-ben, mert a tagok a dátum szerinti listában szétszórtak) és címkefa a
-folders pane-ben (`/` hierarchia + a Takeout `Category …` címkék egy *Categories* csomópont alatt).
-Why: a Takeout ingyen adja a Gmail-struktúrát, ettől lesz a lapos archívum navigálható.
-Done when: egy címkére kattintva szűkül a lista; egy válaszokkal bíró üzenet egy lenyitható
-beszélgetésként jelenik meg.
+Since 005/006 the folders pane shows a flat label list with counts and a click is an exact `labels` filter;
+`thread_id` (X-GM-THRID) is indexed + stored + FAST, but nobody reads it back. 009 adds two things: a
+conversation view in the list (one row = one thread with the newest message and the count, expandable, the
+grouping in the core `Listing`, because the members are scattered in the date-sorted list) and a label tree
+in the folders pane (`/` hierarchy + the Takeout `Category …` labels under one *Categories* node).
+Why: Takeout gives the Gmail structure for free, this is what makes the flat archive navigable.
+Done when: a click on a label narrows the list; a message with replies shows as one expandable
+conversation.
 
-User döntések 2026-10-17 (tervezési kör): grouping alapból be, *Conversations* kapcsoló a szűrősávon;
-szülő címke kattintása = szülő + minden alcímke (OR, `any_labels`); `Category *` → *Categories*
-csomópont; lenyitott threadben legrégebbi elöl. Az index formátuma nem változik (nincs újraépítés); nincs
-új crate (D-02). A valós archívum fejlécmintájában (600 MB) nincs `/`-es és nincs RFC 2047-kódolt címke.
+User decisions 2026-10-17 (planning round): grouping on by default, a *Conversations* switch on the filter strip;
+a click on a parent label = parent + every sub-label (OR, `any_labels`); `Category *` → *Categories*
+node; oldest first in an expanded thread. The index format does not change (no rebuild); no new
+crate (D-02). The real archive's header sample (600 MB) has no label with `/` and none RFC 2047-encoded.
 
 ## Steps
 

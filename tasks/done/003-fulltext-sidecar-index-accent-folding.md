@@ -12,24 +12,24 @@ plan: folytassuk-a-003-taskkal-parsed-panda.md
 
 ## Context
 
-Az M1 szíve: a 002-es streaming reader fölé egy perzisztens tantivy index kerül az mbox mellé
-(`.mboxer/<mbox fájlnév>/`), ami a metaadatot (from, to, cc, subject, date, labels, has-attachment,
-attachment names) és a body szöveget indexeli ékezet- és kisbetű-független tokenizálással, és a D-03
-szerinti `offset/len` azonosítót tárolja a seek-hez. Újranyitáskor az index újrahasznált, ha az mbox nem
-változott (méret + mtime + mintavételes hash + formátumverzió), különben újraépül. Done when: az építés
-végigfut a 14 GB-os fájlon; újranyitás < 1 s; body keresés `szamla`-ra ugyanazt adja, mint `számla`-ra,
-< 1 s alatt.
+The heart of M1: a persistent tantivy index goes on top of the 002 streaming reader, next to the mbox
+(`.mboxer/<mbox fájlnév>/`), indexing the metadata (from, to, cc, subject, date, labels, has-attachment,
+attachment names) and the body text with accent- and case-insensitive tokenization, and storing the
+`offset/len` identity of D-03 for the seek. On reopen the index is reused if the mbox has not changed
+(size + mtime + sampled hash + format version), otherwise it is rebuilt. Done when: the build runs
+through the 14 GB file; reopen < 1 s; a body search for `szamla` returns the same as for `számla`,
+in < 1 s.
 
-User döntések 2026-10-17: minimális CLI (`mboxer index`, `mboxer search`) ebben a taskban, a szűrő
-flag-ek és a benchmark doc a 004-ben marad; D-03 `decided`-re áll a 003 commitjával.
+User decisions 2026-10-17: a minimal CLI (`mboxer index`, `mboxer search`) in this task, the filter
+flags and the benchmark doc stay in 004; D-03 goes to `decided` with the 003 commit.
 
-Build-time crate-ek (D-02 indoklás, runtime dependency marad nulla):
-- `tantivy 0.27` (`mmap`, `lz4-compression`; zstd nélkül, az C-t fordítana) — invertált index, tokenizer-lánc
-  beépített `AsciiFoldingFilter`-rel (Ő/ő/Ű/ű benne), fast field, mmap újranyitás; saját index hónapok.
-  MSRV 1.88 → workspace `rust-version` 1.85 → 1.88.
-- `serde 1` + `serde_json 1` — a sidecar `mboxer.json`-ja (fingerprint, formátumverzió); a tantivy miatt már
-  a build része.
-- `tempfile 3` (dev) — tesztindex ideiglenes könyvtárban; a tantivy `mmap` feature-je már behúzza.
+Build-time crates (D-02 justification, runtime dependencies stay at zero):
+- `tantivy 0.27` (`mmap`, `lz4-compression`; without zstd, which would compile C) — inverted index, tokenizer
+  chain with the built-in `AsciiFoldingFilter` (Ő/ő/Ű/ű included), fast fields, mmap reopen; an own index
+  would take months. MSRV 1.88 → workspace `rust-version` 1.85 → 1.88.
+- `serde 1` + `serde_json 1` — the sidecar's `mboxer.json` (fingerprint, format version); already part of the
+  build because of tantivy.
+- `tempfile 3` (dev) — test index in a temporary directory; tantivy's `mmap` feature already pulls it in.
 
 ## Steps
 

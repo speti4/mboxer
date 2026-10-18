@@ -23,6 +23,7 @@ This repo is the source of truth for:
 - Rust edition 2024, `cargo fmt` + `cargo clippy -D warnings` clean before a commit
 - Runtime dependency rule (D-02): the shipped artifact is one exe; a new build-time crate needs a one-line justification in the task file
 - Decisions with lasting effect go to `tasks/decisions/` (`/tasks decide`), proposed until the user confirms
+- Task files: the H1 and the Context paragraph (what / why / done-when) are English — `scripts/sync-issues.py` mirrors them into GitHub issues (D-08); Log / Verification may be Hungarian
 - User communication: Hungarian, technical terms in English
 
 ## Tasks

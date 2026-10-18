@@ -12,27 +12,27 @@ plan: folytassuk-a-007-taskkal-stateful-castle.md
 
 ## Context
 
-A reader ma a plain text részt mutatja (`<pre id="msg-body">`), HTML-only levélnél a html→text
-konverziót. A 007 cseréli ezt: a HTML body sandboxolt `srcdoc` iframe-ben renderelődik, scriptek
-kiszedve, távoli tartalom alapból blokkolva (üzenetenkénti "Show" gomb), HTML / Text / Source
-nézetváltó, Copy gomb, a body-ban kattintott linkek a rendszer-browserben nyílnak; a 006 kiemelése
-átmegy a sanitizált HTML-be. Why: a HTML mail nézzen ki mailnek; az mboxviewer rosszul rendereli, a
-WebView2 natívan tudja. Done when: bármely levél olvashatóan renderelődik, és engedélyezés nélkül
-egy hálózati kérés sem megy ki az appból.
+Today the reader shows the plain text part (`<pre id="msg-body">`), the html→text conversion for an
+HTML-only message. 007 replaces this: the HTML body renders in a sandboxed `srcdoc` iframe, scripts
+stripped, remote content blocked by default (a per-message "Show" button), HTML / Text / Source
+view switch, Copy button, links clicked in the body open in the system browser; the 006 highlighting
+carries over into the sanitized HTML. Why: an HTML mail should look like mail; mboxviewer renders it
+badly, WebView2 does it natively. Done when: any message renders readably, and without permission
+not a single network request leaves the app.
 
-User döntések 2026-10-17 (tervezési kör): "open in browser" = csak a body linkjei nyílnak a
-rendszer-browserben, nincs külön "üzenet megnyitása browserben" gomb; a sanitizer a webview-ban fut
-(JS, DOMParser — a user rám hagyta, a nulla-crate megoldás), alatta két független réteg: a sandbox
-iframe (`allow-same-origin`, scriptek nélkül) és az iframe saját meta CSP-je (`default-src 'none'`);
-a 013 (`>From ` sorok visszaalakítása a plain text body-ban) beleolvad ebbe a taskba.
+User decisions 2026-10-17 (planning round): "open in browser" = only the body's links open in the
+system browser, no separate "open message in browser" button; the sanitizer runs in the webview
+(JS, DOMParser — the user left it to me, the zero-crate solution), with two independent layers under it:
+the sandbox iframe (`allow-same-origin`, without scripts) and the iframe's own meta CSP (`default-src 'none'`);
+013 (unescaping `>From ` lines in the plain text body) merges into this task.
 
-Build-time crate (D-02 indoklás): `tauri-plugin-opener 2` — a http/https/mailto linkek megnyitása
-a rendszer alapértelmezett alkalmazásával, Rust oldalról hívva (`OpenerExt::open_url`, capability
-nem kell); a 008 melléklet-megnyitása (`open_path`) ugyanezt használja majd.
+Build-time crate (D-02 justification): `tauri-plugin-opener 2` — opening http/https/mailto links
+with the system's default application, called from the Rust side (`OpenerExt::open_url`, no capability
+needed); the 008 attachment opening (`open_path`) will use the same.
 
-Jegyzet 005-ből: a shell CSP-je már enged `frame-src 'self' blob:`-ot; az `about:srcdoc` betöltését
-a `frame-src 'self'` alatt ellenőrizni kell, fallback a `blob:` URL. Jegyzet 006-ból: a plain text
-body kiemelését (`renderHighlighted`) a srcdoc iframe-nek is vinnie kell.
+Note from 005: the shell's CSP already allows `frame-src 'self' blob:`; loading `about:srcdoc`
+under `frame-src 'self'` has to be verified, the fallback is a `blob:` URL. Note from 006: the plain text
+body's highlighting (`renderHighlighted`) must be carried into the srcdoc iframe too.
 
 ## Steps
 

@@ -12,26 +12,26 @@ plan: folytassuk-a-backlog-k-vetkez-quirky-summit.md
 
 ## Context
 
-Az M2 első tétele és a keret, amire a 006 (kereső + szűrőpanel), 007 (sanitized HTML reader) és 008
-(mellékletek) épül: a Tauri 2 / WebView2 app a workspace-ben, fájlmegnyitó dialógus, index-építés
-progress-szel vagy a friss index újrahasználata (D-04), három paneles layout (folders / üzenetlista /
-reader), dátum szerint rendezett virtualizált lista, billentyűs navigáció. Done when: a 14 GB-os mbox
-megnyílik, az index felépül vagy újrahasználódik, és a lista debug buildben is simán görgethető végig.
+The first item of M2 and the frame that 006 (search + filter panel), 007 (sanitized HTML reader) and 008
+(attachments) build on: the Tauri 2 / WebView2 app in the workspace, a file-open dialog, index build with
+progress or reuse of a fresh index (D-04), three-pane layout (folders / message list / reader), a
+virtualized list sorted by date, keyboard navigation. Done when: the 14 GB mbox opens, the index is
+built or reused, and the list scrolls smoothly end to end even in a debug build.
 
-User döntések 2026-10-17 (tervezési kör): a GUI crate adja a `mboxer.exe`-t, a CLI binárisa
-`mboxer-cli.exe` lesz (D-02: egy szállított exe); a folders panel *All mail* + Gmail-címkék
-darabszámmal az indexből (kattintás szűr; thread/hierarchia a 009-é); a reader panel fejléc blokk +
-plain text body (HTML-only mailnél html→text) — a 007 cseréli a body-blokkot sandboxolt `srcdoc`
-iframe-re.
+User decisions 2026-10-17 (planning round): the GUI crate produces `mboxer.exe`, the CLI binary becomes
+`mboxer-cli.exe` (D-02: one shipped exe); the folders panel is *All mail* + Gmail labels with counts
+from the index (a click filters; threads/hierarchy belong to 009); the reader panel is a header block +
+plain text body (html→text for HTML-only mail) — 007 replaces the body block with a sandboxed `srcdoc`
+iframe.
 
-Build-time crate-ek (D-02 indoklás, runtime dependency marad nulla):
-- `tauri 2` — WebView2 ablak, IPC, async runtime, asset-beágyazás; a D-02 shell, egy portable exe.
-- `tauri-build 2` (build-dep) — Windows ikon/verzió resource, app manifest (Common Controls v6 a
-  dialógushoz), capability-séma.
-- `tauri-plugin-dialog 2` — natív Windows fájlmegnyitó Rust oldalról (`blocking_pick_file`).
-- `serde` (már bent) — az IPC típusok; `tempfile` (dev, már bent) — fixture-másolat az app tesztjeihez.
-- Nincs npm, bundler vagy tauri CLI: vanilla HTML/CSS/JS a `ui/` alatt, `cargo run -p mboxer-app` indít.
-  MSRV: Tauri 2.12 miatt a workspace `rust-version` 1.88 → 1.90.
+Build-time crates (D-02 justification, runtime dependencies stay at zero):
+- `tauri 2` — WebView2 window, IPC, async runtime, asset embedding; the D-02 shell, one portable exe.
+- `tauri-build 2` (build-dep) — Windows icon/version resource, app manifest (Common Controls v6 for the
+  dialog), capability schema.
+- `tauri-plugin-dialog 2` — native Windows file-open dialog from the Rust side (`blocking_pick_file`).
+- `serde` (already in) — the IPC types; `tempfile` (dev, already in) — fixture copy for the app's tests.
+- No npm, bundler or tauri CLI: vanilla HTML/CSS/JS under `ui/`, `cargo run -p mboxer-app` starts it.
+  MSRV: because of Tauri 2.12 the workspace `rust-version` goes 1.88 → 1.90.
 
 ## Steps
 

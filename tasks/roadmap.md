@@ -4,8 +4,8 @@ A Windows 11 mbox viewer for Gmail Takeout archives (14 GB today, up to 50 GB fo
 replaces eneam/mboxviewer: fast, stable, searchable. Order: first a headless index core that proves
 search speed on the real 14 GB file, then the Tauri UI on top of it, then the comfort features.
 State lives in the task files and the generated index, never here. The `## ` headings are mirrored one-way as
-GitHub milestones with identical titles (no issues there, the task files are the source of truth); a release
-tag closes the milestones it ships: M1–M3 → v0.1.0 (D-08).
+GitHub milestones with identical titles, and the task files as issues under them, by `scripts/sync-issues.py`
+(the task files are the source of truth); a release tag closes the milestones it ships: M1–M3 → v0.1.0 (D-08).
 
 ## M1 Index core
 

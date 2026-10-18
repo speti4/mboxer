@@ -6,8 +6,10 @@ and a handful of colleagues, each with their own mbox file.
 
 - Stack: Rust, Tauri 2 on WebView2, one-time sidecar full-text index next to the mbox (see
   `tasks/decisions/`).
-- Status and backlog: `tasks/README.md` (generated), milestones in `tasks/roadmap.md`, mirrored one-way as
-  [GitHub milestones](https://github.com/speti4/mboxer/milestones); a release on the
+- Status and backlog: `tasks/README.md` (generated), milestones in `tasks/roadmap.md`; both are mirrored
+  one-way into [GitHub issues](https://github.com/speti4/mboxer/issues) and
+  [milestones](https://github.com/speti4/mboxer/milestones) by `scripts/sync-issues.py` from CI, so the
+  task files stay the only place to edit; a release on the
   [Releases page](https://github.com/speti4/mboxer/releases) closes the milestones it ships (D-08).
 - Why this exists: `docs/origin.md`; why build and not buy: `docs/research/`.
 - For the people who only run it: `docs/usage.md` (ships in the release zip).
@@ -120,7 +122,11 @@ Checks before a commit: `cargo fmt --check`, `cargo clippy --all-targets -- -D w
 packs `target\release\mboxer.exe` + `docs\usage.md` into `dist\mboxer-<version>.zip`, the version
 being the workspace `Cargo.toml` one (the only place it is written; `tauri-build` stamps it into
 the exe's properties and the status bar shows it). Pushing a tag `v<version>` runs the tests and
-publishes that zip as a GitHub release. Peak memory of a run: `scripts\peak-memory.ps1 -- target\release\mboxer-cli.exe scan <file.mbox> --quiet`.
+publishes that zip as a GitHub release. `.github/workflows/sync-issues.yml` runs
+`scripts/sync-issues.py` on every push to `main` that touches `tasks/`: one GitHub issue per task
+and decision file (id in the title, Context prose, labels, milestone, open / closed by the folder),
+milestones from the roadmap headings, idempotent and one-way; `python -I scripts/sync-issues.py --dry-run`
+shows what a run would change. Peak memory of a run: `scripts\peak-memory.ps1 -- target\release\mboxer-cli.exe scan <file.mbox> --quiet`.
 The full benchmark (build time, peak memory, index size, re-open and search latency as a Markdown
 report): `scripts\benchmark.ps1 -Mbox <file.mbox> -Out docs\benchmarks\<date>.md`; results for the
 author's archive are under `docs/benchmarks/`.

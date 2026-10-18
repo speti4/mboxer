@@ -1,0 +1,25 @@
+# Mirrors tasks/ into GitHub issues and milestones, one way (scripts/sync-issues.py, task 022,
+# D-08): on every push to main that touches the task files, and by hand through "Run workflow".
+name: sync-issues
+
+on:
+  push:
+    branches: [main]
+    paths: ["tasks/**", "scripts/sync-issues.py"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: sync-issues
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 -I scripts/sync-issues.py --repo "${{ github.repository }}"
+        env:
+          GH_TOKEN: ${{ github.token }}
