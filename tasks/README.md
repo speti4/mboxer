@@ -13,7 +13,7 @@ file, never the issue.
 <!-- tasks:index:start -->
 _Generated 2026-10-18 — edit the files, not this section._
 
-**State:** 10 backlog (8 ready · 0 blocked · 1 waiting · 1 idea) · 0 in progress · 19 done · 0 dropped · 8 decisions
+**State:** 10 backlog (8 ready · 0 blocked · 1 waiting · 1 idea) · 0 in progress · 20 done · 0 dropped · 9 decisions
 
 ### Ready
 
@@ -33,7 +33,7 @@ _Generated 2026-10-18 — edit the files, not this section._
 | 024 | [Supply chain and CI hardening: dependabot, cargo-deny, pinned actions](backlog/024-supply-chain-and-ci-hardening.md) | M | 2026-10-18 |
 | 025 | [Release notes and changelog from the task files, checksums and third-party lice…](backlog/025-release-notes-changelog-and-checksums.md) | M | 2026-10-18 |
 | 026 | [README as a front page, the reference moved into docs](backlog/026-readme-front-page.md) | S | 2026-10-18 |
-| 027 | [Pre-publish audit of the history and the content](backlog/027-pre-publish-history-and-content-audit.md) | M | 2026-10-18 |
+| 030 | [Scrub the repo and rewrite the history per D-09](backlog/030-scrub-and-rewrite-history-per-d-09.md) | M | 2026-10-18 |
 
 ### Needs decision
 
@@ -45,7 +45,7 @@ _none_
 
 | # | Task | Waits for | Size | Created |
 |---|---|---|---|---|
-| 028 | [Publication day: visibility switch and the public-only repo settings](backlog/028-publication-day-repo-settings.md) | 027 decided and 023-026 done | S | 2026-10-18 |
+| 028 | [Publication day: visibility switch and the public-only repo settings](backlog/028-publication-day-repo-settings.md) | 030 (the scrub and history rewrite per D-09) and 023-026 done | S | 2026-10-18 |
 
 ### Ideas
 
@@ -67,6 +67,7 @@ _none_
 
 | # | Task | Closed |
 |---|---|---|
+| 027 | [Pre-publish audit of the history and the content](done/027-pre-publish-history-and-content-audit.md) | 2026-10-18 |
 | 022 | [One-way sync of tasks/ to GitHub issues and milestones](done/022-sync-tasks-to-github-issues.md) | 2026-10-18 |
 | 021 | [GitHub milestones from the roadmap and the first release v0.1.0](done/021-github-milestones-and-first-release.md) | 2026-10-18 |
 | 017 | [Dark mode toggle with OS default](done/017-dark-mode-toggle.md) | 2026-10-18 |
@@ -76,14 +77,14 @@ _none_
 | 014 | [Index fallback when the mbox folder is not writable](done/014-index-fallback-for-read-only-mbox-locations.md) | 2026-10-17 |
 | 013 | [Unescape >From  lines in message bodies for display](done/013-unescape-from-lines-in-message-bodies.md) | 2026-10-17 |
 | 012 | [Portable release build for other users](done/012-portable-exe-release-build.md) | 2026-10-17 |
-| 010 | [Gmail-style query syntax in the search field](done/010-gmail-style-query-syntax.md) | 2026-10-17 |
 
-_9 more in `done/`._
+_10 more in `done/`._
 
 ### Decisions
 
 | # | Decision | Status | Date |
 |---|---|---|---|
+| D-09 | [The repo goes public with tasks/ and docs/ scrubbed in place and the history rewritten once before the switch](decisions/D-09-publish-scrubbed-rewrite-history-before-switch.md) | decided | 2026-10-18 |
 | D-08 | [GitHub issues and milestones mirror tasks/ one-way through a script; nothing is edited on GitHub by hand; a release tag closes the milestones it ships](decisions/D-08-github-milestones-mirror-roadmap-one-way.md) | decided | 2026-10-18 |
 | D-07 | [macOS builds ship as an ad-hoc signed universal .app in a zip, without notarization](decisions/D-07-macos-distribution-adhoc-signed-app-zip.md) | decided | 2026-10-18 |
 | D-06 | [Several mbox files are open side by side, one active at a time; there is no merged view](decisions/D-06-several-files-open-one-active-no-merged-view.md) | decided | 2026-10-18 |

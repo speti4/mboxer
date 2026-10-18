@@ -1,6 +1,6 @@
 ---
 status: waiting
-waits-for: 027 decided and 023-026 done
+waits-for: 030 (the scrub and history rewrite per D-09) and 023-026 done
 size: S
 origin: session 2026-10-18
 created: 2026-10-18
