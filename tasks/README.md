@@ -11,11 +11,17 @@ Closing a task files every follow-up as a `backlog/` item now or deletes it with
 <!-- tasks:index:start -->
 _Generated 2026-10-18 — edit the files, not this section._
 
-**State:** 0 backlog (0 ready · 0 blocked · 0 waiting · 0 ideas) · 0 in progress · 17 done · 0 dropped · 6 decisions
+**State:** 3 backlog (3 ready · 0 blocked · 0 waiting · 0 ideas) · 0 in progress · 17 done · 0 dropped · 7 decisions
 
 ### Ready
 
-_none_
+#### M4 macOS
+
+| # | Task | Size | Created |
+|---|---|---|---|
+| 018 | [macOS build, .app bundle and CI](backlog/018-macos-build-bundle-and-ci.md) | M | 2026-10-18 |
+| 019 | [macOS runtime differences: index home, quarantine, Finder open, UI keys and fon…](backlog/019-macos-runtime-differences.md) | S | 2026-10-18 |
+| 020 | [Print on macOS through a second webview window](backlog/020-macos-print-second-webview-window.md) | M | 2026-10-18 |
 
 ### Needs decision
 
@@ -58,6 +64,7 @@ _7 more in `done/`._
 
 | # | Decision | Status | Date |
 |---|---|---|---|
+| D-07 | [macOS builds ship as an ad-hoc signed universal .app in a zip, without notarization](decisions/D-07-macos-distribution-adhoc-signed-app-zip.md) | proposed | 2026-10-18 |
 | D-06 | [Several mbox files are open side by side, one active at a time; there is no merged view](decisions/D-06-several-files-open-one-active-no-merged-view.md) | decided | 2026-10-18 |
 | D-05 | [When .mboxer/ beside the mbox cannot be created, the index lives under %LOCALAPPDATA%\mboxer\index\<name>-<path hash>\](decisions/D-05-index-fallback-under-localappdata.md) | proposed | 2026-10-17 |
 | D-04 | [The sidecar index lives in .mboxer/<mbox name>/ beside the mbox and is rebuilt whole when stale](decisions/D-04-sidecar-index-location-and-freshness.md) | decided | 2026-10-17 |

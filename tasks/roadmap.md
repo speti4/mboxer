@@ -21,3 +21,10 @@ user stops opening mboxviewer.
 
 Gmail labels and threads, Gmail-style query syntax, export (.eml / PDF / print), a portable release
 build for the other 2–5 users.
+
+## M4 macOS
+
+The same viewer on a Mac with full parity: an ad-hoc signed `.app` from CI, the runtime differences
+(index home, quarantine, Finder open, keys and fonts), and a print path that works in WKWebView.
+Done when a Mac user opens their archive from the release zip and every feature of M3 works,
+print / Save as PDF included (assessment 2026-10-18).
