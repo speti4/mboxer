@@ -27,6 +27,20 @@ The first open builds the search index: a progress bar counts the messages, and 
 Every later open reuses the index and takes well under a second. A new Takeout export is a new
 file: its first open builds a new index.
 
+## Several files
+
+Takeout splits a large archive into several `.mbox` files, and you may keep more than one export.
+*Open…* adds to what is open instead of replacing it, and the dialog takes several files at once
+(they are indexed one after the other). Every open file is a row at the top of the folder pane;
+the one whose labels are shown is the active file, and the list, the search and the reader belong
+to it. Click another file's row to switch (its own labels unfold, the previous file folds up); the
+search you typed in a file waits for you when you come back to it. The `×` at the right end of a
+row closes that file. There is no merged view: each file is searched on its own.
+
+mboxer remembers the open files. At the next start the ones whose index is still fresh open by
+themselves; a file whose index would need a build stays greyed out in the pane until you click it,
+and a file that is gone leaves the list.
+
 ## Where mboxer writes
 
 Everything below is a cache: deleting it costs a rebuild, never data.
@@ -88,7 +102,8 @@ a dark one would make some messages unreadable. The *Text* and *Source* views fo
 ## When something is off
 
 - *Open failed* in red: the file is not an mbox (the message names the byte offset), or the path
-  does not exist any more. Pick the file again with *Open*.
+  does not exist any more. Pick the file again with *Open*; a file that is gone can be removed from
+  the pane with its `×`.
 - The index rebuilds although nothing changed: the mbox was touched (copied with a new
   modification time, re-exported). A rebuild is safe, it only takes the time of the first open.
 - To force a rebuild, delete the `.mboxer\<mbox file name>\` folder next to the mbox (or the

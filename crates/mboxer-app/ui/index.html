@@ -10,7 +10,7 @@
   </head>
   <body data-view="empty">
     <header id="toolbar">
-      <button id="open-btn" type="button" title="Open an mbox file (Ctrl+O)">Open…</button>
+      <button id="open-btn" type="button" title="Open one or more mbox files (Ctrl+O)">Open…</button>
       <span id="file-name" class="muted">No file open</span>
       <input
         id="search"
@@ -100,8 +100,9 @@
       <div class="screen-box">
         <h2>No mbox open</h2>
         <p>Open a Gmail Takeout archive to browse it.</p>
-        <p><button id="empty-open-btn" type="button">Open an mbox… (Ctrl+O)</button></p>
-        <p><button id="reopen-btn" type="button" hidden></button></p>
+        <p><button id="empty-open-btn" type="button">Open mbox files… (Ctrl+O)</button></p>
+        <!-- The remembered files, one button each (files.js); filled by main.js. -->
+        <p id="reopen-list" hidden></p>
       </div>
     </section>
 
@@ -135,6 +136,7 @@
     </footer>
 
     <script src="query.js"></script>
+    <script src="files.js"></script>
     <script src="main.js"></script>
   </body>
 </html>

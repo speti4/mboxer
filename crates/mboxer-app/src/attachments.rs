@@ -235,10 +235,15 @@ pub fn temp_root() -> PathBuf {
     std::env::temp_dir().join("mboxer")
 }
 
-/// Writes the attachment under its own temporary folder (one per message and
-/// part, so equal names never clash) and returns the file's path.
-pub fn write_temp(offset: u64, index: usize, attachment: &AttachmentBytes) -> io::Result<PathBuf> {
-    let dir = temp_root().join(format!("{offset}-{index}"));
+/// Writes the attachment under its own temporary folder (one per open file,
+/// message and part, so equal names never clash) and returns the file's path.
+pub fn write_temp(
+    file: u32,
+    offset: u64,
+    index: usize,
+    attachment: &AttachmentBytes,
+) -> io::Result<PathBuf> {
+    let dir = temp_root().join(format!("{file}-{offset}-{index}"));
     fs::create_dir_all(&dir)?;
     let path = dir.join(&attachment.file_name);
     write_with_motw(&path, &attachment.bytes)?;
@@ -415,10 +420,10 @@ mod tests {
             content_type: "text/plain".to_owned(),
             bytes: b"hello".to_vec(),
         };
-        let path = write_temp(u64::MAX, 7, &attachment).unwrap();
+        let path = write_temp(1, u64::MAX, 7, &attachment).unwrap();
         assert!(path.starts_with(temp_root()));
         assert_eq!(fs::read(&path).unwrap(), b"hello");
-        assert_eq!(write_temp(u64::MAX, 7, &attachment).unwrap(), path);
+        assert_eq!(write_temp(1, u64::MAX, 7, &attachment).unwrap(), path);
         fs::remove_dir_all(path.parent().unwrap()).unwrap();
     }
 }

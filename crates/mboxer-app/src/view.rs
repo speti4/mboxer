@@ -34,6 +34,7 @@ pub fn message_view(raw: &RawMessage, message: &Message<'_>) -> MessageView {
     };
     let parts = text_parts(message);
     MessageView {
+        file: 0,
         offset: raw.offset,
         len: raw.len,
         date: summary.date_unix,
@@ -87,6 +88,7 @@ pub fn unescape_from_lines(text: &str) -> String {
 /// A message `mail-parser` could not parse: identity plus its raw bytes.
 fn raw_view(raw: &RawMessage) -> MessageView {
     MessageView {
+        file: 0,
         offset: raw.offset,
         len: raw.len,
         date: None,

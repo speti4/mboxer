@@ -10,6 +10,8 @@
   // The theme preference (theme.js, loaded in <head> so the override is on
   // <html> before the first paint); the button and the title bar are wired here.
   const Theme = window.MboxerTheme;
+  // The remembered files (files.js): the pane order and the active one.
+  const Files = window.MboxerFiles;
 
   const ROW_H = 28;
   const BLOCK = 200;
@@ -19,7 +21,8 @@
   const SEARCH_DEBOUNCE_MS = 150;
   // Bodies longer than this are shown without highlighting.
   const MAX_HIGHLIGHT_CHARS = 2_000_000;
-  const STORAGE_LAST_PATH = "mboxer.lastPath";
+  // A fresh index opens in well under this; the progress overlay waits for a build.
+  const OVERLAY_DELAY_MS = 400;
   const STORAGE_WIDTHS = "mboxer.paneWidths";
   const STORAGE_FILTERS_OPEN = "mboxer.filtersOpen";
   const STORAGE_BODY_MODE = "mboxer.bodyMode";
@@ -37,7 +40,7 @@
     "msg-html", "msg-parts-list", "view-html", "view-text",
     "view-source", "copy-btn", "save-eml-btn", "print-btn", "print-frame", "remote-bar", "remote-text",
     "remote-allow", "empty", "empty-open-btn",
-    "reopen-btn", "error", "error-path", "error-text", "retry-btn", "error-open-btn", "overlay",
+    "reopen-list", "error", "error-path", "error-text", "retry-btn", "error-open-btn", "overlay",
     "overlay-title", "overlay-path", "progress", "progress-text", "cancel-btn", "status-left",
     "status-center", "status-right", "status-version",
   ]) {
@@ -63,7 +66,10 @@
   }
 
   const state = {
-    file: null, // OpenSummary of the open file
+    file: null, // OpenSummary of the active file: the one the list, the search and the reader show
+    files: [], // FileInfo[] of every open file, from the last summary (task 016)
+    remembered: Files.empty(), // { paths, active }: the pane order, loaded or not; saved by files.js
+    fileQueries: new Map(), // path key -> { text, sort } of a file that is open but not active
     generation: 0,
     total: 0, // visible rows
     messages: 0, // matching messages behind the rows
@@ -94,8 +100,10 @@
     parsed: Query.parse(""), // the operators and the free text of query.text (syncFromText)
     labelIndex: new Map(), // every node of the label tree by key, collapsed ones included
     labelKeys: new Map(), // label name or container path → node key
-    lastPath: null,
-    opening: null, // { path, startedAt }
+    errorPath: null, // the path behind the error screen's Retry
+    batch: false, // an open_mbox call is in flight (until its `done`)
+    opening: null, // { path, startedAt, position, count } of the file being opened
+    overlayTimer: 0,
     readTimer: 0,
     readToken: 0,
     renderQueued: false,
@@ -429,82 +437,162 @@
   }
 
   // ---------- open flow ----------
+  //
+  // Several files can be open at once; one is active (task 016, D-06). `paths`
+  // is a list, or null for the native dialog (several files allowed). The
+  // backend adds the files to its set, one after the other, and reports each
+  // on the channel; with `activate` the first of them becomes the active file.
 
-  async function openMbox(path) {
-    if (state.opening) return;
+  async function openMbox(paths, { activate = true } = {}) {
+    if (state.batch) return;
+    state.batch = true;
     const channel = new Channel();
     channel.onmessage = handleOpenEvent;
     try {
       await invoke("open_mbox", {
-        path: path || null,
+        paths: paths || null,
         groupThreads: groupThreadsPref(),
+        activate,
         onEvent: channel,
       });
     } catch (err) {
-      showFailure(path || "", String(err));
+      showFailure(paths && paths[0] ? paths[0] : "", String(err));
+      finishBatch();
+    } finally {
+      state.batch = false;
     }
   }
 
   function handleOpenEvent(message) {
     switch (message.event) {
-      case "opening":
-        state.opening = { path: message.data.path, startedAt: performance.now() };
-        el.overlayTitle.textContent = "Opening…";
-        el.overlayPath.textContent = message.data.path;
+      case "opening": {
+        const { path, position, count } = message.data;
+        state.opening = { path, position, count, startedAt: performance.now() };
+        el.overlayTitle.textContent = count > 1 ? `Opening file ${position} of ${count}…` : "Opening…";
+        el.overlayPath.textContent = path;
         el.progress.removeAttribute("value");
         el.progressText.textContent = "Checking the index…";
-        el.overlay.hidden = false;
+        showOverlaySoon();
         break;
+      }
       case "building": {
         const { bytes, totalBytes, messages } = message.data;
-        const elapsed = (performance.now() - state.opening.startedAt) / 1000;
+        const startedAt = state.opening ? state.opening.startedAt : performance.now();
+        const elapsed = (performance.now() - startedAt) / 1000;
         const rate = elapsed > 0 ? bytes / 1e6 / elapsed : 0;
-        el.overlayTitle.textContent = "Building the search index…";
+        const { position = 1, count = 1 } = state.opening || {};
+        el.overlayTitle.textContent =
+          count > 1 ? `Building the search index (file ${position} of ${count})…` : "Building the search index…";
         if (totalBytes > 0) el.progress.value = bytes / totalBytes;
         el.progressText.textContent =
           `${formatBytes(bytes)} of ${formatBytes(totalBytes)} · ${fmt(messages)} messages · ${rate.toFixed(0)} MB/s`;
+        showOverlayNow();
         break;
       }
       case "ready":
-        state.opening = null;
-        el.overlay.hidden = true;
-        showFile(message.data.summary);
+        addFile(message.data.summary);
         break;
       case "cancelled":
-        state.opening = null;
-        el.overlay.hidden = true;
-        if (!state.file) setView("empty");
+        if (state.file) flashStatus("Open cancelled");
         break;
-      case "failed": {
-        const path = state.opening ? state.opening.path : "";
-        state.opening = null;
-        el.overlay.hidden = true;
-        showFailure(path, message.data.message);
+      case "failed":
+        showFailure(message.data.path, message.data.message);
         break;
-      }
+      case "done":
+        finishBatch();
+        break;
       default:
         break;
     }
   }
 
+  // The overlay appears for a build at once, for a mere index check only when
+  // it drags on: reopening the remembered files at start-up must not flicker.
+  function showOverlaySoon() {
+    if (!el.overlay.hidden || state.overlayTimer) return;
+    state.overlayTimer = setTimeout(() => {
+      state.overlayTimer = 0;
+      if (state.opening) el.overlay.hidden = false;
+    }, OVERLAY_DELAY_MS);
+  }
+
+  function showOverlayNow() {
+    clearTimeout(state.overlayTimer);
+    state.overlayTimer = 0;
+    el.overlay.hidden = false;
+  }
+
+  function hideOverlay() {
+    clearTimeout(state.overlayTimer);
+    state.overlayTimer = 0;
+    el.overlay.hidden = true;
+  }
+
+  function finishBatch() {
+    state.opening = null;
+    hideOverlay();
+    renderReopenList();
+    if (!state.file && document.body.dataset.view !== "error") setView("empty");
+  }
+
   function showFailure(path, text) {
     if (state.file) {
-      el.statusRight.textContent = `Open failed: ${text}`;
-      el.statusRight.className = "error";
+      flashStatus(`Open failed: ${text}`, "error", SAVED_FLASH_MS);
       el.statusRight.title = path;
       return;
     }
     el.errorPath.textContent = path;
     el.errorText.textContent = text;
     el.retryBtn.hidden = !path;
-    state.lastPath = path || state.lastPath;
+    state.errorPath = path || state.errorPath;
     setView("error");
   }
 
-  function showFile(summary) {
+  // A file the backend reports open: into the pane, and into the list, the
+  // search and the reader when the backend made it the active one.
+  function addFile(summary) {
+    const known = state.files.some((info) => info.id === summary.id);
+    state.files = summary.files;
+    state.remembered = Files.remember(state.remembered, summary.path);
+    const me = summary.files.find((info) => info.id === summary.id);
+    if (me && me.active && state.file && state.file.id === summary.id) {
+      // The active file opened again (picked once more in the dialog): the
+      // pane and the listing's generation are new, the query stays as typed.
+      persistFiles();
+      renderFolders();
+      applyQuery();
+    } else if (me && me.active) {
+      // A file just loaded lists all its mail already; a re-listed one may
+      // hold an older query, so it is queried again like a switch.
+      activateFile(summary, { fresh: !known });
+    } else {
+      persistFiles();
+      renderFolders();
+    }
+  }
+
+  function persistFiles() {
+    Files.write(state.remembered);
+  }
+
+  // The key `fileQueries` uses for a file; two spellings of one path share it.
+  function queryKey(path) {
+    return path.replace(/\//g, "\\").toLowerCase();
+  }
+
+  // Makes `summary` the file the list, the search and the reader show. The
+  // previously active file keeps its query for its next turn. A `fresh`
+  // summary (a file just loaded) carries its listing; any other file is
+  // queried again, so the list follows the restored query and today's view mode.
+  function activateFile(summary, { fresh = false } = {}) {
+    if (state.file && state.file.id !== summary.id) {
+      state.fileQueries.set(queryKey(state.file.path), { text: state.query.text, sort: state.query.sort });
+    }
+    const switching = Boolean(state.file) && state.file.id !== summary.id;
     state.file = summary;
-    state.lastPath = summary.path;
-    storageSet(STORAGE_LAST_PATH, summary.path);
+    state.files = summary.files;
+    state.remembered = Files.setActive(state.remembered, summary.path);
+    persistFiles();
     el.fileName.textContent = summary.fileName;
     el.fileName.title = summary.path;
     el.fileName.classList.remove("muted");
@@ -514,15 +602,124 @@
     showWarnings([]);
     indexLabelTree();
     resetQueryModel();
+    const saved = state.fileQueries.get(queryKey(summary.path));
+    if (saved) {
+      state.fileQueries.delete(queryKey(summary.path));
+      el.search.value = saved.text;
+      state.query.text = saved.text;
+      state.query.sort = saved.sort;
+      el.fSort.value = saved.sort;
+      syncFromText();
+      updateFilterBadge();
+    }
     state.foldersCollapsed.clear();
     renderFolders();
+    // The backend's current listing of the file first (it stamped a new
+    // generation, so the pages of the previous file are stale) …
     state.messages = summary.messages;
     state.conversations = summary.conversations;
     resetListing(summary.generation, summary.total);
+    // … then, unless the file was just loaded and lists all its mail, the
+    // restored query, which also brings the listing to today's view mode.
+    if (switching || !fresh || saved) applyQuery();
     setView("ready");
     // The panes had no height while hidden; lay the list out again now that they do.
     scheduleRender();
     el.list.focus();
+  }
+
+  // Switches to open file `id` (a click on its row in the pane).
+  async function switchFile(id) {
+    if (state.file && state.file.id === id) return;
+    try {
+      const summary = await invoke("activate_file", { file: id });
+      activateFile(summary);
+    } catch (err) {
+      flashStatus(`Could not switch: ${err}`, "error");
+    }
+  }
+
+  // Closes open file `id`; the backend names the file that is active afterwards.
+  async function closeFile(id) {
+    const info = state.files.find((candidate) => candidate.id === id);
+    let summary;
+    try {
+      summary = await invoke("close_file", { file: id });
+    } catch (err) {
+      flashStatus(`Could not close: ${err}`, "error");
+      return;
+    }
+    if (info) {
+      state.remembered = Files.forget(state.remembered, info.path);
+      state.fileQueries.delete(queryKey(info.path));
+    }
+    if (!summary) {
+      showNoFile();
+      return;
+    }
+    if (state.file && state.file.id === summary.id) {
+      state.files = summary.files;
+      state.remembered = Files.setActive(state.remembered, summary.path);
+      persistFiles();
+      renderFolders();
+    } else {
+      activateFile(summary);
+    }
+  }
+
+  // Forgets a remembered file that is not loaded (its row's × in the pane).
+  function forgetFile(path) {
+    state.remembered = Files.forget(state.remembered, path);
+    state.fileQueries.delete(queryKey(path));
+    persistFiles();
+    renderFolders();
+    renderReopenList();
+  }
+
+  // The last file was closed: back to the empty screen.
+  function showNoFile() {
+    state.file = null;
+    state.files = [];
+    state.remembered = Files.setActive(state.remembered, null);
+    persistFiles();
+    clearReader();
+    state.blocks.clear();
+    state.pending.clear();
+    state.selected = -1;
+    state.selectedOffset = null;
+    state.total = 0;
+    el.spacer.style.height = "0px";
+    render();
+    el.fileName.textContent = "No file open";
+    el.fileName.title = "";
+    el.fileName.classList.add("muted");
+    document.title = "mboxer";
+    el.statusLeft.textContent = "";
+    el.statusLeft.title = "";
+    el.statusCenter.textContent = "";
+    el.search.value = "";
+    el.search.disabled = true;
+    el.filtersBtn.disabled = true;
+    showWarnings([]);
+    renderFolders();
+    renderReopenList();
+    setView("empty");
+  }
+
+  // The empty screen's buttons: one per remembered file.
+  function renderReopenList() {
+    const paths = state.remembered.paths;
+    el.reopenList.replaceChildren(
+      ...paths.map((path) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.textContent = `Reopen ${Files.fileName(path)}`;
+        button.title = path;
+        button.addEventListener("click", () => openMbox([path]));
+        return button;
+      }),
+    );
+    el.reopenList.hidden = paths.length === 0;
   }
 
   function indexStateText(index) {
@@ -664,7 +861,7 @@
     const input = queryInput();
     const terms = Query.highlightTerms(state.query.text);
     try {
-      const info = await invoke("set_query", { query: input });
+      const info = await invoke("set_query", { file: state.file.id, query: input });
       if (token !== state.queryToken) return;
       state.highlightTerms = terms;
       state.messages = info.messages;
@@ -858,28 +1055,95 @@
       .join("/");
   }
 
+  // The pane: one root row per remembered file, in the remembered order (an
+  // open file the storage forgot is appended); under the active one its
+  // "All mail" and its label tree, one level in. The other files stay folded.
   function renderFolders() {
     el.folders.replaceChildren();
     state.folderNodes.clear();
+    const paths = state.remembered.paths.slice();
+    for (const info of state.files) {
+      if (!paths.some((path) => Files.samePath(path, info.path))) paths.push(info.path);
+    }
+    for (const path of paths) {
+      const info = state.files.find((candidate) => Files.samePath(candidate.path, path)) || null;
+      const active = Boolean(info && state.file && info.id === state.file.id);
+      el.folders.appendChild(fileItem(path, info, active));
+      if (active) renderLabels(1);
+    }
+    updateFolderSelection();
+  }
+
+  function renderLabels(depth) {
     const allMail = { name: "All mail", label: null, count: state.file.messageCount, total: 0, labels: [], children: [] };
-    el.folders.appendChild(folderItem(allMail, null, 0));
+    el.folders.appendChild(folderItem(allMail, null, depth));
     if (state.file.labels.length > 0) {
       const separator = document.createElement("div");
       separator.className = "folder-separator";
       el.folders.appendChild(separator);
     }
-    const walk = (nodes, parentKey, depth) => {
+    const walk = (nodes, parentKey, level) => {
       for (const node of nodes) {
         const key = nodeKey(node, parentKey);
         state.folderNodes.set(key, node);
-        el.folders.appendChild(folderItem(node, key, depth));
+        el.folders.appendChild(folderItem(node, key, level));
         if (node.children.length > 0 && !state.foldersCollapsed.has(key)) {
-          walk(node.children, key, depth + 1);
+          walk(node.children, key, level + 1);
         }
       }
     };
-    walk(state.file.labels, null, 0);
-    updateFolderSelection();
+    walk(state.file.labels, null, depth);
+  }
+
+  // A file's root row. Loaded: a click makes it active (or, when it is,
+  // selects its All mail); its × closes it. Not loaded (the index needs a
+  // build, or the file was remembered and not reopened yet): a click opens it,
+  // its × only forgets it.
+  function fileItem(path, info, active) {
+    const item = document.createElement("div");
+    item.className = "folder root";
+    if (active) item.classList.add("active");
+    if (!info) item.classList.add("unloaded");
+    item.setAttribute("role", "option");
+    item.setAttribute("aria-selected", "false");
+    item.dataset.path = path;
+    if (info) item.dataset.file = String(info.id);
+    item.style.setProperty("--depth", "0");
+    item.title = info ? path : `${path}\nNot loaded: click to open (the search index may need a build)`;
+    const twisty = document.createElement("span");
+    twisty.className = "twisty";
+    twisty.textContent = active ? "▾" : "▸";
+    const nameSpan = document.createElement("span");
+    nameSpan.className = "folder-name";
+    nameSpan.textContent = Files.fileName(path);
+    const countSpan = document.createElement("span");
+    countSpan.className = "folder-count";
+    countSpan.textContent = info ? fmt(info.messageCount) : "";
+    const close = document.createElement("button");
+    close.type = "button";
+    close.className = "close-file";
+    close.textContent = "×";
+    close.title = info ? "Close this file" : "Remove this file from the list";
+    close.setAttribute("aria-label", close.title);
+    close.addEventListener("click", (event) => {
+      event.stopPropagation();
+      if (info) closeFile(info.id);
+      else forgetFile(path);
+    });
+    item.append(twisty, nameSpan, countSpan, close);
+    item.addEventListener("click", () => rootAction(item));
+    return item;
+  }
+
+  // What a click (or the keyboard) does on a file's root row.
+  function rootAction(item) {
+    if (item.classList.contains("unloaded")) {
+      openMbox([item.dataset.path]);
+    } else if (item.classList.contains("active")) {
+      selectLabel(null);
+    } else {
+      switchFile(Number(item.dataset.file));
+    }
   }
 
   function folderItem(node, key, depth) {
@@ -922,7 +1186,7 @@
 
   function updateFolderSelection() {
     for (const item of el.folders.children) {
-      if (!item.classList.contains("folder")) continue;
+      if (!item.classList.contains("folder") || item.classList.contains("root")) continue;
       const label = item.dataset.label === "" ? null : item.dataset.label;
       item.setAttribute("aria-selected", label === state.parsed.label ? "true" : "false");
     }
@@ -936,11 +1200,22 @@
 
   function folderIndexOf(label) {
     const items = folderItems();
-    return items.findIndex((item) => (item.dataset.label === "" ? null : item.dataset.label) === label);
+    return items.findIndex(
+      (item) => !item.classList.contains("root") && (item.dataset.label === "" ? null : item.dataset.label) === label,
+    );
   }
 
+  // The rows the keyboard walks: the label rows and the other loaded files'
+  // roots (an arrow onto one switches). The active file's own root is passed
+  // over, its All mail row stands for it; a file that is not loaded is skipped
+  // too, an arrow key must not start a build.
   function folderItems() {
-    return Array.from(el.folders.children).filter((item) => item.classList.contains("folder"));
+    return Array.from(el.folders.children).filter(
+      (item) =>
+        item.classList.contains("folder") &&
+        !item.classList.contains("unloaded") &&
+        !item.classList.contains("active"),
+    );
   }
 
   el.folders.addEventListener("keydown", (event) => {
@@ -969,8 +1244,12 @@
       return;
     } else return;
     event.preventDefault();
-    const label = items[index].dataset.label === "" ? null : items[index].dataset.label;
     items[index].scrollIntoView({ block: "nearest" });
+    if (items[index].classList.contains("root")) {
+      rootAction(items[index]);
+      return;
+    }
+    const label = items[index].dataset.label === "" ? null : items[index].dataset.label;
     selectLabel(label);
   });
 
@@ -996,7 +1275,7 @@
     if (keepOffset != null && total > 0) {
       let info = null;
       try {
-        info = await invoke("position_of", { offset: keepOffset });
+        info = await invoke("position_of", { file: state.file.id, offset: keepOffset });
       } catch (_) {
         info = null;
       }
@@ -1049,10 +1328,10 @@
   }
 
   function requestBlock(block) {
-    if (state.blocks.has(block) || state.pending.has(block)) return;
+    if (!state.file || state.blocks.has(block) || state.pending.has(block)) return;
     const generation = state.generation;
     const layout = state.layout;
-    const promise = invoke("list_rows", { start: block * BLOCK, count: BLOCK })
+    const promise = invoke("list_rows", { file: state.file.id, start: block * BLOCK, count: BLOCK })
       .then((page) => {
         if (state.pending.get(block) === promise) state.pending.delete(block);
         if (page.generation !== state.generation || generation !== state.generation) return;
@@ -1122,7 +1401,7 @@
     const generation = state.generation;
     let info;
     try {
-      info = await invoke("toggle_thread", { generation, row });
+      info = await invoke("toggle_thread", { file: state.file.id, generation, row });
     } catch (err) {
       console.error("toggle_thread failed", err);
       return;
@@ -1242,7 +1521,7 @@
     if (data.offset === state.selectedOffset) return;
     const token = ++state.readToken;
     try {
-      const view = await invoke("read_message", { offset: data.offset, len: data.len });
+      const view = await invoke("read_message", { file: state.file.id, offset: data.offset, len: data.len });
       if (token !== state.readToken || state.selected !== index) return;
       state.selectedOffset = data.offset;
       state.view = view;
@@ -1409,7 +1688,7 @@
 
   function attachmentItem(view, attachment) {
     const name = attachmentName(attachment);
-    const args = { offset: view.offset, len: view.len, index: attachment.index };
+    const args = { file: view.file, offset: view.offset, len: view.len, index: attachment.index };
     const item = document.createElement("li");
     item.className = "attachment-item";
 
@@ -1476,7 +1755,7 @@
     runAttachmentAction(
       el.saveAllBtn,
       "save_all_attachments",
-      { offset: view.offset, len: view.len },
+      { file: view.file, offset: view.offset, len: view.len },
       (report) => {
         if (report) {
           const files = report.saved === 1 ? "1 file" : `${report.saved} files`;
@@ -1521,7 +1800,7 @@
       if (!attachment) continue;
       let pending = state.cidUrls.get(attachment.index);
       if (!pending) {
-        pending = invoke("read_part", { offset, len: view.len, index: attachment.index }).then((bytes) => {
+        pending = invoke("read_part", { file: view.file, offset, len: view.len, index: attachment.index }).then((bytes) => {
           const url = URL.createObjectURL(new Blob([bytes], { type: attachment.contentType }));
           state.blobUrls.push(url);
           return url;
@@ -1606,7 +1885,7 @@
     }
     el.msgBody.textContent = "Reading the source…";
     const offset = view.offset;
-    invoke("read_source", { offset, len: view.len })
+    invoke("read_source", { file: view.file, offset, len: view.len })
       .then((text) => {
         if (!state.view || state.view.offset !== offset) return;
         state.source = { offset, text };
@@ -1848,7 +2127,7 @@
     runAttachmentAction(
       el.saveEmlBtn,
       "save_message_eml",
-      { offset: view.offset, len: view.len },
+      { file: view.file, offset: view.offset, len: view.len },
       (path) => {
         if (path) flashStatus(`Saved ${path}`, "", SAVED_FLASH_MS);
       },
@@ -1916,8 +2195,9 @@
   el.openBtn.addEventListener("click", () => openMbox(null));
   el.emptyOpenBtn.addEventListener("click", () => openMbox(null));
   el.errorOpenBtn.addEventListener("click", () => openMbox(null));
-  el.retryBtn.addEventListener("click", () => openMbox(state.lastPath));
-  el.reopenBtn.addEventListener("click", () => openMbox(state.lastPath));
+  el.retryBtn.addEventListener("click", () => {
+    if (state.errorPath) openMbox([state.errorPath]);
+  });
   el.cancelBtn.addEventListener("click", () => {
     el.cancelBtn.disabled = true;
     invoke("cancel_open").finally(() => {
@@ -1965,26 +2245,57 @@
     }
   }
 
+  // The remembered files come back at start-up: those whose index is fresh are
+  // reopened (the one that was active first, so it is active again), a file
+  // whose index needs a build waits in the pane until clicked, a file that is
+  // gone leaves the list. The command-line path comes last and takes over.
+  async function restoreFiles(initial) {
+    const remembered = state.remembered;
+    const statuses = await Promise.all(
+      remembered.paths.map((path) => invoke("index_status", { path }).catch(() => ({ state: "stale" }))),
+    );
+    const fresh = [];
+    let gone = 0;
+    remembered.paths.forEach((path, at) => {
+      if (statuses[at].state === "noFile") {
+        state.remembered = Files.forget(state.remembered, path);
+        gone++;
+      } else if (statuses[at].state === "fresh") {
+        if (remembered.active && Files.samePath(path, remembered.active)) fresh.unshift(path);
+        else fresh.push(path);
+      }
+    });
+    if (gone > 0) persistFiles();
+    if (fresh.length > 0) await openMbox(fresh);
+    if (initial) await openMbox([initial]);
+    renderReopenList();
+    if (state.file) {
+      renderFolders();
+      if (gone > 0) {
+        // After the first listing has settled its own status text.
+        const text = gone === 1 ? "1 remembered file is gone" : `${gone} remembered files are gone`;
+        setTimeout(() => flashStatus(text, "warn", SAVED_FLASH_MS), OVERLAY_DELAY_MS);
+      }
+    } else if (document.body.dataset.view !== "error") {
+      setView("empty");
+    }
+  }
+
   async function start() {
     loadWidths();
     setTheme(Theme.read());
     showVersion();
     setFiltersOpen(storageGet(STORAGE_FILTERS_OPEN) === "1");
     if (storageGet(STORAGE_BODY_MODE) === "text") state.bodyMode = "text";
-    state.lastPath = storageGet(STORAGE_LAST_PATH);
-    if (state.lastPath) {
-      const name = state.lastPath.split(/[\\/]/).pop();
-      el.reopenBtn.textContent = `Reopen ${name}`;
-      el.reopenBtn.title = state.lastPath;
-      el.reopenBtn.hidden = false;
-    }
+    state.remembered = Files.read();
+    renderReopenList();
     let initial = null;
     try {
       initial = await invoke("initial_path");
     } catch (_) {
       initial = null;
     }
-    if (initial) openMbox(initial);
+    await restoreFiles(initial);
   }
 
   start();

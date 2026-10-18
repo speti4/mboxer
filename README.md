@@ -32,6 +32,9 @@ mbox through a file dialog or from its first argument, builds the sidecar index 
 (with progress and a cancel button) and reuses it afterwards, then shows the archive in three
 panes: the Gmail label tree with counts, the message list (newest first, virtualised, so a
 100 000-message archive scrolls like a short one) and a reader with the headers and the body.
+Several mbox files can be open side by side (a split Takeout export, more than one export): each is
+a row at the top of the folder pane, one is active at a time, and the open set is remembered
+across starts (D-06).
 
 Labels: the folder pane shows the Gmail labels as a tree (`Work/Clients` sits under `Work`, the
 Takeout `Category …` labels sit under *Categories*, the system labels come first), each with the

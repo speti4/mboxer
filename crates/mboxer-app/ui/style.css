@@ -349,6 +349,65 @@ body:not([data-view="ready"]) .panes {
   background: var(--border);
 }
 
+/* The open files (task 016): one root row each, the active one expanded above its labels. */
+
+.folder.root {
+  margin-top: 6px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+  font-weight: 600;
+}
+
+.folder.root:first-child {
+  margin-top: 0;
+  padding-top: 4px;
+  border-top: 0;
+}
+
+.folder.root.active .folder-name {
+  color: var(--accent);
+}
+
+.folder.root.unloaded {
+  color: var(--muted);
+  font-weight: 400;
+  font-style: italic;
+}
+
+.close-file {
+  flex: 0 0 auto;
+  margin-left: 4px;
+  padding: 0 4px;
+  border: 0;
+  border-radius: 3px;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  visibility: hidden;
+}
+
+.folder.root:hover .close-file,
+.folder.root:focus-within .close-file {
+  visibility: visible;
+}
+
+.close-file:hover {
+  color: var(--error);
+  background: var(--bg);
+}
+
+#reopen-list button {
+  display: block;
+  margin: 6px auto;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* Virtualised message list */
 
 #list {

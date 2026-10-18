@@ -5,8 +5,9 @@ use serde::{Deserialize, Serialize};
 
 use crate::attachments::{open_blocked, safe_file_name};
 
-/// Progress of `open_mbox`, streamed over a channel; the last event is
-/// `Ready`, `Cancelled` or `Failed`.
+/// Progress of `open_mbox`, streamed over a channel. Every file of the batch
+/// gets `Opening`, then `Building` while its index is built, then `Ready` or
+/// `Failed`; `Cancelled` ends the batch early; `Done` is always the last event.
 #[derive(Debug, Clone, Serialize)]
 #[serde(
     rename_all = "camelCase",
@@ -17,6 +18,9 @@ use crate::attachments::{open_blocked, safe_file_name};
 pub enum OpenEvent {
     Opening {
         path: String,
+        /// 1-based place of this file in the batch, and the batch size.
+        position: usize,
+        count: usize,
     },
     Building {
         bytes: u64,
@@ -28,14 +32,44 @@ pub enum OpenEvent {
     },
     Cancelled,
     Failed {
+        path: String,
         message: String,
     },
+    Done,
 }
 
-/// What the UI needs once a file is open.
+/// One row of the file list in the folder pane.
+#[derive(Debug, Clone, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct FileInfo {
+    /// The id the commands take; valid for this process only (D-06).
+    pub id: u32,
+    pub path: String,
+    pub file_name: String,
+    pub message_count: u64,
+    pub index: IndexState,
+    /// The file whose list, search and reader the webview shows.
+    pub active: bool,
+}
+
+/// Whether the sidecar index of a file can be reused without a build.
+#[derive(Debug, Clone, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase", tag = "state")]
+pub enum IndexStatusInfo {
+    Fresh,
+    Stale,
+    Missing,
+    /// The mbox itself is not there (moved, unplugged drive).
+    NoFile,
+}
+
+/// What the UI needs once a file is open: the file itself and, from
+/// `OpenFiles::summary`, the whole set for the pane.
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct OpenSummary {
+    pub id: u32,
+    pub files: Vec<FileInfo>,
     pub path: String,
     pub file_name: String,
     pub message_count: u64,
@@ -231,6 +265,9 @@ pub struct RowsPage {
 #[derive(Debug, Clone, Serialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct MessageView {
+    /// The open file the message was read from; the attachment, source and
+    /// save commands take it back.
+    pub file: u32,
     pub offset: u64,
     pub len: u64,
     pub date: Option<i64>,
@@ -493,6 +530,48 @@ mod tests {
         );
         let cancelled = serde_json::to_value(OpenEvent::Cancelled).unwrap();
         assert_eq!(cancelled, serde_json::json!({"event": "cancelled"}));
+        let done = serde_json::to_value(OpenEvent::Done).unwrap();
+        assert_eq!(done, serde_json::json!({"event": "done"}));
+        let opening = serde_json::to_value(OpenEvent::Opening {
+            path: "a.mbox".to_owned(),
+            position: 2,
+            count: 3,
+        })
+        .unwrap();
+        assert_eq!(
+            opening,
+            serde_json::json!({"event": "opening", "data": {"path": "a.mbox", "position": 2, "count": 3}})
+        );
+        let failed = serde_json::to_value(OpenEvent::Failed {
+            path: "a.mbox".to_owned(),
+            message: "no".to_owned(),
+        })
+        .unwrap();
+        assert_eq!(
+            failed,
+            serde_json::json!({"event": "failed", "data": {"path": "a.mbox", "message": "no"}})
+        );
+        let info = FileInfo {
+            id: 3,
+            path: "D:\\m\\a.mbox".to_owned(),
+            file_name: "a.mbox".to_owned(),
+            message_count: 5,
+            index: IndexState::Reused { built_at_unix: 7 },
+            active: true,
+        };
+        assert_eq!(
+            serde_json::to_value(&info).unwrap(),
+            serde_json::json!({"id": 3, "path": "D:\\m\\a.mbox", "fileName": "a.mbox", "messageCount": 5,
+                "index": {"state": "reused", "builtAtUnix": 7}, "active": true})
+        );
+        assert_eq!(
+            serde_json::to_value(IndexStatusInfo::NoFile).unwrap(),
+            serde_json::json!({"state": "noFile"})
+        );
+        assert_eq!(
+            serde_json::to_value(IndexStatusInfo::Fresh).unwrap(),
+            serde_json::json!({"state": "fresh"})
+        );
         let reused = serde_json::to_value(IndexState::Reused { built_at_unix: 7 }).unwrap();
         assert_eq!(
             reused,

@@ -3,11 +3,13 @@
 //! The state mutex is never held across an `.await`: each command locks,
 //! copies what it needs, unlocks, then does the slow part.
 
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::sync::atomic::Ordering;
 
-use mboxer_core::{Error, Progress, SearchQuery, eml_bytes, parse, read_at, summarize};
+use mboxer_core::{
+    Error, IndexStatus, Progress, SearchQuery, eml_bytes, parse, read_at, status, summarize,
+};
 use tauri::ipc::{Channel, Response};
 use tauri::{AppHandle, Manager, State};
 use tauri_plugin_dialog::{DialogExt, FileDialogBuilder};
@@ -19,7 +21,8 @@ use crate::attachments::{
 };
 use crate::state::{AppState, OpenMbox};
 use crate::types::{
-    ListInfo, MessageView, OpenEvent, PositionInfo, QueryInput, RowsPage, SaveAllReport,
+    IndexStatusInfo, ListInfo, MessageView, OpenEvent, OpenSummary, PositionInfo, QueryInput,
+    RowsPage, SaveAllReport,
 };
 use crate::view::read_message_view;
 
@@ -38,15 +41,19 @@ pub fn app_version(app: AppHandle) -> String {
     app.package_info().version.to_string()
 }
 
-/// Opens `path`, or the file the user picks when `path` is `None`. Progress
-/// and the outcome arrive on `on_event`; the `Err` is only for a second open
-/// while one is running.
+/// Adds `paths` to the open files, or the files the user picks when `paths`
+/// is `None`, one after the other in file-name order. With `activate` the
+/// first file of the batch becomes the active one; a file that is already
+/// open is not loaded again, only re-listed (and activated). Progress and the
+/// outcome of every file arrive on `on_event`; the `Err` is only for a second
+/// open while one is running.
 #[tauri::command]
 pub async fn open_mbox(
     app: AppHandle,
     state: State<'_, AppState>,
-    path: Option<String>,
+    paths: Option<Vec<String>>,
     group_threads: bool,
+    activate: bool,
     on_event: Channel<OpenEvent>,
 ) -> Result<(), String> {
     if state
@@ -56,7 +63,7 @@ pub async fn open_mbox(
     {
         return Err("an open is already in progress".to_owned());
     }
-    let result = open_mbox_inner(app, &state, path, group_threads, on_event).await;
+    let result = open_mbox_inner(app, &state, paths, group_threads, activate, on_event).await;
     state.busy.store(false, Ordering::Release);
     result
 }
@@ -64,28 +71,93 @@ pub async fn open_mbox(
 async fn open_mbox_inner(
     app: AppHandle,
     state: &AppState,
-    path: Option<String>,
+    paths: Option<Vec<String>>,
     group_threads: bool,
+    activate: bool,
     on_event: Channel<OpenEvent>,
 ) -> Result<(), String> {
-    let path = match path {
-        Some(path) => PathBuf::from(path),
-        None => match pick_file(app).await? {
-            Some(path) => path,
+    // Given paths keep their order (the webview puts the file to activate
+    // first); a dialog pick comes in file-name order, as Takeout numbers its parts.
+    let mut paths: Vec<PathBuf> = match paths {
+        Some(paths) => paths.into_iter().map(PathBuf::from).collect(),
+        None => match pick_files(app).await? {
+            Some(mut paths) => {
+                paths.sort_by_key(|path| {
+                    (
+                        path.file_name().map(|name| name.to_os_string()),
+                        path.clone(),
+                    )
+                });
+                paths
+            }
             None => return Ok(()),
         },
     };
-    let _ = on_event.send(OpenEvent::Opening {
-        path: path.display().to_string(),
-    });
+    paths.dedup();
+    let count = paths.len();
+    let mut activate = activate;
+
+    for (at, path) in paths.into_iter().enumerate() {
+        let _ = on_event.send(OpenEvent::Opening {
+            path: path.display().to_string(),
+            position: at + 1,
+            count,
+        });
+        let event = match open_one(state, &path, group_threads, activate, &on_event).await {
+            Outcome::Ready(summary) => {
+                activate = false;
+                OpenEvent::Ready { summary }
+            }
+            Outcome::Cancelled => {
+                let _ = on_event.send(OpenEvent::Cancelled);
+                break;
+            }
+            Outcome::Failed(message) => OpenEvent::Failed {
+                path: path.display().to_string(),
+                message,
+            },
+        };
+        let _ = on_event.send(event);
+    }
+    let _ = on_event.send(OpenEvent::Done);
+    Ok(())
+}
+
+enum Outcome {
+    Ready(OpenSummary),
+    Cancelled,
+    Failed(String),
+}
+
+/// One file of the batch: already open → re-listed; otherwise loaded off the
+/// runtime threads and inserted. The lock is taken only around the insert.
+async fn open_one(
+    state: &AppState,
+    path: &Path,
+    group_threads: bool,
+    activate: bool,
+    on_event: &Channel<OpenEvent>,
+) -> Outcome {
+    let generation = state.generation.fetch_add(1, Ordering::AcqRel) + 1;
+    let already = state.files().id_of(path);
+    if let Some(id) = already {
+        let mut files = state.files();
+        if activate && files.activate(id, generation).is_err() {
+            return Outcome::Failed(crate::state::NOT_OPEN.to_owned());
+        }
+        return match files.summary(id) {
+            Ok(summary) => Outcome::Ready(summary),
+            Err(err) => Outcome::Failed(err),
+        };
+    }
 
     let cancel = Arc::clone(&state.cancel);
     cancel.store(false, Ordering::Release);
     let started = std::time::Instant::now();
-    let generation = state.generation.fetch_add(1, Ordering::AcqRel) + 1;
     let progress = on_event.clone();
+    let owned = path.to_path_buf();
     let loaded = tauri::async_runtime::spawn_blocking(move || {
-        OpenMbox::load(&path, &cancel, generation, group_threads, |p: Progress| {
+        OpenMbox::load(&owned, &cancel, generation, group_threads, |p: Progress| {
             let _ = progress.send(OpenEvent::Building {
                 bytes: p.bytes,
                 total_bytes: p.total_bytes,
@@ -95,54 +167,58 @@ async fn open_mbox_inner(
     })
     .await;
 
-    let event = match loaded {
+    match loaded {
         Ok(Ok(open)) => {
-            let summary = open.summary();
             eprintln!(
                 "opened {}: {} messages, {:?}, {} ms",
-                summary.file_name,
-                summary.message_count,
-                summary.index,
+                open.path.display(),
+                open.index.message_count(),
+                open.index_state,
                 started.elapsed().as_millis()
             );
-            *state.open() = Some(open);
-            OpenEvent::Ready { summary }
+            let mut files = state.files();
+            let id = files.insert(open);
+            if activate {
+                let _ = files.activate(id, generation);
+            }
+            match files.summary(id) {
+                Ok(summary) => Outcome::Ready(summary),
+                Err(err) => Outcome::Failed(err),
+            }
         }
         Ok(Err(Error::Cancelled)) => {
             eprintln!("open cancelled");
-            OpenEvent::Cancelled
+            Outcome::Cancelled
         }
         Ok(Err(err)) => {
             eprintln!("open failed: {err}");
-            OpenEvent::Failed {
-                message: err.to_string(),
-            }
+            Outcome::Failed(err.to_string())
         }
-        Err(err) => OpenEvent::Failed {
-            message: format!("the open task failed: {err}"),
-        },
-    };
-    let _ = on_event.send(event);
-    Ok(())
+        Err(err) => Outcome::Failed(format!("the open task failed: {err}")),
+    }
 }
 
-/// The native open dialog, off the async runtime's threads.
-async fn pick_file(app: AppHandle) -> Result<Option<PathBuf>, String> {
+/// The native open dialog (several files allowed), off the async runtime's threads.
+async fn pick_files(app: AppHandle) -> Result<Option<Vec<PathBuf>>, String> {
     let picked = tauri::async_runtime::spawn_blocking(move || {
         app.dialog()
             .file()
-            .set_title("Open mbox")
+            .set_title("Open mbox files")
             .add_filter("mbox archives", &["mbox"])
             .add_filter("All files", &["*"])
-            .blocking_pick_file()
+            .blocking_pick_files()
     })
     .await
     .map_err(|err| format!("the file dialog failed: {err}"))?;
     match picked {
-        Some(file) => file
-            .into_path()
-            .map(Some)
-            .map_err(|err| format!("unusable path from the dialog: {err}")),
+        Some(files) => files
+            .into_iter()
+            .map(|file| {
+                file.into_path()
+                    .map_err(|err| format!("unusable path from the dialog: {err}"))
+            })
+            .collect::<Result<Vec<_>, _>>()
+            .map(Some),
         None => Ok(None),
     }
 }
@@ -153,17 +229,62 @@ pub fn cancel_open(state: State<'_, AppState>) {
     state.cancel.store(true, Ordering::Release);
 }
 
+/// Whether the index of the mbox at `path` can be reused as it is: the
+/// webview reopens remembered files at start-up only when it can, and shows
+/// the others as not loaded (D-06). Cheap: a fingerprint sample, no build.
+#[tauri::command]
+pub async fn index_status(path: String) -> Result<IndexStatusInfo, String> {
+    blocking(move || {
+        let path = PathBuf::from(path);
+        if !path.is_file() {
+            return Ok(IndexStatusInfo::NoFile);
+        }
+        match status(&path).map_err(|err| err.to_string())? {
+            IndexStatus::Fresh(_) => Ok(IndexStatusInfo::Fresh),
+            IndexStatus::Stale(_) => Ok(IndexStatusInfo::Stale),
+            IndexStatus::Missing => Ok(IndexStatusInfo::Missing),
+        }
+    })
+    .await
+}
+
+/// Makes `file` the one the list, the search and the reader show; its
+/// listing gets a new generation. The summary carries the whole set.
+#[tauri::command]
+pub fn activate_file(state: State<'_, AppState>, file: u32) -> Result<OpenSummary, String> {
+    let generation = state.generation.fetch_add(1, Ordering::AcqRel) + 1;
+    let mut files = state.files();
+    files.activate(file, generation)?;
+    files.summary(file)
+}
+
+/// Removes `file` from the set. The summary of the file that is active
+/// afterwards comes back; `None` when no file is left.
+#[tauri::command]
+pub fn close_file(state: State<'_, AppState>, file: u32) -> Result<Option<OpenSummary>, String> {
+    let generation = state.generation.fetch_add(1, Ordering::AcqRel) + 1;
+    let mut files = state.files();
+    let was_active = files.active_id() == Some(file);
+    let Some(active) = files.close(file)? else {
+        return Ok(None);
+    };
+    if was_active {
+        files.activate(active, generation)?;
+    }
+    files.summary(active).map(Some)
+}
+
 /// Replaces the listing behind the message list. The search runs off the
 /// main thread: a sync command would block the webview while a relevance
 /// query scores every message of a large archive.
 #[tauri::command]
-pub async fn set_query(app: AppHandle, query: QueryInput) -> Result<ListInfo, String> {
+pub async fn set_query(app: AppHandle, file: u32, query: QueryInput) -> Result<ListInfo, String> {
     tauri::async_runtime::spawn_blocking(move || {
         let state = app.state::<AppState>();
         let started = std::time::Instant::now();
         let generation = state.generation.fetch_add(1, Ordering::AcqRel) + 1;
-        let mut guard = state.open();
-        let open = guard.as_mut().ok_or("no mbox is open")?;
+        let mut files = state.files();
+        let open = files.by_id_mut(file)?;
         let query: SearchQuery = query.into();
         open.set_query(query, generation)
             .map_err(|err| err.to_string())?;
@@ -194,11 +315,12 @@ fn list_info(open: &OpenMbox) -> ListInfo {
 #[tauri::command]
 pub fn toggle_thread(
     state: State<'_, AppState>,
+    file: u32,
     generation: u64,
     row: usize,
 ) -> Result<ListInfo, String> {
-    let mut guard = state.open();
-    let open = guard.as_mut().ok_or("no mbox is open")?;
+    let mut files = state.files();
+    let open = files.by_id_mut(file)?;
     if open.generation != generation {
         return Err("the listing has changed".to_owned());
     }
@@ -210,11 +332,12 @@ pub fn toggle_thread(
 #[tauri::command]
 pub fn list_rows(
     state: State<'_, AppState>,
+    file: u32,
     start: usize,
     count: usize,
 ) -> Result<RowsPage, String> {
-    let guard = state.open();
-    let open = guard.as_ref().ok_or("no mbox is open")?;
+    let files = state.files();
+    let open = files.by_id(file)?;
     let rows = open
         .listing
         .rows(start, count.min(MAX_ROWS))
@@ -227,10 +350,9 @@ pub fn list_rows(
     })
 }
 
-/// The path of the open mbox, copied out from under the lock.
-fn open_path(state: &AppState) -> Result<PathBuf, String> {
-    let guard = state.open();
-    Ok(guard.as_ref().ok_or("no mbox is open")?.path.clone())
+/// The path of open file `file`, copied out from under the lock.
+fn file_path(state: &AppState, file: u32) -> Result<PathBuf, String> {
+    Ok(state.files().by_id(file)?.path.clone())
 }
 
 /// Runs `work` off the runtime threads and flattens the join error.
@@ -242,15 +364,21 @@ async fn blocking<T: Send + 'static>(
         .map_err(|err| format!("the task failed: {err}"))?
 }
 
-/// The message at `offset`/`len` of the open mbox, read off the runtime threads.
+/// The message at `offset`/`len` of open file `file`, read off the runtime threads.
 #[tauri::command]
 pub async fn read_message(
     state: State<'_, AppState>,
+    file: u32,
     offset: u64,
     len: u64,
 ) -> Result<MessageView, String> {
-    let path = open_path(&state)?;
-    blocking(move || read_message_view(&path, offset, len).map_err(|err| err.to_string())).await
+    let path = file_path(&state, file)?;
+    blocking(move || {
+        let mut view = read_message_view(&path, offset, len).map_err(|err| err.to_string())?;
+        view.file = file;
+        Ok(view)
+    })
+    .await
 }
 
 /// The source of the message at `offset`/`len`: the envelope line and the
@@ -258,10 +386,11 @@ pub async fn read_message(
 #[tauri::command]
 pub async fn read_source(
     state: State<'_, AppState>,
+    file: u32,
     offset: u64,
     len: u64,
 ) -> Result<String, String> {
-    let path = open_path(&state)?;
+    let path = file_path(&state, file)?;
     blocking(move || {
         read_at(&path, offset, len)
             .map(|raw| {
@@ -303,9 +432,13 @@ pub fn allowed_link(url: &str) -> bool {
 /// member hidden in a collapsed conversation gets it expanded, so `total`
 /// comes back with the position.
 #[tauri::command]
-pub fn position_of(state: State<'_, AppState>, offset: u64) -> Result<PositionInfo, String> {
-    let mut guard = state.open();
-    let open = guard.as_mut().ok_or("no mbox is open")?;
+pub fn position_of(
+    state: State<'_, AppState>,
+    file: u32,
+    offset: u64,
+) -> Result<PositionInfo, String> {
+    let mut files = state.files();
+    let open = files.by_id_mut(file)?;
     let position = open
         .listing
         .position_of(offset)
@@ -323,11 +456,12 @@ pub fn position_of(state: State<'_, AppState>, offset: u64) -> Result<PositionIn
 #[tauri::command]
 pub async fn read_part(
     state: State<'_, AppState>,
+    file: u32,
     offset: u64,
     len: u64,
     index: usize,
 ) -> Result<Response, String> {
-    let path = open_path(&state)?;
+    let path = file_path(&state, file)?;
     let attachment = blocking(move || read_attachment(&path, offset, len, index)).await?;
     Ok(Response::new(attachment.bytes))
 }
@@ -338,11 +472,12 @@ pub async fn read_part(
 pub async fn open_attachment(
     app: AppHandle,
     state: State<'_, AppState>,
+    file: u32,
     offset: u64,
     len: u64,
     index: usize,
 ) -> Result<(), String> {
-    let path = open_path(&state)?;
+    let path = file_path(&state, file)?;
     blocking(move || {
         let attachment = read_attachment(&path, offset, len, index)?;
         if open_blocked(&attachment.file_name) {
@@ -351,10 +486,10 @@ pub async fn open_attachment(
                 attachment.file_name
             ));
         }
-        let file = write_temp(offset, index, &attachment)
+        let copy = write_temp(file, offset, index, &attachment)
             .map_err(|err| format!("could not write the temporary file: {err}"))?;
         app.opener()
-            .open_path(file.to_string_lossy(), None::<&str>)
+            .open_path(copy.to_string_lossy(), None::<&str>)
             .map_err(|err| err.to_string())
     })
     .await
@@ -366,11 +501,12 @@ pub async fn open_attachment(
 pub async fn save_attachment(
     app: AppHandle,
     state: State<'_, AppState>,
+    file: u32,
     offset: u64,
     len: u64,
     index: usize,
 ) -> Result<Option<String>, String> {
-    let path = open_path(&state)?;
+    let path = file_path(&state, file)?;
     blocking(move || {
         let attachment = read_attachment(&path, offset, len, index)?;
         let mut dialog = save_dialog(&app, "Save attachment").set_file_name(&attachment.file_name);
@@ -397,10 +533,11 @@ pub async fn save_attachment(
 pub async fn save_all_attachments(
     app: AppHandle,
     state: State<'_, AppState>,
+    file: u32,
     offset: u64,
     len: u64,
 ) -> Result<Option<SaveAllReport>, String> {
-    let path = open_path(&state)?;
+    let path = file_path(&state, file)?;
     blocking(move || {
         let attachments = read_listed_attachments(&path, offset, len)?;
         if attachments.is_empty() {
@@ -435,10 +572,11 @@ pub async fn save_all_attachments(
 pub async fn save_message_eml(
     app: AppHandle,
     state: State<'_, AppState>,
+    file: u32,
     offset: u64,
     len: u64,
 ) -> Result<Option<String>, String> {
-    let path = open_path(&state)?;
+    let path = file_path(&state, file)?;
     blocking(move || {
         let raw = read_at(&path, offset, len).map_err(|err| err.to_string())?;
         let subject = parse(&raw).and_then(|message| summarize(&raw, &message).subject);

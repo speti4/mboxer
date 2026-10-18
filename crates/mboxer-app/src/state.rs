@@ -1,8 +1,10 @@
-//! The application state: the open mbox, its index and the current listing.
+//! The application state: the open mbox files, each with its index and its
+//! own listing, and which of them is active (D-06).
 //!
 //! No Tauri types here; [`OpenMbox::load`] is the whole open-or-build flow and
-//! runs against the fixtures in the tests.
+//! runs against the fixtures in the tests, as does [`OpenFiles`].
 
+use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, AtomicU64};
 use std::sync::{Arc, Mutex, MutexGuard, PoisonError};
@@ -15,12 +17,15 @@ use mboxer_core::{
 };
 
 use crate::folders::label_tree;
-use crate::types::{IndexState, LabelNode, OpenSummary};
+use crate::types::{FileInfo, IndexState, LabelNode, OpenSummary};
+
+/// The error every command gets for a file id the set does not hold.
+pub const NOT_OPEN: &str = "that file is no longer open";
 
 /// Managed by Tauri; one per process.
 #[derive(Default)]
 pub struct AppState {
-    pub open: Mutex<Option<OpenMbox>>,
+    pub files: Mutex<OpenFiles>,
     /// Set by `cancel_open`, read by the running index build.
     pub cancel: Arc<AtomicBool>,
     /// True while an open is in flight; a second open is refused.
@@ -32,9 +37,9 @@ pub struct AppState {
 }
 
 impl AppState {
-    /// The open file; a poisoned lock is recovered, the data is plain values.
-    pub fn open(&self) -> MutexGuard<'_, Option<OpenMbox>> {
-        self.open.lock().unwrap_or_else(PoisonError::into_inner)
+    /// The open files; a poisoned lock is recovered, the data is plain values.
+    pub fn files(&self) -> MutexGuard<'_, OpenFiles> {
+        self.files.lock().unwrap_or_else(PoisonError::into_inner)
     }
 
     pub fn last_save_dir(&self) -> Option<PathBuf> {
@@ -52,10 +57,143 @@ impl AppState {
     }
 }
 
+/// The open files in the order of the folder pane, and the active one. A
+/// non-empty set always has an active file; ids are handed out once per
+/// process and never reused, so a command that names a closed file fails
+/// instead of touching another one.
+#[derive(Debug, Default)]
+pub struct OpenFiles {
+    files: Vec<OpenMbox>,
+    active: Option<u32>,
+    next_id: u32,
+}
+
+impl OpenFiles {
+    pub fn is_empty(&self) -> bool {
+        self.files.is_empty()
+    }
+
+    pub fn active_id(&self) -> Option<u32> {
+        self.active
+    }
+
+    pub fn by_id(&self, id: u32) -> Result<&OpenMbox, String> {
+        self.files
+            .iter()
+            .find(|open| open.id == id)
+            .ok_or_else(|| NOT_OPEN.to_owned())
+    }
+
+    pub fn by_id_mut(&mut self, id: u32) -> Result<&mut OpenMbox, String> {
+        self.files
+            .iter_mut()
+            .find(|open| open.id == id)
+            .ok_or_else(|| NOT_OPEN.to_owned())
+    }
+
+    /// The id of the open file at `path` (compared canonically), if any.
+    pub fn id_of(&self, path: &Path) -> Option<u32> {
+        let canonical = canonical(path);
+        self.files
+            .iter()
+            .find(|open| open.canonical == canonical)
+            .map(|open| open.id)
+    }
+
+    /// Adds `open` at the end and returns its id. A file already in the set
+    /// is replaced in place and keeps its id. The first file of an empty set
+    /// becomes active; otherwise the active file does not change.
+    pub fn insert(&mut self, mut open: OpenMbox) -> u32 {
+        if let Some(id) = self.id_of(&open.path) {
+            open.id = id;
+            let slot = self
+                .files
+                .iter_mut()
+                .find(|existing| existing.id == id)
+                .expect("id_of found it");
+            *slot = open;
+            return id;
+        }
+        self.next_id += 1;
+        open.id = self.next_id;
+        let id = open.id;
+        self.files.push(open);
+        if self.active.is_none() {
+            self.active = Some(id);
+        }
+        id
+    }
+
+    /// Makes `id` the active file and stamps its listing with `generation`,
+    /// so the pages of the previously active file are told apart.
+    pub fn activate(&mut self, id: u32, generation: u64) -> Result<(), String> {
+        let open = self.by_id_mut(id)?;
+        open.generation = generation;
+        self.active = Some(id);
+        Ok(())
+    }
+
+    /// Removes `id`; when it was active, its neighbour below (else above)
+    /// takes over. Returns the active id afterwards, `None` for an empty set.
+    pub fn close(&mut self, id: u32) -> Result<Option<u32>, String> {
+        let at = self
+            .files
+            .iter()
+            .position(|open| open.id == id)
+            .ok_or_else(|| NOT_OPEN.to_owned())?;
+        self.files.remove(at);
+        if self.active == Some(id) {
+            self.active = self
+                .files
+                .get(at)
+                .or_else(|| self.files.last())
+                .map(|open| open.id);
+        }
+        Ok(self.active)
+    }
+
+    /// The pane's rows: every open file, the active one marked.
+    pub fn infos(&self) -> Vec<FileInfo> {
+        self.files
+            .iter()
+            .map(|open| FileInfo {
+                id: open.id,
+                path: open.path.display().to_string(),
+                file_name: file_name(&open.path),
+                message_count: open.index.message_count(),
+                index: open.index_state.clone(),
+                active: self.active == Some(open.id),
+            })
+            .collect()
+    }
+
+    /// The summary of file `id`, with the whole set for the pane.
+    pub fn summary(&self, id: u32) -> Result<OpenSummary, String> {
+        let mut summary = self.by_id(id)?.summary();
+        summary.files = self.infos();
+        Ok(summary)
+    }
+}
+
+/// The canonical form for telling two spellings of one path apart; a path
+/// that cannot be canonicalised (gone, no rights) is compared as written.
+fn canonical(path: &Path) -> PathBuf {
+    fs::canonicalize(path).unwrap_or_else(|_| path.to_path_buf())
+}
+
+fn file_name(path: &Path) -> String {
+    path.file_name()
+        .map(|name| name.to_string_lossy().into_owned())
+        .unwrap_or_default()
+}
+
 /// An mbox with a fresh index and the listing behind the message list.
 #[derive(Debug)]
 pub struct OpenMbox {
+    /// The id the webview addresses this file by; 0 until [`OpenFiles::insert`].
+    pub id: u32,
     pub path: PathBuf,
+    canonical: PathBuf,
     pub index: MboxIndex,
     pub index_state: IndexState,
     pub labels: Vec<LabelNode>,
@@ -83,7 +221,9 @@ impl OpenMbox {
         };
         let listing = index.list(&query)?;
         Ok(Self {
+            id: 0,
             path: path.to_path_buf(),
+            canonical: canonical(path),
             index,
             index_state,
             labels,
@@ -101,14 +241,13 @@ impl OpenMbox {
         Ok(())
     }
 
+    /// This file alone; [`OpenFiles::summary`] adds the set.
     pub fn summary(&self) -> OpenSummary {
         OpenSummary {
+            id: self.id,
+            files: Vec::new(),
             path: self.path.display().to_string(),
-            file_name: self
-                .path
-                .file_name()
-                .map(|name| name.to_string_lossy().into_owned())
-                .unwrap_or_default(),
+            file_name: file_name(&self.path),
             message_count: self.index.message_count(),
             labels: self.labels.clone(),
             index: self.index_state.clone(),
@@ -315,5 +454,113 @@ mod tests {
         let (_dir, path) = fixture_copy("not-an-mbox.txt");
         let err = OpenMbox::load(&path, &AtomicBool::new(false), 1, false, |_| {}).unwrap_err();
         assert!(matches!(err, Error::NotAnMbox { offset: 0 }), "{err}");
+    }
+
+    fn load(mbox: &Path, generation: u64) -> OpenMbox {
+        OpenMbox::load(mbox, &AtomicBool::new(false), generation, false, |_| {}).unwrap()
+    }
+
+    #[test]
+    fn the_set_hands_out_ids_and_the_first_file_is_active() {
+        let (_dir, a) = fixture_copy("gmail-crlf.mbox");
+        let (_dir2, b) = fixture_copy("threads.mbox");
+        let mut files = OpenFiles::default();
+        assert!(files.is_empty());
+        assert_eq!(files.active_id(), None);
+        assert_eq!(files.by_id(1).unwrap_err(), NOT_OPEN);
+
+        let id_a = files.insert(load(&a, 1));
+        let id_b = files.insert(load(&b, 2));
+        assert_eq!((id_a, id_b), (1, 2));
+        assert_eq!(
+            files.active_id(),
+            Some(id_a),
+            "the first file of an empty set is active"
+        );
+        assert_eq!(files.id_of(&a), Some(id_a));
+        assert_eq!(files.id_of(&b), Some(id_b));
+        assert_eq!(files.id_of(Path::new("nowhere.mbox")), None);
+
+        let infos = files.infos();
+        assert_eq!(infos.len(), 2);
+        assert_eq!(infos[0].file_name, "gmail-crlf.mbox");
+        assert!(infos[0].active);
+        assert!(!infos[1].active);
+        assert_eq!(infos[1].message_count, 6);
+
+        let summary = files.summary(id_b).unwrap();
+        assert_eq!(summary.id, id_b);
+        assert_eq!(summary.file_name, "threads.mbox");
+        assert_eq!(summary.files.len(), 2);
+        assert_eq!(files.summary(9).unwrap_err(), NOT_OPEN);
+    }
+
+    #[test]
+    fn opening_a_file_again_keeps_its_id_and_place() {
+        let (_dir, a) = fixture_copy("gmail-crlf.mbox");
+        let (_dir2, b) = fixture_copy("threads.mbox");
+        let mut files = OpenFiles::default();
+        let id_a = files.insert(load(&a, 1));
+        let id_b = files.insert(load(&b, 2));
+        files.activate(id_b, 3).unwrap();
+
+        // The same file, spelt through its parent: one entry, the old id, first in the pane.
+        let spelt = a.parent().unwrap().join(".").join(a.file_name().unwrap());
+        let again = files.insert(load(&spelt, 4));
+        assert_eq!(again, id_a);
+        let infos = files.infos();
+        assert_eq!(infos.len(), 2);
+        assert_eq!(infos[0].id, id_a);
+        assert_eq!(
+            files.active_id(),
+            Some(id_b),
+            "a re-open does not steal the active file"
+        );
+        assert_eq!(files.by_id(id_a).unwrap().generation, 4);
+    }
+
+    #[test]
+    fn activation_restamps_the_generation() {
+        let (_dir, a) = fixture_copy("gmail-crlf.mbox");
+        let (_dir2, b) = fixture_copy("threads.mbox");
+        let mut files = OpenFiles::default();
+        let id_a = files.insert(load(&a, 1));
+        let id_b = files.insert(load(&b, 2));
+        files.activate(id_b, 7).unwrap();
+        assert_eq!(files.active_id(), Some(id_b));
+        assert_eq!(files.by_id(id_b).unwrap().generation, 7);
+        assert_eq!(files.by_id(id_a).unwrap().generation, 1);
+        assert_eq!(files.activate(42, 8).unwrap_err(), NOT_OPEN);
+        assert_eq!(files.active_id(), Some(id_b));
+    }
+
+    #[test]
+    fn closing_hands_the_active_role_to_the_neighbour() {
+        let (_dir, a) = fixture_copy("gmail-crlf.mbox");
+        let (_dir2, b) = fixture_copy("threads.mbox");
+        let (_dir3, c) = fixture_copy("attachments.mbox");
+        let mut files = OpenFiles::default();
+        let id_a = files.insert(load(&a, 1));
+        let id_b = files.insert(load(&b, 2));
+        let id_c = files.insert(load(&c, 3));
+
+        // Closing a file that is not active leaves the active one alone.
+        assert_eq!(files.close(id_c).unwrap(), Some(id_a));
+        assert_eq!(files.infos().len(), 2);
+        assert_eq!(files.close(id_c).unwrap_err(), NOT_OPEN);
+
+        // Closing the active first file: the one below takes over.
+        assert_eq!(files.close(id_a).unwrap(), Some(id_b));
+        assert_eq!(files.by_id(id_a).unwrap_err(), NOT_OPEN);
+
+        // A new file gets a fresh id, never a reused one.
+        let id_d = files.insert(load(&c, 4));
+        assert_eq!(id_d, 4);
+        files.activate(id_d, 5).unwrap();
+        // Closing the active last file: the one above takes over.
+        assert_eq!(files.close(id_d).unwrap(), Some(id_b));
+        assert_eq!(files.close(id_b).unwrap(), None);
+        assert!(files.is_empty());
+        assert_eq!(files.active_id(), None);
     }
 }

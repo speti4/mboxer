@@ -11,7 +11,7 @@ Closing a task files every follow-up as a `backlog/` item now or deletes it with
 <!-- tasks:index:start -->
 _Generated 2026-10-18 — edit the files, not this section._
 
-**State:** 1 backlog (0 ready · 0 blocked · 0 waiting · 1 idea) · 0 in progress · 16 done · 0 dropped · 5 decisions
+**State:** 0 backlog (0 ready · 0 blocked · 0 waiting · 0 ideas) · 1 in progress · 16 done · 0 dropped · 6 decisions
 
 ### Ready
 
@@ -27,15 +27,15 @@ _none_
 
 ### Ideas
 
-#### M3 Comfort
-
-| # | Task | Size | Created |
-|---|---|---|---|
-| 016 | [Open multiple mbox files](backlog/016-open-multiple-mbox-files.md) | M | 2026-10-17 |
+_none_
 
 ### In progress
 
-_none_
+#### M3 Comfort
+
+| # | Task | Started | Plan |
+|---|---|---|---|
+| 016 | [Open multiple mbox files](wip/016-open-multiple-mbox-files.md) | 2026-10-18 | `task-016-glimmering-meadow.md` |
 
 ### Closed – do not reopen
 
@@ -62,6 +62,7 @@ _6 more in `done/`._
 
 | # | Decision | Status | Date |
 |---|---|---|---|
+| D-06 | [Several mbox files are open side by side, one active at a time; there is no merged view](decisions/D-06-several-files-open-one-active-no-merged-view.md) | proposed | 2026-10-18 |
 | D-05 | [When .mboxer/ beside the mbox cannot be created, the index lives under %LOCALAPPDATA%\mboxer\index\<name>-<path hash>\](decisions/D-05-index-fallback-under-localappdata.md) | proposed | 2026-10-17 |
 | D-04 | [The sidecar index lives in .mboxer/<mbox name>/ beside the mbox and is rebuilt whole when stale](decisions/D-04-sidecar-index-location-and-freshness.md) | decided | 2026-10-17 |
 | D-03 | [A message is identified by the byte offset of its From  envelope line](decisions/D-03-message-identity-is-envelope-byte-offset.md) | decided | 2026-10-17 |
