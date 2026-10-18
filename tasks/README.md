@@ -13,7 +13,7 @@ file, never the issue.
 <!-- tasks:index:start -->
 _Generated 2026-10-18 — edit the files, not this section._
 
-**State:** 9 backlog (5 ready · 0 blocked · 1 waiting · 3 ideas) · 0 in progress · 23 done · 0 dropped · 10 decisions
+**State:** 8 backlog (4 ready · 0 blocked · 1 waiting · 3 ideas) · 1 in progress · 23 done · 0 dropped · 11 decisions
 
 ### Ready
 
@@ -29,7 +29,6 @@ _Generated 2026-10-18 — edit the files, not this section._
 
 | # | Task | Size | Created |
 |---|---|---|---|
-| 024 | [Supply chain and CI hardening: dependabot, cargo-deny, pinned actions](backlog/024-supply-chain-and-ci-hardening.md) | M | 2026-10-18 |
 | 025 | [Release notes and changelog from the task files, checksums and third-party lice…](backlog/025-release-notes-changelog-and-checksums.md) | M | 2026-10-18 |
 
 ### Needs decision
@@ -61,7 +60,11 @@ _none_
 
 ### In progress
 
-_none_
+#### M5 Public release
+
+| # | Task | Started | Plan |
+|---|---|---|---|
+| 024 | [Supply chain and CI hardening: dependabot, cargo-deny, pinned actions](wip/024-supply-chain-and-ci-hardening.md) | 2026-10-18 | `steady-baking-kurzweil.md` |
 
 ### Closed – do not reopen
 
@@ -93,6 +96,7 @@ _13 more in `done/`._
 | D-08 | [GitHub issues and milestones mirror tasks/ one-way through a script; nothing is edited on GitHub by hand; a release tag closes the milestones it ships](decisions/D-08-github-milestones-mirror-roadmap-one-way.md) | decided | 2026-10-18 |
 | D-07 | [macOS builds ship as an ad-hoc signed universal .app in a zip, without notarization](decisions/D-07-macos-distribution-adhoc-signed-app-zip.md) | decided | 2026-10-18 |
 | D-06 | [Several mbox files are open side by side, one active at a time; there is no merged view](decisions/D-06-several-files-open-one-active-no-merged-view.md) | decided | 2026-10-18 |
+| D-011 | [Crates come from crates.io only, under a fixed licence allowlist that includes MPL-2.0, and an advisory fails CI](decisions/D-011-dependency-licence-and-source-policy.md) | proposed | 2026-10-18 |
 | D-05 | [When .mboxer/ beside the mbox cannot be created, the index lives under %LOCALAPPDATA%\mboxer\index\<name>-<path hash>\](decisions/D-05-index-fallback-under-localappdata.md) | decided | 2026-10-17 |
 | D-04 | [The sidecar index lives in .mboxer/<mbox name>/ beside the mbox and is rebuilt whole when stale](decisions/D-04-sidecar-index-location-and-freshness.md) | decided | 2026-10-17 |
 | D-03 | [A message is identified by the byte offset of its From  envelope line](decisions/D-03-message-identity-is-envelope-byte-offset.md) | decided | 2026-10-17 |
