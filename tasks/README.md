@@ -13,7 +13,7 @@ file, never the issue.
 <!-- tasks:index:start -->
 _Generated 2026-10-18 — edit the files, not this section._
 
-**State:** 9 backlog (5 ready · 0 blocked · 1 waiting · 3 ideas) · 0 in progress · 26 done · 0 dropped · 11 decisions
+**State:** 8 backlog (4 ready · 0 blocked · 1 waiting · 3 ideas) · 1 in progress · 26 done · 0 dropped · 11 decisions
 
 ### Ready
 
@@ -30,7 +30,6 @@ _Generated 2026-10-18 — edit the files, not this section._
 | # | Task | Size | Created |
 |---|---|---|---|
 | 025 | [Release notes and changelog from the task files, checksums and third-party lice…](backlog/025-release-notes-changelog-and-checksums.md) | M | 2026-10-18 |
-| 035 | [CLAUDE.md fit for a public repo: no personal settings, no contradictions, a com…](backlog/035-claude-md-review-before-publication.md) | S | 2026-10-18 |
 
 ### Needs decision
 
@@ -61,7 +60,11 @@ _none_
 
 ### In progress
 
-_none_
+#### M5 Public release
+
+| # | Task | Started | Plan |
+|---|---|---|---|
+| 035 | [CLAUDE.md fit for a public repo: no personal settings, no contradictions, a com…](wip/035-claude-md-review-before-publication.md) | 2026-10-18 | `none` |
 
 ### Closed – do not reopen
 
