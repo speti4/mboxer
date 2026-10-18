@@ -11,7 +11,7 @@ Closing a task files every follow-up as a `backlog/` item now or deletes it with
 <!-- tasks:index:start -->
 _Generated 2026-10-18 — edit the files, not this section._
 
-**State:** 1 backlog (0 ready · 0 blocked · 0 waiting · 1 idea) · 1 in progress · 15 done · 0 dropped · 5 decisions
+**State:** 1 backlog (0 ready · 0 blocked · 0 waiting · 1 idea) · 0 in progress · 16 done · 0 dropped · 5 decisions
 
 ### Ready
 
@@ -35,11 +35,7 @@ _none_
 
 ### In progress
 
-#### M3 Comfort
-
-| # | Task | Started | Plan |
-|---|---|---|---|
-| 011 | [Export a message: .eml, print / PDF](wip/011-export-eml-pdf-print.md) | 2026-10-18 | `backlogb-l-a-task-011-jaunty-castle.md` |
+_none_
 
 ### Closed – do not reopen
 
@@ -50,6 +46,7 @@ _none_
 | # | Task | Closed |
 |---|---|---|
 | 017 | [Dark mode toggle with OS default](done/017-dark-mode-toggle.md) | 2026-10-18 |
+| 011 | [Export a message: .eml, print / PDF](done/011-export-eml-pdf-print.md) | 2026-10-18 |
 | 015 | [Decode RFC 2047-encoded Gmail label names](done/015-decode-rfc2047-gmail-label-names.md) | 2026-10-17 |
 | 014 | [Index fallback when the mbox folder is not writable](done/014-index-fallback-for-read-only-mbox-locations.md) | 2026-10-17 |
 | 013 | [Unescape >From  lines in message bodies for display](done/013-unescape-from-lines-in-message-bodies.md) | 2026-10-17 |
@@ -58,9 +55,8 @@ _none_
 | 009 | [Gmail labels and conversation threads](done/009-gmail-labels-and-threads.md) | 2026-10-17 |
 | 008 | [Attachments: list, open, save](done/008-attachments-list-open-save.md) | 2026-10-17 |
 | 007 | [Message reader with sanitized HTML](done/007-message-reader-sanitized-html.md) | 2026-10-17 |
-| 006 | [Search field and filter panel](done/006-search-field-and-filter-panel.md) | 2026-10-17 |
 
-_5 more in `done/`._
+_6 more in `done/`._
 
 ### Decisions
 

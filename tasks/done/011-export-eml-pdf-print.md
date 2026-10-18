@@ -3,6 +3,7 @@ size: M
 origin: session 2026-10-17
 created: 2026-10-17
 started: 2026-10-18
+closed: 2026-10-18
 milestone: M3 Comfort
 plan: backlogb-l-a-task-011-jaunty-castle.md
 ---
@@ -34,7 +35,7 @@ az mboxrd `>From ` idézés bájt szintű visszavonásával, Mark-of-the-Web-bel
 5. [x] Chrome stub-check a print dokumentumra és a két billentyűre
 6. [x] `docs/usage.md` bekezdés; `cargo fmt`, `cargo clippy --all-targets -- -D warnings`, `cargo test`,
    `node --check`; `tasks_check`; commit
-7. [ ] User kézi kör a 14 GB archívumon (.eml Outlook/Thunderbird, Print preview → Save as PDF, cid képes
+7. [x] User kézi kör a 14 GB archívumon (.eml Outlook/Thunderbird, Print preview → Save as PDF, cid képes
    HTML levél, Text nézet, hosszú levél lapozása)
 
 ## Log
@@ -63,6 +64,11 @@ az mboxrd `>From ` idézés bájt szintű visszavonásával, Mark-of-the-Web-bel
   (an ignored sandboxed `print()` returns at once with a console warning; none logged); the extension cannot
   dismiss a browser dialog, so the tab was closed. The visual check of the preview is the user's manual round
 - 2026-10-18 — `docs/usage.md`: "Handing a message on" section, `Ctrl+S` / `Ctrl+P` in the keyboard line
+- 2026-10-18 — commit `bc25c9a` (feat, task 011); `target\debug\mboxer.exe` started on the 14 GB archive for the
+  user's manual round
+- 2026-10-18 — a user kézi köre a Tauri ablakban, a 14 GB archívumon: "minden működik". Follow-up: none filed;
+  a tervben feltételesen említett 1×1 px-es print-frame nem kellett, a 0×0 rejtett frame nyomtat; a natív
+  "Save as PDF…" (`PrintToPdf` második ablakból) a user döntése szerint nem kell, nem kerül backlogra. Closed
 
 ## Deviations from the plan
 
@@ -76,11 +82,13 @@ az mboxrd `>From ` idézés bájt szintű visszavonásával, Mark-of-the-Web-bel
 - 2026-10-18 — `cargo fmt --check` clean, `cargo clippy --all-targets -- -D warnings` clean, `cargo test` pass
   (new: `eml_bytes_undo_the_mboxrd_quoting_only`, `eml_export_keeps_the_bytes_and_unquotes_from_lines`,
   `eml_file_names_come_from_the_subject`), `node --check ui/main.js` clean; Chrome stub-check as in the Log.
-- (pending) user's manual round in the Tauri window on the 14 GB archive.
+- 2026-10-18 — user's manual round in the Tauri window on the 14 GB archive: the .eml opens in the mail client,
+  the print preview shows the message as the reader does and Save as PDF writes it, reported as "minden működik".
+  Done-when met.
 
 ## Closing checklist
 
-- [ ] every follow-up is a `backlog/` file (`/tasks add`) or deleted with a reason in the Log
-- [ ] Verification written, dated
-- [ ] `tasks_check` green, README index regenerated
-- [ ] moved to `done/` with `closed: YYYY-MM-DD`
+- [x] every follow-up is a `backlog/` file (`/tasks add`) or deleted with a reason in the Log — none filed
+- [x] Verification written, dated
+- [x] `tasks_check` green, README index regenerated
+- [x] moved to `done/` with `closed: 2026-10-18`
