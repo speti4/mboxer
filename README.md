@@ -6,7 +6,9 @@ and a handful of colleagues, each with their own mbox file.
 
 - Stack: Rust, Tauri 2 on WebView2, one-time sidecar full-text index next to the mbox (see
   `tasks/decisions/`).
-- Status and backlog: `tasks/README.md` (generated), milestones in `tasks/roadmap.md`.
+- Status and backlog: `tasks/README.md` (generated), milestones in `tasks/roadmap.md`, mirrored one-way as
+  [GitHub milestones](https://github.com/speti4/mboxer/milestones); a release on the
+  [Releases page](https://github.com/speti4/mboxer/releases) closes the milestones it ships (D-08).
 - Why this exists: `docs/origin.md`; why build and not buy: `docs/research/`.
 - For the people who only run it: `docs/usage.md` (ships in the release zip).
 

@@ -11,8 +11,9 @@ A viewer for a Gmail Takeout mbox archive on Windows 11. One file, nothing to in
 
 ## Getting the program
 
-1. Download `mboxer-<version>.zip` from the project's GitHub releases page and unzip it anywhere
-   (next to the mbox, on the desktop, it does not matter). It holds `mboxer.exe` and this guide.
+1. Download `mboxer-<version>.zip` from the project's GitHub releases page
+   (https://github.com/speti4/mboxer/releases) and unzip it anywhere (next to the mbox, on the
+   desktop, it does not matter). It holds `mboxer.exe` and this guide.
 2. The exe is not code-signed, so Windows may show a SmartScreen warning on the first start:
    click *More info*, then *Run anyway*. If the exe refuses to start at all, right-click it,
    *Properties*, tick *Unblock*, *OK*.
