@@ -40,7 +40,7 @@ D-02 lines (no new crate enters the exe or the build):
 6. [x] `docs/development.md` (layout, CI and releases), `CONTRIBUTING.md` (checks, dependency rule)
 7. [x] D-011 recorded, decided 2026-10-18
 8. [x] fmt, clippy, test locally
-9. [ ] commit, push (after the user's go), CI run green with `test`, `deny`, `workflow-lint`; `sync-issues` green
+9. [x] commit, push (after the user's go), CI run green with `test`, `deny`, `workflow-lint`; `sync-issues` green
 10. [ ] first dependabot PR(s) arrive and their CI is green
 
 ## Log
@@ -59,6 +59,14 @@ D-02 lines (no new crate enters the exe or the build):
   sync job's `issues: write` moved to the job with comments; what remains is `ref-version-mismatch` on the
   dtolnay pin (no tag to name) and on the rust-cache line (the ignore comment follows the version)
 - 2026-10-18 — fmt, clippy `-D warnings` clean; `cargo test` 109 passed, 0 failed
+- 2026-10-18 — pushed `f20dac7` + `8cb91e5`: ci run 39140529071 green (test, deny, workflow-lint success,
+  release skipped), sync-issues green with `$GITHUB_REPOSITORY`. The first two "Dependabot Updates" runs
+  (cargo, github-actions) succeeded with no PR: every action is on its latest release and `Cargo.lock` is
+  current ("No update needed"); the first PR comes with the next release past the 7-day cooldown
+- 2026-10-18 — Dependabot alerts were off ("Dependabot alerts are disabled for this repository", 403); user
+  go: `gh api -X PUT …/vulnerability-alerts` + `…/automated-security-fixes` → enabled, not paused; 0 open alerts
+- 2026-10-18 — to see the first dependabot PR today (user go): rust-cache pin set back to v2.9.1 `c193711`
+  (2026-03-12, past the cooldown) and a comment line in `dependabot.yml`, which triggers an immediate run
 
 ## Deviations from the plan
 
@@ -72,7 +80,9 @@ D-02 lines (no new crate enters the exe or the build):
 - 2026-10-18 local: `cargo deny check` — advisories/bans/licenses/sources ok (exit 0); `uvx zizmor .github` — "No
   findings to report" (1 ignored); `cargo fmt --check`, `cargo clippy --all-targets -- -D warnings` clean,
   `cargo test` 109 passed
-- GitHub run and the dependabot PRs: pending the push
+- 2026-10-18 GitHub: ci run 39140529071 on `8cb91e5` — test, deny, workflow-lint success, release skipped;
+  sync-issues success; dependabot cargo + github-actions runs success, no update needed yet
+- The first dependabot PR: pending
 
 ## Closing checklist
 
