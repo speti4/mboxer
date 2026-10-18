@@ -1,3 +1,6 @@
 # Test fixtures carry their own line endings (LF or CRLF); git must never convert them.
 *.mbox -text
 crates/*/tests/fixtures/* -text
+# Shell scripts and git hooks run under sh, which a CRLF line ending breaks.
+*.sh text eol=lf
+.githooks/* text eol=lf

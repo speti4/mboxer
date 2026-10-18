@@ -39,6 +39,17 @@ The UI under `crates/mboxer-app/ui/` is plain HTML, CSS and JavaScript embedded 
 and no Tauri CLI. A change there takes effect on the next `cargo run`. The layout, the CLI, the release and
 the helper scripts are described in [docs/development.md](docs/development.md).
 
+## Branches, pull requests and commits
+
+Work on a branch and open a pull request; it is squash-merged once CI is green, so its title and description
+become the commit message. The commit rules (no `Claude-Session:` trailer, no Claude Code session link) and how
+the maintainer's parallel sessions work are in [docs/git-workflow.md](docs/git-workflow.md). Enable the hook
+that checks them once per clone:
+
+```powershell
+git config core.hooksPath .githooks
+```
+
 ## Checks before a commit
 
 ```powershell
@@ -77,7 +88,7 @@ overwrites the change. The maintainer turns an accepted issue into a task file.
 - Code, comments, commit messages, docs and UI strings are in English.
 - File, folder, branch and crate names are kebab-case and descriptive, without ambiguous abbreviations.
 - User-facing changes update `docs/usage.md` (it ships in the release zip) and `docs/reference.md`.
-- Commit subjects are imperative and start with a type: `feat:`, `fix:`, `docs:`, `chore:`, `tasks:`.
+- Commit subjects are imperative and start with a type: `feat:`, `fix:`, `docs:`, `ci:`, `chore:`, `tasks:`.
 
 ## Licence
 
