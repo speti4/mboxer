@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>mboxer</title>
     <link rel="stylesheet" href="style.css" />
+    <!-- Applies the saved theme override before the first paint (the CSP forbids an inline script). -->
+    <script src="theme.js"></script>
   </head>
   <body data-view="empty">
     <header id="toolbar">
@@ -22,6 +24,7 @@
       <button id="filters-btn" type="button" aria-expanded="false" aria-controls="filters" title="Show the filter panel (Ctrl+Shift+F)" disabled>
         Filters<span id="filters-count" class="badge" hidden></span>
       </button>
+      <button id="theme-btn" type="button" aria-label="Theme"></button>
     </header>
 
     <section id="filters" class="filters" aria-label="Filters" hidden>

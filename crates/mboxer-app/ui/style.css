@@ -10,13 +10,64 @@
   --error: #b42318;
   --mark: #ffe58f;
   --mark-selected: #ffd04d;
+  --warn: #8a5a00;
+  --warn-bg: #fff6d6;
+  --warn-border: #f0d27a;
+  --on-accent: #ffffff;
+  --overlay: rgba(31, 35, 40, 0.35);
+  /* The HTML body iframe: HTML mail is written for a light page, so it stays light in both themes. */
+  --reader-canvas: #ffffff;
   --row-h: 28px;
   --w-folders: 220px;
   --w-list: 480px;
+  color-scheme: light;
   font-family: "Segoe UI", system-ui, sans-serif;
   font-size: 13px;
   color: var(--fg);
   background: var(--bg);
+}
+
+/* The dark token set: the OS default unless the user picked light, or the user's pick
+   (theme.js sets data-theme on <html> before the first paint). Keep the two copies equal. */
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1e1f22;
+    --bg-alt: #26282c;
+    --fg: #e3e5e8;
+    --muted: #9aa0a6;
+    --border: #3a3d42;
+    --accent: #6ea8e8;
+    --accent-bg: #243a55;
+    --selected-bg: #2d4a6e;
+    --error: #f08a7e;
+    --mark: #7a5c00;
+    --mark-selected: #a37c00;
+    --warn: #e0b45c;
+    --warn-bg: #3a3016;
+    --warn-border: #6b5a1e;
+    --overlay: rgba(0, 0, 0, 0.55);
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #1e1f22;
+  --bg-alt: #26282c;
+  --fg: #e3e5e8;
+  --muted: #9aa0a6;
+  --border: #3a3d42;
+  --accent: #6ea8e8;
+  --accent-bg: #243a55;
+  --selected-bg: #2d4a6e;
+  --error: #f08a7e;
+  --mark: #7a5c00;
+  --mark-selected: #a37c00;
+  --warn: #e0b45c;
+  --warn-bg: #3a3016;
+  --warn-border: #6b5a1e;
+  --overlay: rgba(0, 0, 0, 0.55);
+  color-scheme: dark;
 }
 
 * {
@@ -111,7 +162,7 @@ mark {
   padding: 0 5px;
   border-radius: 9px;
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
   font-size: 11px;
   line-height: 16px;
   text-align: center;
@@ -183,7 +234,7 @@ body:not([data-view="ready"]) .filters {
 }
 
 #status-right.warn {
-  color: #8a5a00;
+  color: var(--warn);
 }
 
 #status {
@@ -578,9 +629,9 @@ body:not([data-view="ready"]) .panes {
   gap: 12px;
   margin: 0 0 10px;
   padding: 6px 10px;
-  border: 1px solid #f0d27a;
+  border: 1px solid var(--warn-border);
   border-radius: 4px;
-  background: #fff6d6;
+  background: var(--warn-bg);
 }
 
 #remote-bar[hidden] {
@@ -592,7 +643,7 @@ body:not([data-view="ready"]) .panes {
   width: 100%;
   min-height: 40px;
   border: 0;
-  background: var(--bg);
+  background: var(--reader-canvas);
 }
 
 #msg-html[hidden] {
@@ -674,7 +725,7 @@ body[data-view="error"] #error {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(31, 35, 40, 0.35);
+  background: var(--overlay);
 }
 
 .overlay[hidden] {

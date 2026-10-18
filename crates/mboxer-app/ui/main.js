@@ -7,6 +7,9 @@
   const { invoke, Channel } = window.__TAURI__.core;
   // The query syntax of the search field (query.js, loaded first).
   const Query = window.MboxerQuery;
+  // The theme preference (theme.js, loaded in <head> so the override is on
+  // <html> before the first paint); the button and the title bar are wired here.
+  const Theme = window.MboxerTheme;
 
   const ROW_H = 28;
   const BLOCK = 200;
@@ -27,7 +30,7 @@
 
   const el = {};
   for (const id of [
-    "toolbar", "open-btn", "file-name", "search", "filters-btn", "filters-count", "filters",
+    "toolbar", "open-btn", "file-name", "search", "filters-btn", "filters-count", "theme-btn", "filters",
     "f-from", "f-after", "f-before", "f-att", "f-threads", "f-sort", "filters-clear", "panes", "folders",
     "list", "spacer", "rows", "list-empty", "reader", "reader-empty", "reader-content",
     "msg-subject", "msg-headers", "attachments", "attachment-list", "save-all-btn", "msg-body",
@@ -235,9 +238,12 @@
   const RESTORE_ATTRIBUTES = ["src", "srcset", "poster", "background", "xlink:href", "href"];
   // Text under these elements is not highlighted.
   const NO_HIGHLIGHT = new Set(["style", "title", "textarea", "script"]);
+  // The frame is a light page in both themes: HTML mail is written for one,
+  // and a dark canvas would hide mails with explicit dark text and no background.
   const IFRAME_STYLE = [
+    ":root{color-scheme:light}",
     "html,body{height:auto!important;min-height:0!important;overflow:visible!important}",
-    'body{font-family:"Segoe UI",system-ui,sans-serif;font-size:13px;overflow-wrap:anywhere}',
+    'body{font-family:"Segoe UI",system-ui,sans-serif;font-size:13px;overflow-wrap:anywhere;background:#fff;color:#1f2328}',
     "img{max-width:100%;height:auto}",
     "pre{white-space:pre-wrap}",
     "mark{background:#ffe58f;color:inherit}",
@@ -691,6 +697,26 @@
     storageSet(STORAGE_FILTERS_OPEN, open ? "1" : "0");
     if (open && focus) el.fFrom.focus();
   }
+
+  // ---------- theme ----------
+
+  // The page follows `mode` at once (theme.js), the button names it, and the
+  // native title bar is asked to match; `auto` hands the title bar back to the OS.
+  // The title bar is best effort: without the permission or the API the page is still right.
+  function setTheme(mode) {
+    Theme.write(mode);
+    Theme.apply(mode);
+    el.themeBtn.textContent = Theme.label(mode);
+    el.themeBtn.title = Theme.title(mode);
+    try {
+      const current = window.__TAURI__.window.getCurrentWindow();
+      current.setTheme(mode === "auto" ? null : mode).catch(() => {});
+    } catch (_) {
+      /* no window API in this host: the title bar keeps the OS theme */
+    }
+  }
+
+  el.themeBtn.addEventListener("click", () => setTheme(Theme.next(Theme.read())));
 
   function focusList() {
     el.list.focus();
@@ -1782,6 +1808,7 @@
 
   async function start() {
     loadWidths();
+    setTheme(Theme.read());
     showVersion();
     setFiltersOpen(storageGet(STORAGE_FILTERS_OPEN) === "1");
     if (storageGet(STORAGE_BODY_MODE) === "text") state.bodyMode = "text";

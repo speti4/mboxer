@@ -65,6 +65,13 @@ Keyboard: `Ctrl+O` open, `Ctrl+F` search, `Esc` in the field clears the whole qu
 or `ArrowDown` moves to the list, arrows / `PageUp` / `PageDown` / `Home` / `End` move in the
 list, `Enter` focuses the reader, `Esc` returns to the list.
 
+## Light and dark
+
+The viewer follows the Windows colour mode. The button at the right end of the toolbar overrides
+it: *Auto* (follows Windows), *Light*, *Dark*; the choice is remembered. The body of an HTML
+message stays on a white page in dark mode on purpose: HTML mail is designed for a light page, and
+a dark one would make some messages unreadable. The *Text* and *Source* views follow the theme.
+
 ## When something is off
 
 - *Open failed* in red: the file is not an mbox (the message names the byte offset), or the path
