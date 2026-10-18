@@ -410,6 +410,9 @@ def sync(repo: str, apply: bool) -> int:
                 created = gh("api", f"repos/{repo}/milestones", payload={"title": title, "description": description})
                 assert isinstance(created, dict)
                 milestones[title] = created
+            else:
+                # A dry run still plans the issues under the milestone it would create.
+                milestones[title] = {"title": title, "number": None}
         elif _norm(existing.get("description")) != _norm(description):
             log(f"milestone  update   {title} (description)")
             changes += 1
