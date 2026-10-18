@@ -3,6 +3,7 @@ size: M
 origin: session 2026-10-18
 created: 2026-10-18
 started: 2026-10-18
+closed: 2026-10-18
 plan: cuddly-painting-trinket.md
 milestone: M5 Public release
 ---
@@ -33,10 +34,10 @@ Done when: a commit with the trailer fails locally and in CI, and a second sessi
 7. [x] `.gitignore`: `.claude/worktrees/`
 8. [x] `CONTRIBUTING.md`, `.github/pull_request_template.md`, `docs/development.md` point to the policy
 9. [x] Repo merge settings (`gh api`): squash only, squash message = PR title + description, delete head branches
-10. [ ] 034 itself through the flow: branch `task/034-git-workflow-policy`, PR #48, CI red with a trailer commit,
-    green without (done), squash merge on the user's go
+10. [x] 034 itself through the flow: branch `task/034-git-workflow-policy`, PR #48, CI red with a trailer commit,
+    green without, squash merge on the user's go
 11. [x] `cargo fmt --check`, clippy, test, `uvx zizmor .github`
-12. [ ] Done-when, second half: 033 runs in a worktree session and follows the file (PR, no new id, follow-ups in
+12. [x] Done-when, second half: 033 runs in a worktree session and follows the file (PR, no new id, follow-ups in
     the PR body)
 
 ## Log
@@ -57,7 +58,19 @@ Done when: a commit with the trailer fails locally and in CI, and a second sessi
   `---------` után magától hozzáfűzi a commitok `Co-authored-by` sorait (a PR body-ban lévő trailer így duplán
   jelent meg), és az author `speti4 <noreply>`, nem `Szőke Péter`. Javítás a `task/034-commit-rule-fixes`
   branchen: a git-workflow.md már nem kéri a trailert a PR body-ba; a `check-commit.sh` a `speti4` nevet is
-  maintainernek veszi (speti4 + idegen cím → exit 1, speti4 + noreply → 0, más név → 0).
+  maintainernek veszi (speti4 + idegen cím → exit 1, speti4 + noreply → 0, más név → 0). PR #49 → `1f52077`.
+- 2026-10-18 — 033 mint első task session: a main session promotálta (`109cf4a`, a task branch első commitja),
+  worktree `.claude/worktrees/033-toolchain-without-action`, benne egy háttér-subagent a policy szerint: PR #50,
+  új id nélkül, follow-up: none, nem merge-ölt. Négy rés a policyben (a jelentéséből és a merge-ből): a
+  `tasks_check` worktree-ből nem ír (index); a promote „a main-en” ütközött a „main-re csak PR” szabállyal (a
+  `/tasks add` follow-upokra is); a PR checklist frissítése CI után (`gh pr edit` Projects (classic) hibával
+  elszáll); a `gh pr merge --delete-branch` nem törli a worktree által foglalt helyi branchet. Az index a merge
+  előtt a main checkoutból készült, detached HEAD-en (`c2135cb`); #50 → `398e87b`. Javítva a git-workflow.md-ben
+  ezen a branchen (`task/034-close-git-workflow`): promote saját branchen a main checkoutban, a merge előtti
+  előkészítés (follow-upok + index) detached HEAD-en, `git worktree remove` a merge előtt, a task session nem
+  nyúl az indexhez, PR body `gh api -X PATCH`-csel, a reminder-trailer mondat.
+- 2026-10-18 — follow-up sweep: nincs nyitott tétel. A Context „index regenerated on main after a merge” és „push
+  only on the user's go” mondatait a fenti merge-előtti előkészítés és a „main csak PR-ral mozog” szabály váltotta.
 
 ## Deviations from the plan
 
@@ -66,7 +79,11 @@ Done when: a commit with the trailer fails locally and in CI, and a second sessi
   co-authors to the squash message itself.
 - The maintainer check knows two names: `Szőke Péter` (git config) and `speti4` (the author of a web merge).
 - The 034 promote commit lives only on the task branch; local `main` is set back to `origin/main` before the push,
-  so the squash merge is the one commit `main` gets.
+  so the squash merge is the one commit `main` gets. The policy now says so: `main` moves only through merged
+  pull requests; the promotion, the follow-ups and the index are commits on the task branch, made in the main
+  checkout because the task tools write only there.
+- The second session of the done-when was a background subagent in the 033 worktree, not a session the user
+  opened (user request 2026-10-18).
 
 ## Verification
 
@@ -76,10 +93,15 @@ Done when: a commit with the trailer fails locally and in CI, and a second sessi
 - 2026-10-18 — CI a PR #48-on: első futás (39145607833) mind zöld, `commit-rules` 4 s. Ideiglenes commit trailerrel
   (`fdfb64a`, `--no-verify`) → `commit-rules` failure (39145901495): "no Claude-Session: trailer … in fdfb64a…",
   exit 1. Eldobva (`reset --hard 3deb730`, `--force-with-lease`) → újra minden zöld (39145983395).
+- 2026-10-18 — második session a worktree-ben (033): a subagent a `docs/git-workflow.md` szerint dolgozott —
+  csak a saját task fájl + `ci.yml` + `docs/development.md`, új id nélkül, a hookon átmenő commitok (trailer és
+  session link nélkül), PR #50 a template szerint `## Follow-ups: none`-nal és csak `🤖 Generated with Claude
+  Code` zárással, CI zöld (39151233114, majd 39151560485 az index-commit után), merge-et nem csinált. A main CI
+  #48, #49 és #50 után zöld (az utóbbi 39151806245, a cache-kulcs váltása miatt hideg cache-sel), a `commit-rules` mindháromszor átment a `speti4 <noreply>` squash commitokon.
 
 ## Closing checklist
 
-- [ ] every follow-up is a `backlog/` file (`/tasks add`) or deleted with a reason in the Log
-- [ ] Verification written, dated
-- [ ] `tasks_check` green, README index regenerated
-- [ ] moved to `done/` with `closed: YYYY-MM-DD`
+- [x] every follow-up is a `backlog/` file (`/tasks add`) or deleted with a reason in the Log
+- [x] Verification written, dated
+- [x] `tasks_check` green, README index regenerated
+- [x] moved to `done/` with `closed: YYYY-MM-DD`

@@ -13,7 +13,7 @@ file, never the issue.
 <!-- tasks:index:start -->
 _Generated 2026-10-18 — edit the files, not this section._
 
-**State:** 9 backlog (5 ready · 0 blocked · 1 waiting · 3 ideas) · 1 in progress · 25 done · 0 dropped · 11 decisions
+**State:** 9 backlog (5 ready · 0 blocked · 1 waiting · 3 ideas) · 0 in progress · 26 done · 0 dropped · 11 decisions
 
 ### Ready
 
@@ -61,11 +61,7 @@ _none_
 
 ### In progress
 
-#### M5 Public release
-
-| # | Task | Started | Plan |
-|---|---|---|---|
-| 034 | [Git workflow policy for contributors and parallel sessions, with the commit rul…](wip/034-git-workflow-policy-and-commit-hooks.md) | 2026-10-18 | `cuddly-painting-trinket.md` |
+_none_
 
 ### Closed – do not reopen
 
@@ -75,6 +71,7 @@ _none_
 
 | # | Task | Closed |
 |---|---|---|
+| 034 | [Git workflow policy for contributors and parallel sessions, with the commit rul…](done/034-git-workflow-policy-and-commit-hooks.md) | 2026-10-18 |
 | 033 | [Install the Rust toolchain in CI without a third-party action](done/033-install-the-toolchain-without-a-third-party-action.md) | 2026-10-18 |
 | 030 | [Scrub the repo and rewrite the history per D-09](done/030-scrub-and-rewrite-history-per-d-09.md) | 2026-10-18 |
 | 027 | [Pre-publish audit of the history and the content](done/027-pre-publish-history-and-content-audit.md) | 2026-10-18 |
@@ -84,9 +81,8 @@ _none_
 | 022 | [One-way sync of tasks/ to GitHub issues and milestones](done/022-sync-tasks-to-github-issues.md) | 2026-10-18 |
 | 021 | [GitHub milestones from the roadmap and the first release v0.1.0](done/021-github-milestones-and-first-release.md) | 2026-10-18 |
 | 017 | [Dark mode toggle with OS default](done/017-dark-mode-toggle.md) | 2026-10-18 |
-| 016 | [Open multiple mbox files](done/016-open-multiple-mbox-files.md) | 2026-10-18 |
 
-_15 more in `done/`._
+_16 more in `done/`._
 
 ### Decisions
 

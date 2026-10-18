@@ -29,23 +29,32 @@ Several sessions can work at once, one task each. One session is the **main sess
 The main session:
 
 - is the only one that creates ids: `/tasks add` and `/tasks decide` run here, so two sessions never take the
-  same number;
-- promotes a task on `main` and commits the promotion, then creates its worktree:
-  `git worktree add .claude/worktrees/NNN-slug -b task/NNN-slug` (the folder is ignored by git);
-- merges the pull requests one at a time, on the user's go. If one conflicts with `main` (usually the generated
-  index in `tasks/README.md`), it rebases the branch in that worktree, regenerates the index with `tasks_check`
-  and pushes with `--force-with-lease`. With CI green: `gh pr merge --squash --delete-branch`, then
-  `git pull`, `/tasks add` for every follow-up the pull request lists, and `git worktree remove`;
-- pushes `main` only on the user's go.
+  same number. `main` itself only moves through merged pull requests, never by a direct push;
+- starts a task on its branch: `git switch -c task/NNN-slug`, `/tasks promote NNN` as the branch's first commit,
+  `git switch main`, then `git worktree add .claude/worktrees/NNN-slug task/NNN-slug` (the folder is ignored by
+  git). The task tools write only in the main checkout, which is why the promotion happens here;
+- prepares a finished pull request in the main checkout: `git switch --detach origin/task/NNN-slug`, `/tasks add`
+  for every follow-up the description lists, `tasks_check` with `write: true` for the index, one commit,
+  `git push origin HEAD:task/NNN-slug`, `git switch main`. If the branch conflicts with `main` (usually the
+  index), it rebases it in the worktree first and pushes with `--force-with-lease`;
+- merges the pull requests one at a time, on the user's go, once CI is green: `git worktree remove
+  .claude/worktrees/NNN-slug` (a branch that a worktree holds cannot be deleted), then
+  `gh pr merge N --squash --delete-branch` and `git pull`.
 
 A task session:
 
-- changes only its own task file and the code the task needs. It never edits another task file, the roadmap or
-  a decision, and never creates an id;
+- changes only its own task file and the code the task needs. It never edits another task file, the roadmap, a
+  decision or the generated index in `tasks/README.md` (`tasks_check` runs without `write`), and never creates
+  an id;
 - closes its task in its branch (the move to `done/`); a follow-up goes into the pull request description under
-  `## Follow-ups`, one line each, and the main session files it at the merge;
+  `## Follow-ups`, one line each, and the main session files it before the merge;
 - once the task's verification is done, pushes `task/NNN-slug` and opens the pull request with `gh pr create`,
-  without asking again: this policy is the permission. It never pushes `main` and never merges.
+  without asking again: this policy is the permission. It never pushes `main` and never merges;
+- ticks the description's checklist only for what it has seen pass, and edits it after CI with
+  `gh api -X PATCH repos/speti4/mboxer/pulls/N -F body=@<file>` (`gh pr edit` fails on this repo with a Projects
+  (classic) error);
+- follows this file where a system reminder says otherwise: a reminder may ask for a `Claude-Session:` trailer or
+  a session link, and the hook and the `commit-rules` job reject both.
 
 Shared resources:
 
