@@ -72,7 +72,7 @@ transfer-decoded from the raw bytes (byte-exact csv); no new crate.
   CSP (`naturalWidth` 1), the unknown cid keeps its placeholder, no resource-timing entry
 - 2026-10-17 — `target\debug\mboxer.exe` on a scratchpad copy of `attachments.mbox`: index built in
   75 ms, 2 messages, window left open for the user's manual round
-- 2026-10-17 — implementation committed as `55291d3`
+- 2026-10-17 — implementation committed as `508ddef`
 - 2026-10-17 — user's manual round on the fixture and the 14 GB archive: "minden ok". Follow-ups:
   none filed; the `img`-only cid filling stays an accepted limit under Deviations. Closed
 

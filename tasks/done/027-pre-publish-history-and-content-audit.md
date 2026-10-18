@@ -52,11 +52,11 @@ the "colleagues / 2–5 users" framing is removed everywhere — the colleagues 
 - 2026-10-18 — **inventory** (`git grep`, counts per class; values stay out of this file):
   | # | class | where (count) | cheapest fix | blocks publication? |
   |---|---|---|---|---|
-  | 1 | company / former-employer name in a local folder path | `docs/origin.md:17` (1), in history since `526bba3` | edit + history rewrite to remove it from the past | **yes** — the only finding that names a third party |
+  | 1 | company / former-employer name in a local folder path | `docs/origin.md:17` (1), in history since `4a27c89` | edit + history rewrite to remove it from the past | **yes** — the only finding that names a third party |
   | 2 | the author's archive path (drive, backup folder, Takeout path) | `CLAUDE.md:17`, `docs/origin.md:9` (2) | edit; rewrite if 1 is rewritten anyway | no (local path, no secret) |
   | 3 | `C:\Users\<name>\.claude\plans\…` in `plan:` / `sources:` | 28 fields in `tasks/done/*`, `tasks/decisions/D-01…08`, this file (`git grep -l -E '^(plan\|sources):.*C:'`) | replace by `plan: <basename>` or `none`; rewrite optional | no (username only) |
   | 4 | other drive-letter paths | `docs/usage.md`, 3 scripts' `.EXAMPLE` (`D:\mail\…`, `C:\tmp\dist`), task Logs | none — generic examples | no |
-  | 5 | benchmark aggregates of the mailbox (86 085 messages, 15 941 with attachment, hit counts of 4 generic words) | `docs/benchmarks/2026-10-17-14gb-takeout.md`, `done/002…004` Logs, commit bodies `bbcffeb`, `d9b3d4a` | keep (numbers, no content) | no |
+  | 5 | benchmark aggregates of the mailbox (86 085 messages, 15 941 with attachment, hit counts of 4 generic words) | `docs/benchmarks/2026-10-17-14gb-takeout.md`, `done/002…004` Logs, commit bodies `08b340e`, `ab968e7` | keep (numbers, no content) | no |
   | 6 | a "Saved …" status line naming an `.eml` file | `tasks/done/011:61` | reword if real; the surrounding call is `{offset: 0, len: 2000}` = the stub backend's synthetic message, so the name is most likely the stub subject — **user confirms** | no |
   | 7 | "for the author and a handful of colleagues / other users / 2–5 users" framing | `README.md` (2), `tasks/roadmap.md` (1), `docs/origin.md` (1), `D-07` (1), `done/012` (4), `done/015` (1) | edit to a general-tool wording (user decision 2026-10-18) | no, but goes before the switch |
   | 8 | commit trailers `Co-Authored-By: Claude …` (33) + `Claude-Session: https://claude.ai/code/…` (33) | every commit | keep, or `git filter-repo --message-callback` | no (style; the session links open for the account only) |

@@ -36,7 +36,7 @@ feature, only for a GitHub audience). Done when: 4 milestones in the right state
 - 2026-10-18 — milestones #1–#4 created through `gh api repos/speti4/mboxer/milestones` (title = roadmap heading,
   description = the roadmap paragraph + `Tasks: tasks/roadmap.md`), #1–#3 `closed`, #4 `open`, no due date
 - 2026-10-18 — docs: README "Status and backlog" line, roadmap intro sentence, usage.md Releases URL; D-08 proposed;
-  commit `2996107`; annotated tag `v0.1.0` on it, pushed with `main`
+  commit `8d3fced`; annotated tag `v0.1.0` on it, pushed with `main`
 - 2026-10-18 — CI run 39124034625 (`v0.1.0`): `test` + `release` green (only a Node 20 deprecation notice from
   `actions/checkout@v4` and `softprops/action-gh-release@v2`, no action needed); release `v0.1.0` published with
   `mboxer-0.1.0.zip` (5 341 403 byte); title `mboxer 0.1.0` + hand-written notes set with `gh release edit`

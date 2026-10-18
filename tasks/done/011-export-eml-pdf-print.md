@@ -64,7 +64,7 @@ with the mboxrd `>From ` quoting undone at byte level, with Mark-of-the-Web, wit
   (an ignored sandboxed `print()` returns at once with a console warning; none logged); the extension cannot
   dismiss a browser dialog, so the tab was closed. The visual check of the preview is the user's manual round
 - 2026-10-18 — `docs/usage.md`: "Handing a message on" section, `Ctrl+S` / `Ctrl+P` in the keyboard line
-- 2026-10-18 — commit `bc25c9a` (feat, task 011); `target\debug\mboxer.exe` started on the 14 GB archive for the
+- 2026-10-18 — commit `1777d13` (feat, task 011); `target\debug\mboxer.exe` started on the 14 GB archive for the
   user's manual round
 - 2026-10-18 — a user kézi köre a Tauri ablakban, a 14 GB archívumon: "minden működik". Follow-up: none filed;
   a tervben feltételesen említett 1×1 px-es print-frame nem kellett, a 0×0 rejtett frame nyomtat; a natív

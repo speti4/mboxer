@@ -43,13 +43,13 @@ Phase A — in-place scrub, one commit
 
 Phase B — rewrite in a fresh clone
 
-8. [ ] backup outside the repo: a bundle of every ref + the GitHub side exported (release notes, issues,
+8. [x] backup outside the repo: a bundle of every ref + the GitHub side exported (release notes, issues,
    milestones, labels, repo settings)
-9. [ ] `git filter-repo --replace-text --replace-message --mailmap` in a `--no-local` clone; inputs in the
+9. [x] `git filter-repo --replace-text --replace-message --mailmap` in a `--no-local` clone; inputs in the
    scratchpad, never committed
-10. [ ] verify the clone: the four strings, the personal mailbox and `Claude-Session:` → 0 in `git log -p --all`,
+10. [x] verify the clone: the four strings, the personal mailbox and `Claude-Session:` → 0 in `git log -p --all`,
     the messages and the tag; only the noreply address; `HEAD^{tree}` equal to the scrubbed working copy
-11. [ ] commit SHAs cited in task files remapped through `.git/filter-repo/commit-map`, one commit
+11. [x] commit SHAs cited in task files remapped through `.git/filter-repo/commit-map`, one commit
 
 Phase C — recreate the remote
 
@@ -73,6 +73,17 @@ Phase D — working copy and close
 - 2026-10-18 — Phase A: `origin.md` rewritten; `strip_plan_paths.py` (scratchpad) reduced 27 fields in 27 files;
   the framing sweep found 6 more lines than the 027 inventory (D-01, D-05, D-07 Context, done 014, 021, roadmap
   M3), all reworded; D-06's "the others" means other files and stays.
+- 2026-10-18 — Phase B: backup in `E:\projects\mboxer-pre-rewrite-2026-10-18\` (outside the repo, never pushed):
+  `history.bundle` (370 KB, `main`, `origin/main`, `v0.1.0`), the release notes and JSON exports of the 39
+  issues, milestones, labels, repo settings and 15 runs. `git filter-repo --replace-text` (10 rules: the two
+  local paths, the plan-path prefix, the user folder, the 011 status line in its two quoted forms plus a
+  fallback, three case-insensitive safety nets) `--replace-message` (the `Claude-Session:` line) `--mailmap`
+  in a `--no-local` clone: 35 commits rewritten in 0.4 s, the annotated tag with them. Checks on the clone:
+  employer name, folder name, archive folder, `Users\<name>`, `Saved D:\mail\`, the personal mailbox,
+  `gmail.com` → 0 in `git log -p --all` + messages + tag; 0 `Claude-Session:` lines and 0 session URLs in
+  messages (16 hits of the bare word are the rule's own text in D-09, D-10, CLAUDE.md, 027, 030); one identity,
+  the noreply address, tagger included; `Co-Authored-By` 35/35; `HEAD^{tree}` `7fd061e` equal to the scrubbed
+  working copy. `remap_shas.py` (scratchpad): 11 cited SHAs in 9 files remapped, none ambiguous.
 
 ## Deviations from the plan
 

@@ -68,7 +68,7 @@ crate (D-02). The real archive's header sample (600 MB) has no label with `/` an
   { build_secs: 0, parse_failures: 0 }, 92 ms`; a 14 GB-on hideg cache-sel 1352 ms, melegen 88 ms (a 005/006
   ungrouped listingje ~60 ms volt ugyanebben a debug buildben → a 86 085 üzenet csoportosítása ~30 ms). Mindkét
   ablak nyitva maradt a user kézi köréhez. Follow-up 015 (RFC 2047-kódolt címkenevek) felvéve a backlogba
-- 2026-10-17 — implementation committed as `636afe7`; waiting for the user's manual round
+- 2026-10-17 — implementation committed as `f7f95ef`; waiting for the user's manual round
 - 2026-10-17 — user's manual round on the fixture copy and the 14 GB archive: "minden ok". Follow-ups: 015 filed
   earlier (RFC 2047 label names); the "only matching members in a conversation" limit stays under Deviations as
   accepted. Closed

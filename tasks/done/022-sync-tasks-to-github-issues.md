@@ -51,7 +51,7 @@ the workflow is green, and closing this task closes its own issue through CI.
   Issue numbers happen to equal the task ids (#1–#22) and D-01–D-08 are #23–#30 (the repo had no issues or PRs).
 - 2026-10-18 — follow-up not filed here: lifting the script into project-pal as a `/tasks init` template is a project-pal
   task, to be opened in that repo when this has run for a while (user decision 2026-10-18: script lives here first).
-- 2026-10-18 — commit `cdcb5cf` pushed; `sync-issues.yml` run 39127643289 green in 15 s, log line
+- 2026-10-18 — commit `17c3275` pushed; `sync-issues.yml` run 39127643289 green in 15 s, log line
   `applied: created 0, updated 0, unchanged 30`. Closing: this file moved to `done/`, the push after it must close
   issue #22 through the workflow (the end-to-end proof, recorded under Verification by the next session or by hand).
 

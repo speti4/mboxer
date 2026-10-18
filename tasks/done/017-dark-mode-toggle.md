@@ -51,7 +51,7 @@ and Source views follow the theme. No new crate (D-02).
   `setTheme` induláskor `["dark"]`; HTML nézet iframe body `#fff` / `#1f2328` / `color-scheme light` dark módban;
   Text nézet `--fg`; mark a sorban `#a37c00` + világos fg, a bodyban `#7a5c00`. Képernyőkép: remote bar, warn státusz,
   overlay olvasható. A Chrome maga is dark módú volt, így az auto ág (`prefers-color-scheme`) is lefutott
-- 2026-10-18 — commit `53a49b6` (feat, task 017)
+- 2026-10-18 — commit `563fcc2` (feat, task 017)
 - 2026-10-18 — a user kézi köre az igazi Tauri ablakban, a 14 GB archívumon: "sikeres a teszt". A tervben feltételesen
   említett follow-up (WebView2 fehér villanás a betöltés előtt) nem merült fel, nem kerül backlogra; closed
 
