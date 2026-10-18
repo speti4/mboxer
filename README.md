@@ -1,146 +1,71 @@
 # mboxer
 
-A Windows 11 viewer for large Gmail Takeout mbox archives (14–50 GB): fast indexed search,
-stable, usable UI. A faster, steadier alternative to [eneam/mboxviewer](https://github.com/eneam/mboxviewer)
-for anyone who keeps an old mailbox as a Takeout export.
+A fast, portable viewer for big Gmail Takeout mbox archives on Windows 11: search years of mail in well under a
+second, one exe, nothing to install.
 
-- Stack: Rust, Tauri 2 on WebView2, one-time sidecar full-text index next to the mbox (see
-  `tasks/decisions/`).
-- Status and backlog: `tasks/README.md` (generated), milestones in `tasks/roadmap.md`; both are mirrored
-  one-way into [GitHub issues](https://github.com/speti4/mboxer/issues) and
-  [milestones](https://github.com/speti4/mboxer/milestones) by `scripts/sync-issues.py` from CI, so the
-  task files stay the only place to edit; a release on the
-  [Releases page](https://github.com/speti4/mboxer/releases) closes the milestones it ships (D-08).
-- Why this exists: `docs/origin.md`; why build and not buy: `docs/research/`.
-- For the people who only run it: `docs/usage.md` (ships in the release zip).
+[![CI](https://github.com/speti4/mboxer/actions/workflows/ci.yml/badge.svg)](https://github.com/speti4/mboxer/actions/workflows/ci.yml)
+[![Latest release](https://img.shields.io/github/v/release/speti4/mboxer)](https://github.com/speti4/mboxer/releases/latest)
+[![Licence: MIT](https://img.shields.io/github/license/speti4/mboxer)](LICENSE)
 
-## Build
+![mboxer showing a made-up Gmail archive: the label tree, a conversation opened in the list, and a message with an attachment in the reader](docs/images/viewer.png)
 
-Prerequisites on Windows 11: Rust stable via rustup (the `x86_64-pc-windows-msvc` target) and the
-Visual Studio 2022 C++ build tools plus a Windows 11 SDK, which the MSVC linker needs
-(`winget install Rustlang.Rustup`; in the Visual Studio Installer add `MSVC v143 build tools` and
-`Windows 11 SDK`).
+## Features
+
+- **Full-text search in milliseconds.** The first open builds an index beside the mbox (about two minutes and
+  135 MB for a 14 GB archive); every later open takes under a second. Accents and case do not matter:
+  `szamla` finds `Számla`.
+- **Gmail as you know it.** Labels as a tree with counts, conversations, and Gmail-style operators (`from:`,
+  `to:`, `subject:`, `after:`, `before:`, `has:attachment`, `label:`) with a filter panel that writes them.
+- **Safe HTML mail.** Messages are sanitized and rendered in a sandbox that cannot reach the network; remote
+  images load only when you ask.
+- **Attachments** open with their default application or are saved, marked as downloaded from the internet;
+  executables can only be saved.
+- **Hand a message on** as an `.eml` file, print it, or save it as PDF.
+- **Several archives at once**, for a split Takeout export or more than one export.
+- **Light and dark**, following Windows or your choice.
+- **Never touches your mail.** The mbox is only read; the index is a cache you can delete any time.
+
+## Download and start
+
+1. Download `mboxer-<version>.zip` from the [latest release](https://github.com/speti4/mboxer/releases/latest)
+   and unzip it anywhere.
+2. Start `mboxer.exe`. The exe is not code-signed, so SmartScreen may warn on the first start: *More info*,
+   then *Run anyway*.
+3. *Open* (`Ctrl+O`) your Takeout `.mbox` file and wait for the first index build.
+
+The [usage guide](docs/usage.md) (also inside the zip) covers the rest; the [reference](docs/reference.md)
+describes every feature, the search syntax and the `mboxer-cli` command line.
+
+## Build from source
+
+mboxer is a Rust core with a Tauri 2 window on WebView2 ([D-02](tasks/decisions/)). You need Rust stable with
+the MSVC toolchain and the Visual Studio 2022 C++ build tools (details in [CONTRIBUTING.md](CONTRIBUTING.md)):
 
 ```powershell
 cargo build --release
-target\release\mboxer.exe [file.mbox]                  # the viewer (Tauri 2 / WebView2)
-target\release\mboxer-cli.exe scan <file.mbox> [--sample 3] [--limit N] [--quiet]
-target\release\mboxer-cli.exe index <file.mbox> [--force] [--threads N] [--quiet]
-target\release\mboxer-cli.exe search <file.mbox> [query words] [--from WORDS] [--to WORDS]
-    [--subject WORDS] [--after YYYY-MM-DD] [--before YYYY-MM-DD] [--label NAME]... [--has-attachment | --no-attachment]
-    [--limit 20] [--offset N] [--count] [--relevance]
+target\release\mboxer.exe [file.mbox]
 ```
 
-The viewer (`mboxer.exe`, or `cargo run -p mboxer-app -- [file.mbox]` during development) opens an
-mbox through a file dialog or from its first argument, builds the sidecar index on the first open
-(with progress and a cancel button) and reuses it afterwards, then shows the archive in three
-panes: the Gmail label tree with counts, the message list (newest first, virtualised, so a
-100 000-message archive scrolls like a short one) and a reader with the headers and the body.
-Several mbox files can be open side by side (a split Takeout export, more than one export): each is
-a row at the top of the folder pane, one is active at a time, and the open set is remembered
-across starts (D-06).
+## Documentation
 
-Labels: the folder pane shows the Gmail labels as a tree (`Work/Clients` sits under `Work`, the
-Takeout `Category …` labels sit under *Categories*, the system labels come first), each with the
-number of messages carrying it; a parent that only groups sub-labels shows their total in italics.
-An RFC 2047 encoded label name (`=?UTF-8?Q?Sz=C3=A1ml=C3=A1k?=`) is decoded before it is indexed.
-Clicking a label narrows the list to that label *and* every label under it; a chevron (or
-`ArrowLeft` / `ArrowRight` on the selected node) folds and unfolds a branch.
+- [Usage guide](docs/usage.md): for the people who only run it
+- [Reference](docs/reference.md): the viewer, the search syntax, the index and the CLI
+- [Development](docs/development.md): layout, CI, releases and helper scripts
+- [Contributing](CONTRIBUTING.md) and the [security policy](SECURITY.md)
+- [Why mboxer exists](docs/origin.md), [the alternatives it was measured against](docs/research/),
+  [benchmarks](docs/benchmarks/)
+- [Decisions](tasks/decisions/): the stack, the index, distribution, and why each
 
-Conversations: by default the list shows one row per Gmail conversation (`X-GM-THRID`): the
-newest message with its subject, a count badge and a chevron. The chevron, `ArrowRight` or a
-click opens the conversation under its row, oldest message first; `ArrowLeft` closes it again,
-also from one of its messages. Only the messages that match the current search belong to a
-conversation row, so a search can show a thread with fewer messages than it has; a thread with
-one matching message is a plain row. The *Conversations* checkbox in the filter panel switches
-back to one row per message; the choice is remembered. The status bar counts both:
-`N conversations · M messages`.
+## Project status
 
-Reader: an HTML message renders as HTML (the *HTML* / *Text* / *Source* buttons switch between the
-rendered body, the plain-text part and the raw source of the message; HTML or Text is remembered).
-The HTML is sanitized in the webview before it is shown (scripts, frames, forms, event handlers
-and `javascript:` links are removed) and rendered in a sandboxed iframe whose own content security
-policy allows no network request at all: remote images and styles are held back and a yellow bar
-counts them, *Show* loads them for that one message. Links in the body open in the system browser
-or mail client (`http`, `https`, `mailto` only). *Copy* puts the text of the current view on the
-clipboard. In the Text view the mboxrd quoting of body lines (`>From `) is undone; the Source view
-shows the bytes as they are in the file.
+The plan lives in [`tasks/`](tasks/README.md): the backlog, the work in flight and the history, one file per
+item, with milestones in [`tasks/roadmap.md`](tasks/roadmap.md). The files are mirrored one way into
+[issues](https://github.com/speti4/mboxer/issues) and [milestones](https://github.com/speti4/mboxer/milestones),
+so the task files stay the only place to edit (D-08). Windows comes first; a macOS build is on the roadmap.
 
-Attachments: a strip under the headers lists them (name, size, an `inline` tag on images that
-belong to the HTML body). A click on a chip decodes the attachment from the mbox into a temporary
-file under `%TEMP%\mboxer\` and opens it with the default application; *Save…* asks where to put
-it, *Save all…* writes every attachment of the message into a folder without overwriting
-(`name (2).ext`). Executable attachments (`.exe`, `.bat`, `.ps1`, `.js`, `.lnk` and the like) can
-only be saved. Every written file carries the Mark of the Web, so Office opens it in Protected
-View, as with a file downloaded from a mail client; the temporary copies are removed at the next
-start. Inline images referenced by `cid:` are shown inside the HTML body; text attachments (csv,
-ics) are saved byte for byte in their original charset.
+mboxer started as a faster, steadier alternative to [eneam/mboxviewer](https://github.com/eneam/mboxviewer) for
+anyone who keeps an old mailbox as a Takeout export.
 
-Search: the field in the toolbar (`Ctrl+F` or `Ctrl+K`) narrows the list while you type (words are
-AND-ed, the word you are still typing counts as a prefix until you type a space, `"quotes"` make a
-phrase, `OR` and `-word` work, accents and case do not matter). The field also takes Gmail-style
-operators, and it is the one source of truth: the *Filters* panel (`Ctrl+Shift+F`) and a click on a
-label in the folder pane write their operator into the field, and an operator you type shows up in
-the panel and in the folder selection.
+## Licence
 
-| Operator | Meaning |
-|---|---|
-| `from:anna`, `from:"anna példa"` | words in the sender (several `from:` add up) |
-| `to:konyveles` | words in a recipient (To or Cc) |
-| `subject:számla` | words in the subject |
-| `after:2026-01-01`, `before:2026-01-31` | local days, both inclusive (`before:` includes the day, unlike Gmail; `2026/1/31` is accepted) |
-| `has:attachment`, `-has:attachment` | with, without an attachment |
-| `label:Inbox`, `label:"Work/Invoices"` | the first `label:` is the folder-pane node (it and its sub-labels), further ones are exact labels that must all be present; a container name (`label:Work`, `label:Categories`) selects the container |
-
-Operator names are case-insensitive; `-` only negates `has:`. An unknown `foo:bar` is passed to the
-search engine as is (it warns in the status bar), a bad date or `has:` value is a warning and the
-token is ignored. The panel adds the sort order (newest first, or best match when there are words to
-score) and the *Conversations* view. All of it is one query; the words you searched for (and the
-`from:` / `subject:` values) are highlighted in the list and in the message body, the selected
-message stays selected when it is still in the result, and *Clear* or `Esc` in the field empties the
-whole query, label included. Keyboard: `Ctrl+O` opens, `Enter` or
-`ArrowDown` in the search field moves to the list, `Esc` clears the query, arrows / `PageUp` /
-`PageDown` / `Home` / `End` move in the list, `Enter` focuses the reader and `Esc` returns. The
-UI is plain HTML/CSS/JS embedded in the exe: no Node toolchain, no
-bundler, no Tauri CLI needed; a change under `crates/mboxer-app/ui/` takes effect on the next
-`cargo run`. The application icon is generated once by `scripts\make-icon.py` (Pillow) and committed.
-
-`scan` streams the whole file once with a bounded buffer, prints the headers and MIME tree of the
-first messages, then a summary (message count, throughput, largest message, labels, parse failures).
-
-`index` builds the sidecar full-text index in `.mboxer\<file name>\` next to the mbox (a cache:
-delete it any time) and skips the build when the index already matches the file. When that folder
-is not writable (a read-only share, a DVD), the index goes under `%LOCALAPPDATA%\mboxer\index\`
-(`MBOXER_INDEX_HOME` overrides the root), and every open looks in both places. `search` needs
-that index: query words are AND-ed, `"quotes"` make a phrase, accents and case are folded on
-both sides (`szamla` finds `Számla`), the filters narrow the result, and every hit line carries
-the message's byte offset and length in the mbox. Dates are UTC days; `--before` is exclusive.
-
-Checks before a commit: `cargo fmt --check`, `cargo clippy --all-targets -- -D warnings`,
-`cargo test`; `.github/workflows/ci.yml` runs the same three on every push and pull request
-(windows-latest). Release: `scripts\release.ps1` builds the release profile (fat LTO, stripped) and
-packs `target\release\mboxer.exe` + `docs\usage.md` into `dist\mboxer-<version>.zip`, the version
-being the workspace `Cargo.toml` one (the only place it is written; `tauri-build` stamps it into
-the exe's properties and the status bar shows it). Pushing a tag `v<version>` runs the tests and
-publishes that zip as a GitHub release. `.github/workflows/sync-issues.yml` runs
-`scripts/sync-issues.py` on every push to `main` that touches `tasks/`: one GitHub issue per task
-and decision file (id in the title, Context prose, labels, milestone, open / closed by the folder),
-milestones from the roadmap headings, idempotent and one-way; `python -I scripts/sync-issues.py --dry-run`
-shows what a run would change. Peak memory of a run: `scripts\peak-memory.ps1 -- target\release\mboxer-cli.exe scan <file.mbox> --quiet`.
-The full benchmark (build time, peak memory, index size, re-open and search latency as a Markdown
-report): `scripts\benchmark.ps1 -Mbox <file.mbox> -Out docs\benchmarks\<date>.md`; results for the
-author's archive are under `docs/benchmarks/`.
-
-## Layout
-
-- `crates/mboxer-core` — streaming mbox reader (`MboxReader`, `read_at`), message summary and MIME
-  tree over `mail-parser`, and the sidecar index (`index/`: fingerprint, schema with the accent-folding
-  tokenizer, one-pass build, search, the full sorted listing behind the viewer's list); synthetic
-  fixtures under `tests/fixtures/`.
-- `crates/mboxer-app` — the `mboxer` executable: the Tauri 2 window (`src/`: commands, state with
-  the open-or-build flow, the message view, the label order), the static UI under `ui/`, the
-  capability file and the icon.
-- `crates/mboxer-cli` — the `mboxer-cli` executable; its end-to-end tests under `tests/`.
-- `scripts/` — helper scripts for measurements, the icon and the release zip.
-- `docs/` — origin, research, dated benchmarks, the usage guide that ships in the release zip.
-- `.github/workflows/` — CI (fmt, clippy, test) and the tagged release.
+[MIT](LICENSE)

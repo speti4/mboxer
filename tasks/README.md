@@ -13,7 +13,7 @@ file, never the issue.
 <!-- tasks:index:start -->
 _Generated 2026-10-18 — edit the files, not this section._
 
-**State:** 7 backlog (5 ready · 0 blocked · 1 waiting · 1 idea) · 2 in progress · 21 done · 0 dropped · 10 decisions
+**State:** 9 backlog (5 ready · 0 blocked · 1 waiting · 3 ideas) · 2 in progress · 21 done · 0 dropped · 10 decisions
 
 ### Ready
 
@@ -51,6 +51,13 @@ _none_
 | # | Task | Size | Created |
 |---|---|---|---|
 | 029 | [Authenticode signing of the release exe](backlog/029-windows-code-signing.md) | M | 2026-10-18 |
+
+#### (no milestone)
+
+| # | Task | Size | Created |
+|---|---|---|---|
+| 031 | [Native title bar stays dark when the Light override runs under dark-mode Windows](backlog/031-title-bar-stays-dark-under-light-override.md) | S | 2026-10-18 |
+| 032 | [Date column misaligned between conversation rows and plain rows in the list](backlog/032-list-date-column-alignment-in-conversation-view.md) | S | 2026-10-18 |
 
 ### In progress
 

@@ -10,7 +10,10 @@ This repo is the source of truth for:
   (the `mboxer-cli` exe for scan / index / search). Build: `cargo build --release`, run the viewer:
   `cargo run -p mboxer-app -- [file.mbox]`, tests: `cargo test`; fixtures are synthetic files under
   `crates/mboxer-core/tests/fixtures/`
-- `docs/` — origin, research, benchmarks, usage
+- `docs/` — origin, research, benchmarks, usage (ships in the zip), reference (every feature, the CLI),
+  development (layout, CI, release, scripts), `images/` (screenshots over the demo mbox only)
+- the community files at the root and under `.github/` (LICENSE, SECURITY, CONTRIBUTING, CODE_OF_CONDUCT, issue
+  forms, PR template, CODEOWNERS)
 - `tasks/` — the task standard: backlog, work in flight, history, decisions
 
 ## Data outside the repo (never commit)

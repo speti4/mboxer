@@ -1,6 +1,8 @@
 # mboxer — using it
 
-A viewer for a Gmail Takeout mbox archive on Windows 11. One file, nothing to install.
+A viewer for a Gmail Takeout mbox archive on Windows 11. One file, nothing to install. Every feature in
+detail, the full search syntax and the command line are in the reference:
+https://github.com/speti4/mboxer/blob/main/docs/reference.md
 
 ## What you need
 
