@@ -58,9 +58,12 @@ guide="$root/docs/usage.md"
 
 # The notices of the crates compiled into the two darwin builds (their MIT, Apache-2.0, BSD and MPL-2.0
 # licences ask for them), as release.ps1 renders the Windows page: the same about.toml and template, the
-# darwin targets instead of its Windows one. --frozen: Cargo.lock as it is and only the crate sources
-# already on disk, no network, so the same lock file gives the same page on any host.
+# darwin targets instead of its Windows one. cargo-about reads the graph through `cargo metadata`, which
+# wants the sources of every platform's crates, more than a build fetches, so `cargo fetch` (all
+# targets) runs first; then --frozen: Cargo.lock as it is and no network, so the same lock file gives the
+# same page on any host.
 render_licences() {
+    cargo fetch --locked
     cargo about generate --frozen --fail \
         --target aarch64-apple-darwin --target x86_64-apple-darwin \
         --manifest-path "$root/crates/mboxer-app/Cargo.toml" \
@@ -84,14 +87,12 @@ if ! command -v cargo > /dev/null && [ -x "$HOME/.cargo/bin/cargo" ]; then
     export PATH="$HOME/.cargo/bin:$PATH"
 fi
 
-# The page alone: the crate sources of both targets fetched first (no build fetches them here), then
-# rendered. The graph is the same on every host, so CI runs this on Linux.
+# The page alone, without a build. The graph is the same on every host, so CI runs this on Linux.
 if [ -n "$licences_only" ]; then
     for tool in cargo cargo-about; do
         command -v "$tool" > /dev/null || { echo "$tool not found" >&2; exit 1; }
     done
     mkdir -p "$(dirname "$licences_only")"
-    cargo fetch --locked --target aarch64-apple-darwin --target x86_64-apple-darwin
     render_licences "$licences_only"
     echo "licences: $licences_only ($(du -k "$licences_only" | cut -f1) KB)"
     exit 0

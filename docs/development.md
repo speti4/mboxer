@@ -77,7 +77,9 @@ uvx zizmor .github
 `Cargo.toml` one, the only place it is written: `tauri-build` stamps it into the exe's properties and the status
 bar shows it. Next to the zip it writes `SHA256SUMS.txt` (the zip's SHA-256 in the `sha256sum -c` format) and
 `release-notes-<version>.md`. The licence page comes from
-[cargo-about](https://github.com/EmbarkStudios/cargo-about) over the crates compiled into the exe: `about.toml`
+[cargo-about](https://github.com/EmbarkStudios/cargo-about) over the crates compiled into the exe (it reads the
+graph through `cargo metadata`, which wants the sources of every platform's crates, so the script runs `cargo
+fetch` first and cargo-about offline after it): `about.toml`
 accepts the same licences as `deny.toml` (a licence added to one is added to the other; the `deny` job compares
 the two), `scripts/third-party-licenses.hbs` is the page, and every crate links to its source, which the MPL-2.0
 crates ask for (D-011). cargo-about is a build-time tool, never part of the exe:
@@ -113,7 +115,7 @@ The licence page is cargo-about with the `about.toml` and the template of `relea
 two darwin builds instead of the Windows one (`--target aarch64-apple-darwin --target x86_64-apple-darwin`), so
 it lists `objc2` and the other macOS-only crates and none of the `windows-*` ones. A target's dependency graph
 and the licence texts do not depend on the host, so in CI the `licences-macos` job renders the page on Linux
-(`--licences-only`: `cargo fetch` for the two targets, then cargo-about offline), where a minute costs a tenth of
+(`--licences-only`, without a build), where a minute costs a tenth of
 a macOS one, and `bundle-macos` packs that page (`--licences`) instead of building cargo-about on the macOS
 runner. On a Mac without `--licences` the script renders the page itself, with cargo-about on `PATH`.
 

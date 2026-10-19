@@ -59,12 +59,23 @@ the first release tag (028), which builds the macOS zip too.
 - 2026-10-19 — A sablon bevezetője eddig Windows-specifikus volt (`mboxer.exe`, „WebView2, part of Windows
   11”); platformsemleges lett (exe vagy app, WebView2 vagy WKWebView). A release notes „Verify the download”
   szövege (`scripts/changelog.py`) is mindkét zipre utal már.
+- 2026-10-19 — Első kézi futás (run 39260328239): a `licences-macos` elbukott: `cargo metadata` exited with an
+  error: failed to download `android_system_properties v0.1.6` … `--frozen was specified`. Ok: a cargo-about
+  szűretlen `cargo metadata`-val olvassa a gráfot, ami minden platform crate-jeinek forrását kéri, a
+  `cargo fetch --target …` (és egy build) viszont csak a saját targetjéét tölti le. Helyben azért ment, mert a
+  `~/.cargo/registry` már mindent tartalmazott. Friss `CARGO_HOME`-mal reprodukálva: `cargo fetch --locked
+  --target x86_64-pc-windows-msvc` után a Windows-lap ugyanígy bukik — vagyis a `release` job (025) is elbukott
+  volna az első tagen tiszta Windows runneren (tagen még sosem futott, a 025 csak helyi dry runnal ellenőrzött).
+  Javítás mindkét scriptben: `cargo fetch --locked` (minden target) közvetlenül a `--frozen` generálás előtt;
+  friss `CARGO_HOME`-mal utána a macOS- és a Windows-lap is hibátlanul elkészül.
 
 ## Deviations from the plan
 
 - 2. lépés: a cargo-about nem a `bundle-macos` jobban (macOS runner) fut, hanem egy Linux jobban, és a
   `bundle-macos` csak becsomagolja a lapot — ugyanaz az eredmény a macOS-percek nélkül (indoklás a Logban).
 - A sablon és a release notes szövege is változott (a lap már nem csak az exe-ről szól).
+- `scripts/release.ps1` is kapott egy `cargo fetch --locked`-ot a cargo-about elé: ugyanaz a hiba a Windows
+  release jobot is eltörte volna az első tagen (Log), a 041 a 028 első release-e előtt landol.
 
 ## Verification
 

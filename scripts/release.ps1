@@ -85,8 +85,11 @@ Copy-Item $exe (Join-Path $stage "mboxer.exe")
 Copy-Item $guide (Join-Path $stage "usage.md")
 
 # The notices of the crates compiled into the exe (their MIT, Apache-2.0, BSD and MPL-2.0 licences ask for
-# them). --frozen: Cargo.lock as it is and only the crate sources the build fetched, no network, so the same
-# lock file gives the same page.
+# them). cargo-about reads the graph through `cargo metadata`, which wants the sources of every platform's
+# crates, more than the build fetched (task 041), so `cargo fetch` (all targets) runs first; then --frozen:
+# Cargo.lock as it is and no network, so the same lock file gives the same page.
+& $cargo fetch --locked
+if ($LASTEXITCODE -ne 0) { throw "cargo fetch failed ($LASTEXITCODE)" }
 $licences = Join-Path $stage "THIRD-PARTY-LICENSES.html"
 & $cargoAbout generate --frozen --fail `
     --manifest-path (Join-Path $root "crates\mboxer-app\Cargo.toml") `
