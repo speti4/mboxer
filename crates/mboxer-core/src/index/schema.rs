@@ -5,7 +5,8 @@ use tantivy::schema::{
     FAST, Field, INDEXED, IndexRecordOption, STORED, STRING, Schema, TextFieldIndexing, TextOptions,
 };
 use tantivy::tokenizer::{
-    AsciiFoldingFilter, LowerCaser, RemoveLongFilter, SimpleTokenizer, TextAnalyzer,
+    AsciiFoldingFilter, LowerCaser, SimpleTokenizer, TextAnalyzer, Token, TokenFilter, TokenStream,
+    Tokenizer,
 };
 
 use crate::error::{Error, Result};
@@ -13,16 +14,79 @@ use crate::error::{Error, Result};
 /// Name of the registered tokenizer: words, lower-cased, accents folded to ASCII.
 pub const TOKENIZER: &str = "fold";
 
-/// Tokens longer than this are dropped (base64 runs, URLs, hashes).
-const MAX_TOKEN_CHARS: usize = 40;
+/// The longest token kept, in characters after folding: a longer one is
+/// dropped (base64 runs, hashes, long URLs without punctuation). Counted
+/// after the folding so an accented word and its ASCII spelling get the same
+/// limit (task 060).
+const MAX_FOLDED_TOKEN_CHARS: usize = 40;
 
 /// Builds the analyzer behind [`TOKENIZER`]: `számla` and `SZAMLA` both become `szamla`.
 pub fn fold_analyzer() -> TextAnalyzer {
     TextAnalyzer::builder(SimpleTokenizer::default())
-        .filter(RemoveLongFilter::limit(MAX_TOKEN_CHARS))
         .filter(LowerCaser)
         .filter(AsciiFoldingFilter)
+        .filter(MaxCharsFilter(MAX_FOLDED_TOKEN_CHARS))
         .build()
+}
+
+/// Drops the tokens with more than `.0` characters. tantivy's own
+/// `RemoveLongFilter` counts UTF-8 bytes and keeps only tokens shorter than
+/// its limit, so it would cut a 20-letter accented word before the folding.
+#[derive(Clone, Copy)]
+struct MaxCharsFilter(usize);
+
+impl TokenFilter for MaxCharsFilter {
+    type Tokenizer<T: Tokenizer> = MaxCharsTokenizer<T>;
+
+    fn transform<T: Tokenizer>(self, tokenizer: T) -> MaxCharsTokenizer<T> {
+        MaxCharsTokenizer {
+            max: self.0,
+            inner: tokenizer,
+        }
+    }
+}
+
+#[derive(Clone)]
+struct MaxCharsTokenizer<T> {
+    max: usize,
+    inner: T,
+}
+
+impl<T: Tokenizer> Tokenizer for MaxCharsTokenizer<T> {
+    type TokenStream<'a> = MaxCharsStream<T::TokenStream<'a>>;
+
+    fn token_stream<'a>(&'a mut self, text: &'a str) -> Self::TokenStream<'a> {
+        MaxCharsStream {
+            max: self.max,
+            tail: self.inner.token_stream(text),
+        }
+    }
+}
+
+struct MaxCharsStream<S> {
+    max: usize,
+    tail: S,
+}
+
+impl<S: TokenStream> TokenStream for MaxCharsStream<S> {
+    fn advance(&mut self) -> bool {
+        while self.tail.advance() {
+            // A token of at most `max` bytes is short enough without counting.
+            let text = &self.tail.token().text;
+            if text.len() <= self.max || text.chars().count() <= self.max {
+                return true;
+            }
+        }
+        false
+    }
+
+    fn token(&self) -> &Token {
+        self.tail.token()
+    }
+
+    fn token_mut(&mut self) -> &mut Token {
+        self.tail.token_mut()
+    }
 }
 
 /// Registers [`TOKENIZER`] on `index`; needed after every create and open.
@@ -34,19 +98,18 @@ pub fn register_tokenizer(index: &Index) {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Fields {
     /// Byte offset of the envelope line (decision D-003); the message identity.
+    /// A fast field too: it breaks ties in the listing's sort (task 060).
     pub offset: Field,
     pub len: Field,
     /// `Date` header as Unix seconds; absent when the header is missing or unparsable.
     pub date: Field,
     pub thread_id: Field,
     pub message_id: Field,
-    /// Display strings, one value per mailbox: `Name <address>`.
+    /// Display strings, one value per mailbox: `Name <address>`. The address
+    /// is folded into words like the name, so `from:` and `to:` match either.
     pub from: Field,
     pub to: Field,
     pub cc: Field,
-    /// Bare lower-cased addresses, written for exact filters and counts; no query reads them yet.
-    pub from_addr: Field,
-    pub to_addr: Field,
     pub subject: Field,
     /// Indexed only, never stored: the reader seeks the mbox for the text.
     pub body: Field,
@@ -56,7 +119,7 @@ pub struct Fields {
     pub attachment_names: Field,
 }
 
-const FIELD_NAMES: [&str; 15] = [
+const FIELD_NAMES: [&str; 13] = [
     "offset",
     "len",
     "date",
@@ -65,8 +128,6 @@ const FIELD_NAMES: [&str; 15] = [
     "from",
     "to",
     "cc",
-    "from_addr",
-    "to_addr",
     "subject",
     "body",
     "labels",
@@ -90,7 +151,7 @@ fn folded_text(stored: bool) -> TextOptions {
 pub fn build_schema() -> (Schema, Fields) {
     let mut b = Schema::builder();
     let fields = Fields {
-        offset: b.add_u64_field("offset", INDEXED | STORED),
+        offset: b.add_u64_field("offset", INDEXED | STORED | FAST),
         len: b.add_u64_field("len", STORED),
         date: b.add_i64_field("date", STORED | FAST),
         thread_id: b.add_u64_field("thread_id", INDEXED | STORED | FAST),
@@ -98,8 +159,6 @@ pub fn build_schema() -> (Schema, Fields) {
         from: b.add_text_field("from", folded_text(true)),
         to: b.add_text_field("to", folded_text(true)),
         cc: b.add_text_field("cc", folded_text(true)),
-        from_addr: b.add_text_field("from_addr", STRING | FAST),
-        to_addr: b.add_text_field("to_addr", STRING | FAST),
         subject: b.add_text_field("subject", folded_text(true)),
         body: b.add_text_field("body", folded_text(false)),
         labels: b.add_text_field("labels", STRING | STORED | FAST),
@@ -112,7 +171,7 @@ pub fn build_schema() -> (Schema, Fields) {
 impl Fields {
     /// Resolves the handles from an opened index's schema.
     pub fn from_schema(schema: &Schema) -> Result<Self> {
-        let mut resolved = [Field::from_field_id(0); 15];
+        let mut resolved = [Field::from_field_id(0); FIELD_NAMES.len()];
         for (slot, name) in resolved.iter_mut().zip(FIELD_NAMES) {
             *slot = schema
                 .get_field(name)
@@ -127,8 +186,6 @@ impl Fields {
             from,
             to,
             cc,
-            from_addr,
-            to_addr,
             subject,
             body,
             labels,
@@ -144,8 +201,6 @@ impl Fields {
             from,
             to,
             cc,
-            from_addr,
-            to_addr,
             subject,
             body,
             labels,
@@ -195,8 +250,29 @@ mod tests {
             tokens("anna.pelda@example.com"),
             ["anna", "pelda", "example", "com"]
         );
-        let long = "a".repeat(MAX_TOKEN_CHARS + 1);
+        let long = "a".repeat(MAX_FOLDED_TOKEN_CHARS + 1);
         assert!(tokens(&format!("x {long} y")).iter().all(|t| t != &long));
+    }
+
+    #[test]
+    fn the_length_limit_counts_folded_characters() {
+        // 40 ASCII characters is the longest word kept, 41 is a run.
+        let forty = "b".repeat(40);
+        assert_eq!(tokens(&format!("x {forty} y")), ["x", forty.as_str(), "y"]);
+        let forty_one = "b".repeat(41);
+        assert_eq!(tokens(&format!("x {forty_one} y")), ["x", "y"]);
+        // 25 accented characters are 50 bytes before folding and 25 after.
+        let accented = format!("{}á", "áé".repeat(12));
+        assert_eq!(accented.chars().count(), 25);
+        assert_eq!(tokens(&accented), [format!("{}a", "ae".repeat(12))]);
+        // 33 characters, 47 bytes before folding.
+        assert_eq!(
+            tokens("Árvíztűrőtükörfúrógéptükörfúrógép"),
+            ["arvizturotukorfurogeptukorfurogep"]
+        );
+        // 40 accented characters stay, 41 go.
+        assert_eq!(tokens(&"ő".repeat(40)), ["o".repeat(40)]);
+        assert!(tokens(&"ő".repeat(41)).is_empty());
     }
 
     #[test]

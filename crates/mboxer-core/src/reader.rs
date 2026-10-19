@@ -47,9 +47,13 @@ pub struct MboxReader<R> {
     inner: R,
     /// Absolute position of the next unread byte of `inner`.
     pos: u64,
-    /// Reusable line buffer.
+    /// The line being read. Reused from line to line within a message; an
+    /// envelope line is moved into `pending` (`mem::take`), so the next line
+    /// starts a new allocation once per message.
     line: Vec<u8>,
-    /// Reusable message body buffer.
+    /// The body of the message being read. Moved into the [`RawMessage`] it
+    /// becomes (`mem::take`), so every message grows a fresh one: the caller
+    /// owns the bytes it is handed.
     body: Vec<u8>,
     /// The envelope line of the next message, already read: (offset, line with break).
     pending: Option<(u64, Vec<u8>)>,
@@ -229,17 +233,40 @@ impl<R: BufRead> Iterator for MboxReader<R> {
 ///
 /// Verifies that the range starts with an envelope line; a mismatch means the
 /// file changed since the identity was recorded.
+/// A `len` over [`DEFAULT_MAX_MESSAGE_BYTES`] is refused; an index built with
+/// another limit reads its messages with
+/// [`MboxIndex::read_message`](crate::MboxIndex::read_message).
 pub fn read_at(path: impl AsRef<Path>, offset: u64, len: u64) -> Result<RawMessage> {
+    read_at_with_limit(path, offset, len, DEFAULT_MAX_MESSAGE_BYTES)
+}
+
+/// [`read_at`] with the size limit the message was streamed under.
+pub fn read_at_with_limit(
+    path: impl AsRef<Path>,
+    offset: u64,
+    len: u64,
+    max_message_bytes: u64,
+) -> Result<RawMessage> {
     let file = File::open(path)?;
-    read_at_from(file, offset, len)
+    read_at_from_with_limit(file, offset, len, max_message_bytes)
 }
 
 /// [`read_at`] over any seekable source.
-pub fn read_at_from<R: Read + Seek>(mut source: R, offset: u64, len: u64) -> Result<RawMessage> {
-    if len > DEFAULT_MAX_MESSAGE_BYTES {
+pub fn read_at_from<R: Read + Seek>(source: R, offset: u64, len: u64) -> Result<RawMessage> {
+    read_at_from_with_limit(source, offset, len, DEFAULT_MAX_MESSAGE_BYTES)
+}
+
+/// [`read_at_with_limit`] over any seekable source.
+pub fn read_at_from_with_limit<R: Read + Seek>(
+    mut source: R,
+    offset: u64,
+    len: u64,
+    max_message_bytes: u64,
+) -> Result<RawMessage> {
+    if len > max_message_bytes {
         return Err(Error::MessageTooLarge {
             offset,
-            limit: DEFAULT_MAX_MESSAGE_BYTES,
+            limit: max_message_bytes,
         });
     }
     source.seek(SeekFrom::Start(offset))?;
