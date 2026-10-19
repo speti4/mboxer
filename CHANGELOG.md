@@ -13,6 +13,10 @@ not the list. The summary under a heading is written by hand and kept by the gen
 
 - The usage guide in the zips in a format that opens with a double-click ([048](https://github.com/speti4/mboxer/blob/main/tasks/done/048-usage-guide-readable-in-the-zip.md))
 
+### M6 Hardening
+
+- The label tree panics on a label whose ninth byte is inside a multibyte character ([049](https://github.com/speti4/mboxer/blob/main/tasks/done/049-label-tree-panics-on-a-multibyte-boundary.md))
+
 ### Project housekeeping
 
 - Publication day: visibility switch and the public-only repo settings ([028](https://github.com/speti4/mboxer/blob/main/tasks/done/028-publication-day-repo-settings.md))
