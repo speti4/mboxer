@@ -245,6 +245,18 @@ mod tests {
     }
 
     #[test]
+    fn folds_letters_beyond_combining_accents() {
+        // The words the highlight's Node tests fold the same way (`ui/query.js`).
+        assert_eq!(
+            tokens("Straße STRAẞE Łódź Ørsted Œuvre Đakovo đ Æsir Þór ﬁle"),
+            [
+                "strasse", "strasse", "lodz", "orsted", "oeuvre", "dakovo", "d", "aesir", "thor",
+                "file"
+            ]
+        );
+    }
+
+    #[test]
     fn splits_addresses_and_drops_long_runs() {
         assert_eq!(
             tokens("anna.pelda@example.com"),

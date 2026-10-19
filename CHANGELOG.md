@@ -24,6 +24,7 @@ not the list. The summary under a heading is written by hand and kept by the gen
 - The usage guide says what the viewer does ([055](https://github.com/speti4/mboxer/blob/main/tasks/done/055-usage-guide-matches-the-viewer.md))
 - Index quality follow-ups: token length, completions, nested parts, limits, multi-thread order ([060](https://github.com/speti4/mboxer/blob/main/tasks/done/060-index-quality-follow-ups-from-the-review.md))
 - Free-text follow-ups: the highlight split and the tantivy exclusion assertion ([063](https://github.com/speti4/mboxer/blob/main/tasks/done/063-free-text-follow-ups-tantivy-assertion-warnings-and-highlight.md))
+- The highlight folds the same letters the index folds ([068](https://github.com/speti4/mboxer/blob/main/tasks/done/068-highlight-folds-the-letters-the-index-folds.md))
 
 ### Project housekeeping
 

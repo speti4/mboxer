@@ -173,7 +173,7 @@ test("highlightTerms folds words, keeps phrases whole and skips the rest of the 
 function marks(text, query) {
   const { folded, map } = Query.foldWithMap(text);
   return Query.termRanges(folded, Query.highlightTerms(query)).map(([start, end]) =>
-    text.slice(map[start], map[end]),
+    text.slice(...Query.textRange(map, start, end)),
   );
 }
 
@@ -198,6 +198,30 @@ test("a quoted phrase stays one highlight unit", () => {
   assert.deepEqual(marks("Big, bad wolf", '"big bad"'), ["Big, bad"]);
   assert.deepEqual(marks("a big wolf, a bad one", '"big bad"'), []);
   assert.deepEqual(marks("Számla, számla", "számla"), ["Számla", "számla"]);
+});
+
+test("letters the index folds beyond accents fold the same way here", () => {
+  assert.equal(Query.foldText("Straße STRAẞE"), "strasse strasse");
+  assert.equal(Query.foldText("Łódź"), "lodz");
+  assert.equal(Query.foldText("Ørsted"), "orsted");
+  assert.equal(Query.foldText("Œuvre œuvre"), "oeuvre oeuvre");
+  assert.equal(Query.foldText("Đakovo đ"), "dakovo d");
+  assert.equal(Query.foldText("Æsir Þór ﬁle"), "aesir thor file");
+  assert.deepEqual(Query.highlightTerms("strasse"), ["strasse"]);
+  assert.deepEqual(Query.highlightTerms("Łódź"), ["lodz"]);
+});
+
+test("a highlight lands on whole letters where one folds to several", () => {
+  const { folded, map } = Query.foldWithMap("Straße");
+  assert.equal(folded, "strasse");
+  assert.deepEqual(map, [0, 1, 2, 3, 4, 4, 5, 6]);
+  assert.deepEqual(marks("Die Straße, Łódź", "strasse"), ["Straße"]);
+  assert.deepEqual(marks("Die Straße, Łódź", "lodz"), ["Łódź"]);
+  assert.deepEqual(marks("Die Straße", "stras"), ["Straß"], "a prefix ending inside ß takes the ß");
+  assert.deepEqual(marks("Die Straße", "se"), ["ße"]);
+  assert.deepEqual(marks("Ørsted, œuvre, Đakovo", "orsted oeuvre dakovo"), ["Ørsted", "œuvre", "Đakovo"]);
+  assert.deepEqual(marks("an Œuvre", "œuv"), ["Œuv"]);
+  assert.deepEqual(marks("die ﬁle", "fi"), ["ﬁ"]);
 });
 
 test("normalizeDate rejects anything but a real day", () => {
