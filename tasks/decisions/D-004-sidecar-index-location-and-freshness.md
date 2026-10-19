@@ -2,7 +2,7 @@
 status: decided
 date: 2026-10-17
 cost: medium
-sources: [done/003-fulltext-sidecar-index-accent-folding.md, D-002-rust-tauri2-sidecar-fulltext-index.md, folytassuk-a-003-taskkal-parsed-panda.md]
+sources: [done/003-fulltext-sidecar-index-accent-folding.md, D-002-rust-tauri2-sidecar-fulltext-index.md]
 ---
 
 # D-004 — The sidecar index lives in `.mboxer/<mbox name>/` beside the mbox and is rebuilt whole when stale

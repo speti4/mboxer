@@ -2,7 +2,7 @@
 status: decided
 date: 2026-10-17
 cost: cheap
-sources: [done/014-index-fallback-for-read-only-mbox-locations.md, D-004-sidecar-index-location-and-freshness.md, 12-14-15-taskokat-fejlessz-k-le-keen-whale.md]
+sources: [done/014-index-fallback-for-read-only-mbox-locations.md, D-004-sidecar-index-location-and-freshness.md]
 ---
 
 # D-005 — When `.mboxer/` beside the mbox cannot be created, the index lives under `%LOCALAPPDATA%\mboxer\index\<name>-<path hash>\`

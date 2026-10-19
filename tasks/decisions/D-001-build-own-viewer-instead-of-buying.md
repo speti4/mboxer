@@ -2,7 +2,7 @@
 status: decided
 date: 2026-10-17
 cost: medium
-sources: [docs/origin.md, docs/research/2026-10-17-free-mbox-viewer-alternatives.md, olvasd-el-a-draft-md-sharded-teapot.md]
+sources: [docs/origin.md, docs/research/2026-10-17-free-mbox-viewer-alternatives.md, done/001-project-scaffolding.md]
 ---
 
 # D-001 — Build our own mbox viewer instead of adopting an existing one

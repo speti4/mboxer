@@ -176,7 +176,12 @@ release goes like this:
    `CHANGELOG.md`, run `python -I scripts/changelog.py` and merge.
 2. Tag the merge commit `v<version>` and push the tag; the release job takes the notes from the changelog (the
    new tag takes the *Unreleased* summary).
-3. Afterwards, `python -I scripts/changelog.py` stamps the section with the version and the tag's date; commit
+3. Once the release is on the Releases page, the maintainer closes by hand every milestone whose task files are
+   all in `tasks/done/` or `tasks/dropped/` and whose done-when the release meets (task 058): the open ones with
+   `gh api repos/speti4/mboxer/milestones --jq '.[] | [.number, .title, .open_issues] | @tsv'`, then
+   `gh api -X PATCH repos/speti4/mboxer/milestones/<number> -f state=closed`. Neither the release job, whose
+   token has no `issues` scope, nor the issue mirror changes a milestone's state.
+4. Afterwards, `python -I scripts/changelog.py` stamps the section with the version and the tag's date; commit
    it with the next change. Until then `--check` reads the newest tag without a section as not there yet and
    prints a notice, so the pull requests opened in between, dependabot's included, stay green.
 
@@ -196,7 +201,8 @@ the script after its rebase instead of merging the lists by hand.
 `.github/workflows/sync-issues.yml` runs `scripts/sync-issues.py` on every push to `main` that touches `tasks/`.
 It keeps one GitHub issue per task and decision file (the id in the title, the Context prose, labels, the
 milestone, open or closed by the folder) and the milestones from the `tasks/roadmap.md` headings. It is
-idempotent and one-way (D-008); a release on the Releases page closes the milestones it ships. A dry run shows
+idempotent and one-way (D-008); it never changes a milestone's state: the maintainer closes the milestones a
+release ships (step 3 of the release under [The changelog](#the-changelog)). A dry run shows
 what a run would change:
 
 ```powershell

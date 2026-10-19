@@ -2,7 +2,7 @@
 status: decided
 date: 2026-10-17
 cost: one-way
-sources: [done/002-rust-workspace-and-mbox-stream-parser.md, folytassuk-a-002-task-wise-starfish.md]
+sources: [done/002-rust-workspace-and-mbox-stream-parser.md]
 ---
 
 # D-003 — A message is identified by the byte offset of its `From ` envelope line

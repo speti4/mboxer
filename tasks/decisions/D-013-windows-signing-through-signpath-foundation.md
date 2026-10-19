@@ -2,7 +2,7 @@
 status: decided
 date: 2026-10-19
 cost: cheap
-sources: [backlog/029-windows-code-signing.md, wip/028-publication-day-repo-settings.md, D-007-macos-distribution-adhoc-signed-app-zip.md]
+sources: [backlog/029-windows-code-signing.md, done/028-publication-day-repo-settings.md, D-007-macos-distribution-adhoc-signed-app-zip.md]
 ---
 
 # D-013 — The Windows exe is signed through SignPath Foundation once it accepts the project; until then it ships unsigned

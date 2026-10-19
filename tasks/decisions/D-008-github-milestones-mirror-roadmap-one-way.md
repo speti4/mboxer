@@ -2,7 +2,7 @@
 status: decided
 date: 2026-10-18
 cost: cheap
-sources: [done/021-github-milestones-and-first-release.md, done/022-sync-tasks-to-github-issues.md, local-repoban-profi-a-clever-pie.md]
+sources: [done/021-github-milestones-and-first-release.md, done/022-sync-tasks-to-github-issues.md]
 ---
 
 # D-008 — GitHub issues and milestones mirror `tasks/` one-way through a script; nothing is edited on GitHub by hand; a release tag closes the milestones it ships
@@ -29,7 +29,9 @@ maintainer; since the switch they are public.
   edited by hand; comments on an issue are welcome but do not flow back.
 - A **release tag closes the milestones it ships**: `v0.1.0` closed M1–M3; M4 stays open until its release.
   M5 closes with the first public release (`v0.2.0`, task 028) once 029 is done; until then it stays open.
-  The script never changes a milestone's state.
+  The script never changes a milestone's state. Clarified 2026-10-19 (task 058): the maintainer closes the
+  milestones by hand once the release is published, a step of the release checklist in `docs/development.md`;
+  the release job's token has no `issues` scope.
 
 Proposed on 2026-10-18 during task 022 planning: milestones with a v0.1.0 release and a one-way sync from CI,
 decisions included, with English bodies; decided on 2026-10-18.
