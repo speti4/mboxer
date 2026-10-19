@@ -288,8 +288,8 @@ pub async fn index_status(path: String) -> Result<IndexStatusInfo, String> {
 /// listing gets a new generation. The summary carries the whole set.
 #[tauri::command]
 pub fn activate_file(state: State<'_, AppState>, file: u32) -> Result<OpenSummary, String> {
-    let generation = state.generation.fetch_add(1, Ordering::AcqRel) + 1;
     let mut files = state.files();
+    let generation = state.generation.fetch_add(1, Ordering::AcqRel) + 1;
     files.activate(file, generation)?;
     files.summary(file)
 }
@@ -298,8 +298,8 @@ pub fn activate_file(state: State<'_, AppState>, file: u32) -> Result<OpenSummar
 /// afterwards comes back; `None` when no file is left.
 #[tauri::command]
 pub fn close_file(state: State<'_, AppState>, file: u32) -> Result<Option<OpenSummary>, String> {
-    let generation = state.generation.fetch_add(1, Ordering::AcqRel) + 1;
     let mut files = state.files();
+    let generation = state.generation.fetch_add(1, Ordering::AcqRel) + 1;
     let was_active = files.active_id() == Some(file);
     let Some(active) = files.close(file)? else {
         return Ok(None);
@@ -311,38 +311,32 @@ pub fn close_file(state: State<'_, AppState>, file: u32) -> Result<Option<OpenSu
 }
 
 /// Replaces the listing behind the message list. The search runs off the
-/// main thread: a sync command would block the webview while a relevance
-/// query scores every message of a large archive.
+/// main thread and outside the files lock ([`AppState::set_query`]): the
+/// sync commands that read the listing (`list_rows`, `position_of`,
+/// `toggle_thread`, `activate_file`, `close_file`) keep answering from the
+/// listing in place while a relevance query scores every message of a large
+/// archive. Only the newest query of a file swaps its listing in; an
+/// overtaken one answers `superseded`.
 #[tauri::command]
 pub async fn set_query(app: AppHandle, file: u32, query: QueryInput) -> Result<ListInfo, String> {
     tauri::async_runtime::spawn_blocking(move || {
         let state = app.state::<AppState>();
         let started = std::time::Instant::now();
-        let generation = state.generation.fetch_add(1, Ordering::AcqRel) + 1;
-        let mut files = state.files();
-        let open = files.by_id_mut(file)?;
         let query: SearchQuery = query.into();
-        open.set_query(query, generation)
-            .map_err(|err| err.to_string())?;
-        eprintln!(
-            "query: {} hits, {} ms",
-            open.listing.len(),
-            started.elapsed().as_millis()
-        );
-        Ok(list_info(open))
+        let info = state.set_query(file, query)?;
+        if info.superseded {
+            eprintln!("query: superseded, {} ms", started.elapsed().as_millis());
+        } else {
+            eprintln!(
+                "query: {} hits, {} ms",
+                info.total,
+                started.elapsed().as_millis()
+            );
+        }
+        Ok(info)
     })
     .await
     .map_err(|err| format!("the query task failed: {err}"))?
-}
-
-fn list_info(open: &OpenMbox) -> ListInfo {
-    ListInfo {
-        generation: open.generation,
-        total: open.listing.len(),
-        messages: open.listing.message_count(),
-        conversations: open.listing.group_count(),
-        warnings: open.listing.warnings().to_vec(),
-    }
 }
 
 /// Expands or collapses the conversation whose thread row is `row`. The
@@ -361,7 +355,7 @@ pub fn toggle_thread(
         return Err("the listing has changed".to_owned());
     }
     open.listing.toggle(row);
-    Ok(list_info(open))
+    Ok(open.list_info())
 }
 
 /// One page of the current listing.

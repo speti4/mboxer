@@ -6,7 +6,7 @@
 
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::sync::atomic::{AtomicBool, AtomicU64};
+use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::{Arc, Mutex, MutexGuard, PoisonError};
 
 #[cfg(test)]
@@ -18,7 +18,7 @@ use mboxer_core::{
 
 use crate::folders::label_tree;
 use crate::print::PrintJobs;
-use crate::types::{FileInfo, IndexState, LabelNode, OpenSummary};
+use crate::types::{FileInfo, IndexState, LabelNode, ListInfo, OpenSummary};
 
 /// The error every command gets for a file id the set does not hold.
 pub const NOT_OPEN: &str = "that file is no longer open";
@@ -27,6 +27,9 @@ pub const NOT_OPEN: &str = "that file is no longer open";
 #[derive(Default)]
 pub struct AppState {
     pub files: Mutex<OpenFiles>,
+    /// Held by the running search: one search at a time, outside the files
+    /// lock. Taken before `files`, never while holding it.
+    search: Mutex<()>,
     /// Set by `cancel_open`, read by the running index build.
     pub cancel: Arc<AtomicBool>,
     /// True while an open is in flight; a second open is refused.
@@ -83,6 +86,69 @@ impl AppState {
             .lock()
             .unwrap_or_else(PoisonError::into_inner) = Some(dir);
     }
+
+    /// Replaces the listing of file `file` with the matches of `query`, unless
+    /// a newer query for the file comes in first: then the listing stays and
+    /// the answer says `superseded` (task 051).
+    ///
+    /// The files lock is held only to take the generation and a handle on the
+    /// index, and again to swap the finished listing in: the readers of the
+    /// listing never wait for a search. The searches take turns on their own
+    /// lock, and a query that a newer one overtook while it waited for its
+    /// turn does not search at all.
+    pub fn set_query(&self, file: u32, query: SearchQuery) -> Result<ListInfo, String> {
+        self.set_query_with(file, query, |_| {})
+    }
+
+    /// [`AppState::set_query`], calling `pause` at each [`QueryStage`]: the
+    /// tests hold a query there to line up a race.
+    pub(crate) fn set_query_with(
+        &self,
+        file: u32,
+        query: SearchQuery,
+        pause: impl Fn(QueryStage),
+    ) -> Result<ListInfo, String> {
+        // The generation is taken under the lock, so the newest query of a
+        // file is always the one with the highest generation.
+        let (generation, index) = {
+            let mut files = self.files();
+            let generation = self.generation.fetch_add(1, Ordering::AcqRel) + 1;
+            let open = files.by_id_mut(file)?;
+            open.newest_query = generation;
+            (generation, Arc::clone(&open.index))
+        };
+        pause(QueryStage::Queued);
+        let _turn = self.search.lock().unwrap_or_else(PoisonError::into_inner);
+        {
+            let files = self.files();
+            let open = files.by_id(file)?;
+            if open.newest_query != generation {
+                return Ok(open.list_info().superseded());
+            }
+        }
+        pause(QueryStage::Searching);
+        let listing = index.list(&query).map_err(|err| err.to_string())?;
+        let mut files = self.files();
+        let open = files.by_id_mut(file)?;
+        // A newer query, or a reload of the file (a new index), came in
+        // during the search: the listing in place stays.
+        if open.newest_query != generation {
+            return Ok(open.list_info().superseded());
+        }
+        open.listing = listing;
+        open.query = query;
+        open.generation = generation;
+        Ok(open.list_info())
+    }
+}
+
+/// Where a query stands when [`AppState::set_query_with`] calls its pause hook.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum QueryStage {
+    /// It has its generation and waits for its turn.
+    Queued,
+    /// It has its turn and searches.
+    Searching,
 }
 
 /// The open files in the order of the folder pane, and the active one. A
@@ -222,12 +288,17 @@ pub struct OpenMbox {
     pub id: u32,
     pub path: PathBuf,
     canonical: PathBuf,
-    pub index: MboxIndex,
+    /// Shared, so a search runs on it without the files lock.
+    pub index: Arc<MboxIndex>,
     pub index_state: IndexState,
     pub labels: Vec<LabelNode>,
     pub query: SearchQuery,
     pub listing: Listing,
+    /// The generation the listing is stamped with; every page of rows carries it.
     pub generation: u64,
+    /// The generation of the newest query asked for this file; only that
+    /// query swaps its listing in.
+    newest_query: u64,
 }
 
 impl OpenMbox {
@@ -252,21 +323,37 @@ impl OpenMbox {
             id: 0,
             path: path.to_path_buf(),
             canonical: canonical(path),
-            index,
+            index: Arc::new(index),
             index_state,
             labels,
             query,
             listing,
             generation,
+            newest_query: generation,
         })
     }
 
-    /// Replaces the listing with the matches of `query`.
+    /// Replaces the listing with the matches of `query`, searching under the
+    /// caller's lock; the app goes through [`AppState::set_query`].
+    #[cfg(test)]
     pub fn set_query(&mut self, query: SearchQuery, generation: u64) -> mboxer_core::Result<()> {
         self.listing = self.index.list(&query)?;
         self.query = query;
         self.generation = generation;
+        self.newest_query = generation;
         Ok(())
+    }
+
+    /// The counts of the listing in place, for the webview.
+    pub fn list_info(&self) -> ListInfo {
+        ListInfo {
+            generation: self.generation,
+            total: self.listing.len(),
+            messages: self.listing.message_count(),
+            conversations: self.listing.group_count(),
+            warnings: self.listing.warnings().to_vec(),
+            superseded: false,
+        }
     }
 
     /// This file alone; [`OpenFiles::summary`] adds the set.
@@ -328,6 +415,9 @@ mod tests {
     use super::*;
     use std::fs;
     use std::sync::atomic::Ordering;
+    use std::sync::mpsc;
+    use std::thread;
+    use std::time::{Duration, Instant};
 
     fn fixture_copy(name: &str) -> (tempfile::TempDir, PathBuf) {
         let dir = tempfile::tempdir().unwrap();
@@ -521,6 +611,124 @@ mod tests {
 
     fn load(mbox: &Path, generation: u64) -> OpenMbox {
         OpenMbox::load(mbox, &AtomicBool::new(false), generation, false, |_| {}).unwrap()
+    }
+
+    /// How long a paused query waits for the test to let it go; only a
+    /// broken lock order makes it run out.
+    const PAUSE: Duration = Duration::from_secs(2);
+
+    fn sent() -> SearchQuery {
+        SearchQuery {
+            labels: vec!["Sent".to_owned()],
+            ..SearchQuery::default()
+        }
+    }
+
+    #[test]
+    fn the_newest_query_leaves_its_listing() {
+        // Task 051: query A searches while B and C wait for their turn; C
+        // gets it before B. The listing left behind is C's, and the
+        // generation the webview waits for (C's) is the listing's.
+        let (_dir, mbox) = fixture_copy("gmail-crlf.mbox");
+        let state = AppState::default();
+        let file = state.files().insert(load(&mbox, 0));
+        let state = &state;
+
+        let (a, b, c) = thread::scope(|scope| {
+            let (a_searching, a_searching_rx) = mpsc::channel();
+            let (a_go, a_go_rx) = mpsc::channel::<()>();
+            let (b_queued, b_queued_rx) = mpsc::channel();
+            let (b_go, b_go_rx) = mpsc::channel::<()>();
+            let (c_queued, c_queued_rx) = mpsc::channel();
+
+            let a = scope.spawn(move || {
+                state.set_query_with(file, SearchQuery::default(), |stage| {
+                    if stage == QueryStage::Searching {
+                        let _ = a_searching.send(());
+                        let _ = a_go_rx.recv_timeout(PAUSE);
+                    }
+                })
+            });
+            a_searching_rx.recv().unwrap();
+            let b = scope.spawn(move || {
+                state.set_query_with(file, SearchQuery::default(), |stage| {
+                    if stage == QueryStage::Queued {
+                        let _ = b_queued.send(());
+                        let _ = b_go_rx.recv_timeout(PAUSE);
+                    }
+                })
+            });
+            b_queued_rx.recv().unwrap();
+            let c = scope.spawn(move || {
+                state.set_query_with(file, sent(), |stage| {
+                    if stage == QueryStage::Queued {
+                        let _ = c_queued.send(());
+                    }
+                })
+            });
+            c_queued_rx.recv().unwrap();
+
+            // A finishes, C takes its turn and finishes, then B.
+            let _ = a_go.send(());
+            let a = a.join().unwrap().unwrap();
+            let c = c.join().unwrap().unwrap();
+            let _ = b_go.send(());
+            let b = b.join().unwrap().unwrap();
+            (a, b, c)
+        });
+
+        let files = state.files();
+        let open = files.by_id(file).unwrap();
+        assert_eq!(open.generation, 3, "the listing is the newest query's");
+        assert_eq!(open.query, sent());
+        assert_eq!(open.listing.len(), 1);
+        assert_eq!((c.generation, c.total, c.superseded), (3, 1, false));
+        // A searched but was overtaken before its swap; B never searched.
+        assert!(a.superseded && b.superseded);
+        assert_eq!(b.generation, 3, "B describes the listing in place");
+    }
+
+    #[test]
+    fn a_running_search_leaves_the_files_lock_free() {
+        // Task 051: the readers (list_rows, position_of, toggle_thread,
+        // activate_file, close_file) take the files lock; a search must not
+        // hold it, or the webview waits for the whole search.
+        let (_dir, mbox) = fixture_copy("gmail-crlf.mbox");
+        let state = AppState::default();
+        let file = state.files().insert(load(&mbox, 0));
+        let state = &state;
+
+        let (seen, waited, info) = thread::scope(|scope| {
+            let (searching, searching_rx) = mpsc::channel();
+            let (go, go_rx) = mpsc::channel::<()>();
+            let query = scope.spawn(move || {
+                state.set_query_with(file, sent(), |stage| {
+                    if stage == QueryStage::Searching {
+                        let _ = searching.send(());
+                        let _ = go_rx.recv_timeout(PAUSE);
+                    }
+                })
+            });
+            searching_rx.recv().unwrap();
+            let started = Instant::now();
+            let seen = {
+                let files = state.files();
+                let open = files.by_id(file).unwrap();
+                (open.generation, open.listing.len())
+            };
+            let waited = started.elapsed();
+            let _ = go.send(());
+            (seen, waited, query.join().unwrap().unwrap())
+        });
+
+        eprintln!("a reader during a paused search waited {waited:?}");
+        assert_eq!(
+            seen,
+            (0, 2),
+            "the reader gets the listing in place without waiting for the search"
+        );
+        assert_eq!((info.generation, info.total), (1, 1));
+        assert_eq!(state.files().by_id(file).unwrap().listing.len(), 1);
     }
 
     #[test]

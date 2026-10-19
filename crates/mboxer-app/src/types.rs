@@ -189,6 +189,20 @@ pub struct ListInfo {
     pub messages: usize,
     pub conversations: usize,
     pub warnings: Vec<String>,
+    /// A newer query for the file came in before this one was done: the
+    /// listing was not replaced, and the fields above describe the one in
+    /// place. The webview drops such an answer by its own query token.
+    pub superseded: bool,
+}
+
+impl ListInfo {
+    /// The same counts, marked as the answer to an overtaken query.
+    pub fn superseded(self) -> Self {
+        Self {
+            superseded: true,
+            ..self
+        }
+    }
 }
 
 /// Where a message sits in the current listing; `total` may have grown when
@@ -489,11 +503,13 @@ mod tests {
             messages: 9,
             conversations: 4,
             warnings: vec![],
+            superseded: false,
         };
         assert_eq!(
             serde_json::to_value(&info).unwrap(),
-            serde_json::json!({"generation": 3, "total": 4, "messages": 9, "conversations": 4, "warnings": []})
+            serde_json::json!({"generation": 3, "total": 4, "messages": 9, "conversations": 4, "warnings": [], "superseded": false})
         );
+        assert!(info.superseded().superseded);
         let position = PositionInfo {
             generation: 3,
             position: Some(2),
