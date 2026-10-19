@@ -1,5 +1,6 @@
 ---
-status: idea
+status: waiting
+waits-for: 028 (SignPath Foundation takes public repos only; user decision 2026-10-19)
 size: M
 origin: session 2026-10-18
 created: 2026-10-18

@@ -1,6 +1,6 @@
 ---
 status: waiting
-waits-for: 041 merged (the first release builds the macOS zip too, which needs the licence page; 023-026 and 037 are done)
+waits-for: every other open task done first (user decision 2026-10-19) — 041, 031, 043, and 040 run by a colleague with a Mac; 029 follows 028
 size: S
 origin: session 2026-10-18
 created: 2026-10-18
