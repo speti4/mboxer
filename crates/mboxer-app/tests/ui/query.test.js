@@ -168,6 +168,38 @@ test("highlightTerms folds words, keeps phrases whole and skips the rest of the 
   assert.deepEqual(Query.highlightTerms('subject:"számla január"'), ["szamla", "januar"]);
 });
 
+// The pieces of `text` the search `query` highlights, as `main.js` marks them:
+// the ranges of `termRanges` over the folded text, mapped back to `text`.
+function marks(text, query) {
+  const { folded, map } = Query.foldWithMap(text);
+  return Query.termRanges(folded, Query.highlightTerms(query)).map(([start, end]) =>
+    text.slice(map[start], map[end]),
+  );
+}
+
+test("a word with punctuation highlights its pieces in order, as the index matched them", () => {
+  assert.deepEqual(Query.highlightTerms("re:számla"), ["re szamla"]);
+  assert.deepEqual(Query.highlightTerms("10:30"), ["10 30"]);
+  assert.deepEqual(Query.highlightTerms("https://example.com/a-b"), ["https example com a b"]);
+  assert.deepEqual(Query.highlightTerms("(számla* +Re:"), ["szamla", "re"]);
+  assert.deepEqual(marks("Re: számla", "re:számla"), ["Re: számla"]);
+  assert.deepEqual(marks("Fw: RE:SZAMLA", "re:számla"), ["RE:SZAMLA"]);
+  assert.deepEqual(marks("at 10.30, not 10 or 30", "10:30"), ["10.30"]);
+  assert.deepEqual(
+    marks("see https://example.com/a-b now", "https://example.com/a-b"),
+    ["https://example.com/a-b"],
+  );
+  assert.deepEqual(marks("a számla, re", "re:számla"), [], "a piece alone is not the word");
+  assert.deepEqual(marks("Re: száml", "re:száml"), ["Re: száml"], "the last piece may be a prefix");
+});
+
+test("a quoted phrase stays one highlight unit", () => {
+  assert.deepEqual(Query.highlightTerms('"Re: számla"'), ["re szamla"]);
+  assert.deepEqual(marks("Big, bad wolf", '"big bad"'), ["Big, bad"]);
+  assert.deepEqual(marks("a big wolf, a bad one", '"big bad"'), []);
+  assert.deepEqual(marks("Számla, számla", "számla"), ["Számla", "számla"]);
+});
+
 test("normalizeDate rejects anything but a real day", () => {
   assert.equal(Query.normalizeDate("2026-02-29"), null);
   assert.equal(Query.normalizeDate("2024-02-29"), "2024-02-29");

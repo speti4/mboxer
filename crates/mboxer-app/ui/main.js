@@ -201,14 +201,7 @@
   function highlightFragments(text, terms) {
     if (terms.length === 0 || !text) return null;
     const { folded, map } = Query.foldWithMap(text);
-    const ranges = [];
-    for (const term of terms) {
-      let at = folded.indexOf(term);
-      while (at >= 0) {
-        ranges.push([map[at], map[at + term.length]]);
-        at = folded.indexOf(term, at + term.length);
-      }
-    }
+    const ranges = Query.termRanges(folded, terms).map(([start, end]) => [map[start], map[end]]);
     if (ranges.length === 0) return null;
     ranges.sort((a, b) => a[0] - b[0]);
     // Overlapping and touching matches become one mark.

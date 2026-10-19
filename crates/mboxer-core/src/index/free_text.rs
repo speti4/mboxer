@@ -239,6 +239,12 @@ pub(crate) fn free_text_query(
 /// (tantivy 0.27: `számla -"spam jelentés"` panics in a debug build). The
 /// scorer of this wrapper answers `seek_danger` with the default `DocSet`
 /// implementation, which handles such a target.
+///
+/// Reported upstream: "`PhraseScorer::seek_danger` debug assertion fails when
+/// a phrase is excluded (`MustNot`) and its first match is after the first
+/// candidate" (quickwit-oss/tantivy#3193), see task 063. The test
+/// `tests/tantivy_excluded_phrase.rs` expects the panic and fails once a
+/// fixed tantivy is in: then this wrapper goes.
 #[derive(Debug)]
 struct Excluded(Box<dyn Query>);
 
