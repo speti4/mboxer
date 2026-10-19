@@ -15,16 +15,24 @@
 //! row. Groups are stored in a CSR layout (`members` in row order, `starts`
 //! per group) and the expanded set is a small sorted vector with prefix sums,
 //! so a row index maps to its group in `O(log expanded)`.
+//!
+//! [`MboxIndex::list_unless`] asks its caller every [`STALE_CHECK_EVERY`]
+//! documents whether the listing is still wanted, so a search that a newer
+//! one overtook stops within milliseconds instead of running to its end
+//! (task 067).
 
 use std::cmp::Ordering;
 use std::num::NonZeroU64;
 use std::ops::Range;
+use std::sync::atomic::{AtomicBool, Ordering as AtomicOrdering};
 
 use tantivy::collector::{Collector, SegmentCollector};
 use tantivy::columnar::Column;
-use tantivy::query::TermQuery;
+use tantivy::query::{TermQuery, Weight};
 use tantivy::schema::IndexRecordOption;
-use tantivy::{DocAddress, DocId, Score, Searcher, SegmentOrdinal, SegmentReader, Term};
+use tantivy::{
+    DocAddress, DocId, DocSet, Score, Searcher, SegmentOrdinal, SegmentReader, TERMINATED, Term,
+};
 
 use crate::error::Result;
 use crate::index::schema::Fields;
@@ -171,20 +179,37 @@ impl MboxIndex {
     /// thread when `query.group_threads` asks for it; `limit` and `offset` are
     /// ignored, the caller pages with [`Listing::rows`].
     pub fn list(&self, query: &SearchQuery) -> Result<Listing> {
+        let listing = self.list_unless(query, &never)?;
+        Ok(listing.expect("a search that is never stale runs to its end"))
+    }
+
+    /// [`MboxIndex::list`], asking `stale` before the first document of each
+    /// segment and then every [`STALE_CHECK_EVERY`] documents: once it says
+    /// yes, the search stops and the answer is `None`.
+    pub fn list_unless(
+        &self,
+        query: &SearchQuery,
+        stale: &(dyn Fn() -> bool + Sync),
+    ) -> Result<Option<Listing>> {
         let tantivy_query = self.to_tantivy_query(query);
         let searcher = self.searcher();
         let collector = AllMatches {
             sort: query.sort,
             group: query.group_threads,
+            stale,
+            stopped: AtomicBool::new(false),
         };
         let entries = searcher.search(&*tantivy_query, &collector)?;
+        if collector.stopped.load(AtomicOrdering::Relaxed) {
+            return Ok(None);
+        }
         let (members, starts) = arrange(entries, query.group_threads);
-        Ok(Listing {
+        Ok(Some(Listing {
             searcher,
             fields: *self.fields(),
             layout: Layout::new(members.len(), starts),
             members,
-        })
+        }))
     }
 }
 
@@ -427,18 +452,35 @@ fn arrange(mut entries: Vec<Entry>, group: bool) -> (Vec<DocAddress>, Option<Vec
     (members, Some(starts))
 }
 
-/// Collects every matching document with the columns the arrangement needs.
-struct AllMatches {
-    sort: Sort,
-    group: bool,
+/// How many documents the collector takes between two questions to the
+/// `stale` check of [`MboxIndex::list_unless`]: a few milliseconds of
+/// scoring at most, and the check (an atomic load in the app) costs nothing
+/// beside them.
+pub const STALE_CHECK_EVERY: u32 = 1024;
+
+/// The `stale` check of a search that runs to its end.
+fn never() -> bool {
+    false
 }
 
-impl AllMatches {
+/// Collects every matching document with the columns the arrangement needs,
+/// until `stale` says the listing is no longer wanted.
+struct AllMatches<'a> {
+    sort: Sort,
+    group: bool,
+    stale: &'a (dyn Fn() -> bool + Sync),
+    /// Set when `stale` said yes; the fruits are then incomplete.
+    stopped: AtomicBool,
+}
+
+impl AllMatches<'static> {
     /// Key-less collection, for a lookup that expects at most one document.
     fn unsorted() -> Self {
         Self {
             sort: Sort::DateDesc,
             group: false,
+            stale: &never,
+            stopped: AtomicBool::new(false),
         }
     }
 }
@@ -455,7 +497,7 @@ struct SegmentMatches {
     entries: Vec<Entry>,
 }
 
-impl Collector for AllMatches {
+impl Collector for AllMatches<'_> {
     type Fruit = Vec<Entry>;
     type Child = SegmentMatches;
 
@@ -491,6 +533,40 @@ impl Collector for AllMatches {
 
     fn merge_fruits(&self, segment_fruits: Vec<Vec<Entry>>) -> tantivy::Result<Self::Fruit> {
         Ok(segment_fruits.into_iter().flatten().collect())
+    }
+
+    /// tantivy's own loop (`Weight::for_each`) cannot be left half-way, so
+    /// the documents are walked here, with the `stale` check every
+    /// [`STALE_CHECK_EVERY`] documents. A stopped segment hands in what it
+    /// has; [`MboxIndex::list_unless`] throws the fruits away.
+    fn collect_segment(
+        &self,
+        weight: &dyn Weight,
+        segment_ord: u32,
+        reader: &SegmentReader,
+    ) -> tantivy::Result<Vec<Entry>> {
+        let mut segment = self.for_segment(segment_ord, reader)?;
+        if self.stopped.load(AtomicOrdering::Relaxed) {
+            return Ok(segment.harvest());
+        }
+        let scoring = self.requires_scoring();
+        let alive = reader.alive_bitset();
+        let mut scorer = weight.scorer(reader, 1.0)?;
+        let mut doc = scorer.doc();
+        let mut taken: u32 = 0;
+        while doc != TERMINATED {
+            if taken.is_multiple_of(STALE_CHECK_EVERY) && (self.stale)() {
+                self.stopped.store(true, AtomicOrdering::Relaxed);
+                break;
+            }
+            taken = taken.wrapping_add(1);
+            if alive.is_none_or(|alive| alive.is_alive(doc)) {
+                let score = if scoring { scorer.score() } else { 0.0 };
+                segment.collect(doc, score);
+            }
+            doc = scorer.advance();
+        }
+        Ok(segment.harvest())
     }
 }
 
