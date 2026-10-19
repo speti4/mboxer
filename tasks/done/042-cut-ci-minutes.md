@@ -4,7 +4,7 @@ origin: session 2026-10-19
 created: 2026-10-19
 started: 2026-10-19
 closed: 2026-10-19
-plan: C:\Users\peter\.claude\plans\peaceful-jumping-adleman.md
+plan: peaceful-jumping-adleman.md
 milestone: M4 macOS
 ---
 

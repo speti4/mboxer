@@ -4,7 +4,7 @@ origin: done/032-list-date-column-alignment-in-conversation-view.md
 created: 2026-10-18
 started: 2026-10-19
 closed: 2026-10-19
-plan: C:\Users\peter\.claude\plans\n-zz-k-t-a-backlogot-toasty-dove.md
+plan: n-zz-k-t-a-backlogot-toasty-dove.md
 milestone: M5 Public release
 ---
 
