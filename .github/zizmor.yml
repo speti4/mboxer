@@ -3,6 +3,6 @@
 rules:
   cache-poisoning:
     ignore:
-      # rust-cache in the test job only speeds up the tests; the release job of the same workflow builds
-      # without a cache, so nothing a cache holds reaches the published zip.
+      # rust-cache in the test and lint jobs only speeds up the checks; the release jobs of the same workflow
+      # build without a cache, so nothing a cache holds reaches a published zip.
       - ci.yml

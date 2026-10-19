@@ -1,17 +1,23 @@
-# Tests on Windows and macOS (task 018), the dependency policy, the workflow lint and the commit rules (task
-# 034) on every push and pull request; a `v<version>` tag also packs and publishes the portable Windows zip and
-# the macOS app zip, their checksums and the notes from the changelog (tasks 012, 025, 018). The toolchain is
-# the one `rust-toolchain.toml` names (stable), installed by the runner's own rustup, not by an action (task
-# 033). A manual run on a branch also builds the macOS zip and keeps it as an artifact for a day: the way to
-# try the bundle without a tag, or to hand it to a Mac tester.
+# Tests on Windows, the format check and a macOS-target clippy on Linux, the dependency policy and the workflow
+# lint on every push and pull request that changes more than docs, tasks and Markdown (the commit rules have
+# their own workflow, commit-rules.yml, which runs on every change). The macOS tests run on a `v<version>` tag
+# and on a manual run only, because macOS minutes bill ten times the Linux rate (task 042). A tag also packs and
+# publishes the portable Windows zip and the macOS app zip, their checksums and the notes from the changelog
+# (tasks 012, 025, 018). The toolchain is the one `rust-toolchain.toml` names (stable), installed by the
+# runner's own rustup, not by an action (task 033). A manual run on a branch also builds the macOS zip and keeps
+# it as an artifact for a day: the way to test a macOS change before its merge, try the bundle without a tag,
+# or hand it to a Mac tester.
 # Actions are pinned by commit SHA and bumped by dependabot (task 024).
 name: ci
 
+# Path filters do not apply to a tag push, so a release always runs the whole workflow.
 on:
   push:
     branches: [main]
     tags: ["v*"]
+    paths-ignore: ["docs/**", "tasks/**", "**/*.md"]
   pull_request:
+    paths-ignore: ["docs/**", "tasks/**", "**/*.md"]
   workflow_dispatch:
 
 permissions:
@@ -29,13 +35,14 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  # The two shipped platforms; one runner's failure does not cancel the other's run, so a platform-only
-  # problem shows up as exactly one red job.
+  # The shipped platforms: Windows always, macOS on a tag or a manual run (between those, the lint job compiles
+  # the macOS target). One runner's failure does not cancel the other's run, so a platform-only problem shows
+  # up as exactly one red job.
   test:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, macos-latest]
+        os: ${{ fromJSON((github.ref_type == 'tag' || github.event_name == 'workflow_dispatch') && '["windows-latest", "macos-latest"]' || '["windows-latest"]') }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
     steps:
@@ -55,9 +62,32 @@ jobs:
       # The cache only speeds up the tests; the release job builds without it, so nothing it holds is
       # published (the zizmor cache-poisoning finding is ignored in .github/zizmor.yml).
       - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
-      - run: cargo fmt --check
       - run: cargo clippy --all-targets -- -D warnings
       - run: cargo test
+
+  # The format check, which no platform changes, and clippy for the Apple Silicon target, which compiles the
+  # macOS-only code on every change at the Linux rate. DOCS_RS=1 is objc2-exception-helper's own switch to skip
+  # its C build script, which needs Apple's compiler; a check does not link, so nothing else needs it.
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # The toolchain of the test job plus the Apple Silicon target.
+      - name: Install the Rust toolchain from rust-toolchain.toml
+        run: |
+          rustup toolchain install --no-self-update
+          rustup toolchain install --no-self-update "$(rustup show active-toolchain | cut -d' ' -f1)"
+          rustup target add aarch64-apple-darwin
+          rustup show
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+      - run: cargo fmt --check
+      - name: clippy for aarch64-apple-darwin
+        env:
+          DOCS_RS: 1
+        run: cargo clippy --target aarch64-apple-darwin --all-targets -- -D warnings
 
   # Advisories, licences, bans and sources of the shipped graph (deny.toml, D-011).
   deny:
@@ -95,52 +125,12 @@ jobs:
         with:
           advanced-security: false
 
-  # The commit rules of docs/git-workflow.md (scripts/check-commit.sh) for every pushed or proposed commit and
-  # the pull request text, which a squash merge turns into the commit message; the local hook can be skipped.
-  commit-rules:
-    if: github.ref_type != 'tag' && github.event_name != 'workflow_dispatch'
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-          fetch-depth: 0
-      - name: Check the commits and the pull request text
-        env:
-          EVENT: ${{ github.event_name }}
-          BEFORE: ${{ github.event.before }}
-          AFTER: ${{ github.sha }}
-          BASE: ${{ github.event.pull_request.base.sha }}
-          HEAD: ${{ github.event.pull_request.head.sha }}
-          PR_TITLE: ${{ github.event.pull_request.title }}
-          PR_BODY: ${{ github.event.pull_request.body }}
-        run: |
-          failed=0
-          if [ "$EVENT" = pull_request ]; then
-            range="$BASE..$HEAD"
-            printf '%s\n\n%s\n' "$PR_TITLE" "$PR_BODY" > "$RUNNER_TEMP/pull-request.txt"
-            sh scripts/check-commit.sh "$RUNNER_TEMP/pull-request.txt" || { echo "  in the pull request text"; failed=1; }
-          elif [ "$BEFORE" = 0000000000000000000000000000000000000000 ]; then
-            range="$AFTER^!"
-          else
-            range="$BEFORE..$AFTER"
-          fi
-          for commit in $(git rev-list "$range"); do
-            git log -1 --format=%B "$commit" > "$RUNNER_TEMP/message.txt"
-            sh scripts/check-commit.sh "$RUNNER_TEMP/message.txt" \
-              "$(git log -1 --format=%an "$commit")" "$(git log -1 --format=%ae "$commit")" \
-              "$(git log -1 --format=%cn "$commit")" "$(git log -1 --format=%ce "$commit")" \
-              || { echo "  in $commit"; failed=1; }
-          done
-          exit "$failed"
-
   # The macOS zip (task 018, D-07): the universal, ad-hoc signed mboxer.app packed by scripts/bundle-macos.sh
   # on the macOS runner and handed to the release job as a short-lived artifact, so one job publishes both
   # zips and one SHA256SUMS.txt. On a manual run the artifact is the result. No rust-cache here either (see
   # the release job).
   bundle-macos:
-    needs: [test, deny, workflow-lint]
+    needs: [test, lint, deny, workflow-lint]
     if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
     runs-on: macos-latest
     timeout-minutes: 45
@@ -170,7 +160,7 @@ jobs:
           retention-days: 1
 
   release:
-    needs: [test, deny, workflow-lint, bundle-macos]
+    needs: [test, lint, deny, workflow-lint, bundle-macos]
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: windows-latest
     timeout-minutes: 45
