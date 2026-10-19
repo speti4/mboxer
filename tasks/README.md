@@ -13,15 +13,11 @@ edit the file, never the issue. Everything here is English.
 <!-- tasks:index:start -->
 _Generated 2026-10-19 — edit the files, not this section._
 
-**State:** 7 backlog (1 ready · 0 blocked · 2 waiting · 4 ideas) · 1 in progress · 39 done · 1 dropped · 12 decisions
+**State:** 6 backlog (0 ready · 0 blocked · 2 waiting · 4 ideas) · 1 in progress · 40 done · 1 dropped · 12 decisions
 
 ### Ready
 
-#### M5 Public release
-
-| # | Task | Size | Created |
-|---|---|---|---|
-| 044 | [macOS in the user docs, the security policy and the bug report form](backlog/044-macos-in-the-user-docs.md) | M | 2026-10-19 |
+_none_
 
 ### Needs decision
 
@@ -70,6 +66,7 @@ _none_
 
 | # | Task | Closed |
 |---|---|---|
+| 044 | [macOS in the user docs, the security policy and the bug report form](done/044-macos-in-the-user-docs.md) | 2026-10-19 |
 | 043 | [Pad the decision ids to three digits before the repo goes public](done/043-pad-decision-ids-to-three-digits.md) | 2026-10-19 |
 | 042 | [Cut the CI minutes: macOS tests on tags and manual runs](done/042-cut-ci-minutes.md) | 2026-10-19 |
 | 041 | [THIRD-PARTY-LICENSES.html in the macOS zip](done/041-third-party-licences-in-the-macos-zip.md) | 2026-10-19 |
@@ -79,9 +76,8 @@ _none_
 | 036 | [Git workflow doc: current decision reference, the deps type, the expected index…](done/036-git-workflow-references-and-commit-types.md) | 2026-10-19 |
 | 020 | [Print on macOS through a second webview window](done/020-macos-print-second-webview-window.md) | 2026-10-19 |
 | 019 | [macOS runtime differences: index home, quarantine, Finder open, UI keys and fon…](done/019-macos-runtime-differences.md) | 2026-10-19 |
-| 018 | [macOS build, .app bundle and CI](done/018-macos-build-bundle-and-ci.md) | 2026-10-19 |
 
-_29 more in `done/`._
+_30 more in `done/`._
 
 ### Decisions
 

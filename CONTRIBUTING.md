@@ -35,6 +35,10 @@ cargo build --release
 cargo run -p mboxer-app -- [file.mbox]      # the viewer, during development
 ```
 
+On a Mac you need Rust stable via rustup and the Xcode command line tools (`xcode-select --install`); `cargo
+run -p mboxer-app -- [file.mbox]` starts the viewer, and `scripts/bundle-macos.sh` builds the universal
+`mboxer.app` and its zip (see [docs/development.md](docs/development.md#the-macos-bundle)).
+
 The UI under `crates/mboxer-app/ui/` is plain HTML, CSS and JavaScript embedded in the exe, with no bundler
 and no Tauri CLI. A change there takes effect on the next `cargo run`. The layout, the CLI, the release and
 the helper scripts are described in [docs/development.md](docs/development.md).

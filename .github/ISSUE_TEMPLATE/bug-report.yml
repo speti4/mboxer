@@ -41,10 +41,10 @@ body:
     validations:
       required: true
   - type: input
-    id: windows
+    id: os
     attributes:
-      label: Windows version and build
-      description: "`winver` shows it, for example 24H2, build 26100."
+      label: Operating system and version
+      description: "Windows: `winver` shows it, for example 24H2, build 26100. macOS: Apple menu → About This Mac, for example macOS 15.1 on Apple Silicon."
     validations:
       required: true
   - type: dropdown
@@ -63,10 +63,11 @@ body:
     id: index-location
     attributes:
       label: Where the index lives
-      description: "`.mboxer\\` beside the mbox, or `%LOCALAPPDATA%\\mboxer\\index\\` when that folder is not writable."
+      description: "`.mboxer` beside the mbox, or, when that folder is not writable, `%LOCALAPPDATA%\\mboxer\\index\\` on Windows and `~/Library/Application Support/mboxer/index/` on macOS."
       options:
         - beside the mbox
-        - under %LOCALAPPDATA%
+        - under %LOCALAPPDATA% (Windows)
+        - under ~/Library/Application Support (macOS)
         - not sure
   - type: textarea
     id: reproducer

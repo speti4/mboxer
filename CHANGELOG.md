@@ -38,6 +38,7 @@ The first public release, and the first with a macOS build: `mboxer-<version>-ma
 - README links the changelog next to the releases ([038](https://github.com/speti4/mboxer/blob/main/tasks/done/038-readme-links-the-changelog.md))
 - The commit hook's error messages cite D-010, not D-009 ([039](https://github.com/speti4/mboxer/blob/main/tasks/done/039-check-commit-messages-cite-d-10.md))
 - Pad the decision ids to three digits before the repo goes public ([043](https://github.com/speti4/mboxer/blob/main/tasks/done/043-pad-decision-ids-to-three-digits.md))
+- macOS in the user docs, the security policy and the bug report form ([044](https://github.com/speti4/mboxer/blob/main/tasks/done/044-macos-in-the-user-docs.md))
 
 ## 0.1.0 — 2026-10-18
 

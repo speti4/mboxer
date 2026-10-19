@@ -1,32 +1,49 @@
-# mboxer — using it
+# mboxer — user guide
 
-A viewer for a Gmail Takeout mbox archive on Windows 11. One file, nothing to install. Every feature in
-detail, the full search syntax and the command line are in the reference:
+A viewer for a Gmail Takeout mbox archive on Windows 11, and on macOS as a preview. Nothing to install. Every
+feature in detail, the full search syntax and the command line are in the reference:
 https://github.com/speti4/mboxer/blob/main/docs/reference.md
 
 ## What you need
 
-- Windows 11 (the viewer runs on the WebView2 that is part of Windows).
+- Windows 11 (the viewer runs on the WebView2 that is part of Windows), or a Mac with macOS 10.13 or later,
+  Apple Silicon or Intel. The macOS build is a preview: it has not yet been tested on a Mac.
 - Your archive: the `.mbox` file from Google Takeout, anywhere on a disk you can read.
 - Free space next to the mbox for the search index: about 1 % of the mbox size (a 14 GB
   archive gets a 135 MB index).
 
 ## Getting the program
 
-1. Download `mboxer-<version>.zip` from the project's GitHub releases page
-   (https://github.com/speti4/mboxer/releases) and unzip it anywhere (next to the mbox, on the
-   desktop, it does not matter). It holds `mboxer.exe`, this guide and `THIRD-PARTY-LICENSES.html`,
-   the licences of the open-source parts compiled into the exe. To check the download, compare
-   `(Get-FileHash mboxer-<version>.zip).Hash` in PowerShell with the value in `SHA256SUMS.txt`
-   from the same release (the case does not matter).
+The project's GitHub releases page (https://github.com/speti4/mboxer/releases) has one zip per platform. Each
+zip holds the program, this guide and `THIRD-PARTY-LICENSES.html`, the licences of the open-source parts
+compiled into it.
+
+On Windows:
+
+1. Download `mboxer-<version>.zip` and unzip it anywhere (next to the mbox, on the desktop, it does not
+   matter). It holds `mboxer.exe`.
 2. The exe is not code-signed, so Windows may show a SmartScreen warning on the first start:
    click *More info*, then *Run anyway*. If the exe refuses to start at all, right-click it,
    *Properties*, tick *Unblock*, *OK*.
 
+On a Mac:
+
+1. Download `mboxer-<version>-macos.zip` and double-click it in Finder. Move `mboxer.app` to *Applications*.
+2. The app is not notarized by Apple, so macOS refuses the first start with a message that it cannot check the
+   app. Open *System Settings → Privacy & Security*, scroll to the message about mboxer and click *Open Anyway*,
+   then confirm. macOS asks only once.
+
+To check a download, compare its SHA-256 with the value in `SHA256SUMS.txt` from the same release: in
+PowerShell `(Get-FileHash mboxer-<version>.zip).Hash`, on a Mac `shasum -a 256 mboxer-<version>-macos.zip` in
+Terminal (the case of the letters does not matter). With the GitHub CLI installed,
+`gh attestation verify <zip> --repo speti4/mboxer` also shows that the project's own release workflow built
+the zip.
+
 ## First open
 
-Start `mboxer.exe` and pick the mbox with *Open* (`Ctrl+O`), or drop the mbox path on the exe
-as its argument (a shortcut with `mboxer.exe "D:\mail\All mail.mbox"` opens it straight away).
+Start mboxer and pick the mbox with *Open* (`Ctrl+O`, `⌘O` on a Mac). On Windows you can also drag the mbox
+file onto `mboxer.exe` in Explorer (a shortcut with `mboxer.exe "D:\mail\All mail.mbox"` does the same); on a
+Mac, drop it on the app's Dock icon or use *Open With → mboxer* in Finder.
 
 The first open builds the search index: a progress bar counts the messages, and the index of a
 14 GB archive takes about two minutes on an SSD. *Cancel* stops it and leaves nothing behind.
@@ -51,15 +68,15 @@ and a file that is gone leaves the list.
 
 Everything below is a cache: deleting it costs a rebuild, never data.
 
-| What | Where |
-|---|---|
-| The search index | `.mboxer\<mbox file name>\` next to the mbox (a hidden-by-convention folder) |
-| The index when that folder is not writable (a read-only share, a DVD) | `%LOCALAPPDATA%\mboxer\index\` |
-| Attachments you open from a message | `%TEMP%\mboxer\` (cleaned at the next start) |
-| The web view's own profile (window state, cache) | `%LOCALAPPDATA%\io.github.speti4.mboxer\` |
+| What | Windows | Mac |
+|---|---|---|
+| The search index | `.mboxer\<mbox file name>\` next to the mbox | `.mboxer/<mbox file name>/` next to the mbox |
+| The index when that folder is not writable (a read-only share, a DVD) | `%LOCALAPPDATA%\mboxer\index\` | `~/Library/Application Support/mboxer/index/` |
+| Attachments you open from a message (cleaned at the next start) | `%TEMP%\mboxer\` | `$TMPDIR/mboxer/` |
+| The web view's own data (window state, cache) | `%LOCALAPPDATA%\io.github.speti4.mboxer\` | the folders named `io.github.speti4.mboxer` under `~/Library/` |
 
-On a Mac the index fallback is `~/Library/Application Support/mboxer/index/` and the attachments go under
-`$TMPDIR/mboxer/`. The mbox itself is never modified.
+The index folder is named `.mboxer`: Windows shows it, the Mac Finder hides it, as it hides every name that
+starts with a dot. The mbox itself is never modified.
 
 ## Finding mail
 
@@ -68,8 +85,8 @@ the list to that label and everything under it. The list shows one row per conve
 (newest first); the chevron or `ArrowRight` opens the conversation, `ArrowLeft` closes it.
 The reader on the right shows the message with its attachments (click to open, *Save…* to keep).
 
-The search field (`Ctrl+F`) narrows the list as you type. Words are AND-ed, `"quotes"` make a
-phrase, `OR` and `-word` work, accents and case do not matter (`szamla` finds `Számla`). It
+The search field (`Ctrl+F`) narrows the list as you type. A message must contain every word you
+type, `"quotes"` make a phrase, `OR` and `-word` work, accents and case do not matter (`szamla` finds `Számla`). It
 also takes Gmail-style operators, and the *Filters* panel (`Ctrl+Shift+F`) writes the same
 operators into the field:
 
@@ -87,7 +104,7 @@ or `ArrowDown` moves to the list, arrows / `PageUp` / `PageDown` / `Home` / `End
 list, `Enter` focuses the reader, `Esc` returns to the list, `Ctrl+S` saves the message as
 `.eml`, `Ctrl+P` prints it. On a Mac `⌘` stands for `Ctrl` in every shortcut.
 
-## Handing a message on
+## Saving, printing or exporting a message
 
 Two buttons at the right end of the reader's view bar take the shown message out of the archive:
 
@@ -119,5 +136,10 @@ a dark one would make some messages unreadable. The *Text* and *Source* views fo
 - To force a rebuild, delete the `.mboxer\<mbox file name>\` folder next to the mbox (or the
   folder under `%LOCALAPPDATA%\mboxer\index\`, on a Mac under `~/Library/Application Support/mboxer/index/`)
   and open the mbox again.
+- On Windows, the window stays blank or does not open at all: the WebView2 runtime is missing or
+  damaged. Install it from Microsoft (https://developer.microsoft.com/microsoft-edge/webview2/, the
+  *Evergreen Runtime*) and start mboxer again.
 - The version you run is at the right end of the status bar; the one on the releases page is
   the latest.
+- To report a problem, open an issue at https://github.com/speti4/mboxer/issues. Describe it with
+  made-up mail only: never attach or paste your own messages.
