@@ -10,8 +10,8 @@ checks before a commit and the project rules are in [CONTRIBUTING.md](../CONTRIB
   one-pass build, search, the full sorted listing behind the viewer's list). Synthetic fixtures are under
   `tests/fixtures/`.
 - `crates/mboxer-app` — the `mboxer` executable: the Tauri 2 window (`src/`: commands, state with the
-  open-or-build flow, the message view, the label order), the static UI under `ui/`, the capability file and
-  the icon.
+  open-or-build flow, the message view, the label order, the macOS print windows), the static UI under `ui/`,
+  the capability file and the icon.
 - `crates/mboxer-cli` — the `mboxer-cli` executable, with its end-to-end tests under `tests/`.
 - `scripts/` — helper scripts for measurements, the icon, the demo mbox, the Windows release zip, the macOS
   bundle, the changelog and the issue mirror.
@@ -31,10 +31,17 @@ checks before a commit and the project rules are in [CONTRIBUTING.md](../CONTRIB
 
 The UI is plain HTML, CSS and JavaScript embedded in the exe: no Node toolchain, no bundler, no Tauri CLI. A
 change under `crates/mboxer-app/ui/` takes effect on the next `cargo run`. The pure modules (`query.js`,
-`theme.js`, `files.js`) have Node tests under `crates/mboxer-app/tests/ui/`, which `cargo test` runs through
-`tests/ui_query.rs` when `node` is on `PATH`. The application icon is generated once by `scripts\make-icon.py`
-(Pillow) and committed: `icon.ico` for the Windows exe, `icon.png` for the window icon on the other targets and
-the `icon.iconset/` PNGs that the macOS bundle turns into `icon.icns`.
+`theme.js`, `files.js`, `print.js`) have Node tests under `crates/mboxer-app/tests/ui/`, which `cargo test`
+runs through `tests/ui_query.rs` when `node` is on `PATH`. The application icon is generated once by
+`scripts\make-icon.py` (Pillow) and committed: `icon.ico` for the Windows exe, `icon.png` for the window icon
+on the other targets and the `icon.iconset/` PNGs that the macOS bundle turns into `icon.icns`.
+
+Printing takes two paths. On Windows the print document goes into a hidden iframe whose `print()` opens the
+WebView2 preview (task 011). WKWebView ignores `print()` on an iframe (tauri-apps/tauri #13451), so on macOS
+`ui/print.js` inlines the cid images as `data:` URLs and the `print_message` command (`src/print.rs`, task 020)
+opens a `print-<id>` window that loads the document from the `mboxer-print:` scheme, under a CSP that blocks
+script and remote content, and calls `Webview::print()` once the page has loaded. The print window needs no
+capability: it runs no script.
 
 ## CI and releases
 

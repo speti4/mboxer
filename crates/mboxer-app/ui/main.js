@@ -12,6 +12,8 @@
   const Theme = window.MboxerTheme;
   // The remembered files (files.js): the pane order and the active one.
   const Files = window.MboxerFiles;
+  // Printing on a Mac (print.js): the print window and the inlined cid images.
+  const Print = window.MboxerPrint;
 
   const ROW_H = 28;
   const BLOCK = 200;
@@ -89,7 +91,8 @@
     source: null, // { offset, text } the raw source, read on demand
     cidUrls: new Map(), // attachment index -> Promise<blob URL> of this message's cid images
     blobUrls: [], // every blob URL made for this message, revoked when it changes
-    printing: false, // a print document is loading into the print frame
+    cidBlobs: new Map(), // blob URL -> Blob of the cid images, inlined for the print window (macOS)
+    printing: false, // a print document is loading into the print frame or going to the print window
     warnings: [], // the query warnings behind the status bar
     statusTimer: 0,
     query: defaultQuery(), // the one source of truth behind the listing
@@ -1626,6 +1629,7 @@
     state.cidUrls = new Map();
     for (const url of state.blobUrls) URL.revokeObjectURL(url);
     state.blobUrls = [];
+    state.cidBlobs = new Map();
     state.printing = false;
     if (el.printFrame.hasAttribute("srcdoc")) el.printFrame.removeAttribute("srcdoc");
   }
@@ -1813,8 +1817,10 @@
       let pending = state.cidUrls.get(attachment.index);
       if (!pending) {
         pending = invoke("read_part", { file: view.file, offset, len: view.len, index: attachment.index }).then((bytes) => {
-          const url = URL.createObjectURL(new Blob([bytes], { type: attachment.contentType }));
+          const blob = new Blob([bytes], { type: attachment.contentType });
+          const url = URL.createObjectURL(blob);
           state.blobUrls.push(url);
+          state.cidBlobs.set(url, blob);
           return url;
         });
         state.cidUrls.set(attachment.index, pending);
@@ -2025,6 +2031,9 @@
   // alone: WebView2's print preview lists the printers and "Save as PDF". The
   // frame's sandbox keeps `allow-same-origin` (the document is ours) and adds
   // `allow-modals`, without which Chromium ignores print(); no script runs in it.
+  // On a Mac WKWebView ignores print() on a frame (task 020): the same document,
+  // its cid images inlined as `data:` URLs, goes to a print window of its own
+  // that opens the native print panel (`print_message`).
 
   function printHeader(doc, view) {
     const header = doc.createElement("header");
@@ -2099,6 +2108,10 @@
     style.textContent = PRINT_STYLE;
     doc.head.appendChild(style);
     doc.body.prepend(printHeader(doc, view));
+    return doc;
+  }
+
+  function serializeDocument(doc) {
     return `<!doctype html>${doc.documentElement.outerHTML}`;
   }
 
@@ -2109,13 +2122,35 @@
       flashStatus("The source is still loading, try again in a moment", "error");
       return;
     }
-    const html = printDocument(view);
-    if (!html) {
+    const doc = printDocument(view);
+    if (!doc) {
       flashStatus("The message is still loading, try again in a moment", "error");
       return;
     }
     state.printing = true;
-    el.printFrame.srcdoc = html;
+    if (Print.usesPrintWindow(Files.os)) {
+      printInWindow(view, doc);
+      return;
+    }
+    el.printFrame.srcdoc = serializeDocument(doc);
+  }
+
+  // macOS: the print document, its cid images inlined, goes to a print
+  // window, which shows it and opens the print panel once it has loaded.
+  async function printInWindow(view, doc) {
+    const { file, offset } = view;
+    try {
+      await Print.inlineBlobImages(doc, (url) => state.cidBlobs.get(url));
+      await invoke("print_message", {
+        html: serializeDocument(doc),
+        subject: subjectText(view.subject),
+        allowRemote: bodyMode(view) === "html" && state.allowRemote,
+      });
+    } catch (err) {
+      flashStatus(`Print failed: ${err}`, "error");
+    } finally {
+      if (state.view && state.view.file === file && state.view.offset === offset) state.printing = false;
+    }
   }
 
   // The frame has loaded the print document and its images: print it. The

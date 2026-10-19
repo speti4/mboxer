@@ -17,6 +17,7 @@ use mboxer_core::{
 };
 
 use crate::folders::label_tree;
+use crate::print::PrintJobs;
 use crate::types::{FileInfo, IndexState, LabelNode, OpenSummary};
 
 /// The error every command gets for a file id the set does not hold.
@@ -36,6 +37,8 @@ pub struct AppState {
     pub last_save_dir: Mutex<Option<PathBuf>>,
     /// Files the system asked the app to open before the webview was ready for them.
     pub system_opens: Mutex<SystemOpens>,
+    /// The documents of the open print windows (macOS, task 020).
+    pub print_jobs: Mutex<PrintJobs>,
 }
 
 /// The files macOS hands the app through Finder "Open with", a Dock drop or
@@ -57,6 +60,12 @@ impl AppState {
 
     pub fn system_opens(&self) -> MutexGuard<'_, SystemOpens> {
         self.system_opens
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+    }
+
+    pub fn print_jobs(&self) -> MutexGuard<'_, PrintJobs> {
+        self.print_jobs
             .lock()
             .unwrap_or_else(PoisonError::into_inner)
     }
