@@ -58,7 +58,8 @@ Everything below is a cache: deleting it costs a rebuild, never data.
 | Attachments you open from a message | `%TEMP%\mboxer\` (cleaned at the next start) |
 | The web view's own profile (window state, cache) | `%LOCALAPPDATA%\io.github.speti4.mboxer\` |
 
-The mbox itself is never modified.
+On a Mac the index fallback is `~/Library/Application Support/mboxer/index/` and the attachments go under
+`$TMPDIR/mboxer/`. The mbox itself is never modified.
 
 ## Finding mail
 
@@ -84,7 +85,7 @@ operators into the field:
 Keyboard: `Ctrl+O` open, `Ctrl+F` search, `Esc` in the field clears the whole query, `Enter`
 or `ArrowDown` moves to the list, arrows / `PageUp` / `PageDown` / `Home` / `End` move in the
 list, `Enter` focuses the reader, `Esc` returns to the list, `Ctrl+S` saves the message as
-`.eml`, `Ctrl+P` prints it.
+`.eml`, `Ctrl+P` prints it. On a Mac `⌘` stands for `Ctrl` in every shortcut.
 
 ## Handing a message on
 
@@ -100,8 +101,8 @@ Two buttons at the right end of the reader's view bar take the shown message out
 
 ## Light and dark
 
-The viewer follows the Windows colour mode. The button at the right end of the toolbar overrides
-it: *Auto* (follows Windows), *Light*, *Dark*; the choice is remembered. The body of an HTML
+The viewer follows the system colour mode. The button at the right end of the toolbar overrides
+it: *Auto* (follows the system), *Light*, *Dark*; the choice is remembered. The body of an HTML
 message stays on a white page in dark mode on purpose: HTML mail is designed for a light page, and
 a dark one would make some messages unreadable. The *Text* and *Source* views follow the theme.
 
@@ -113,6 +114,7 @@ a dark one would make some messages unreadable. The *Text* and *Source* views fo
 - The index rebuilds although nothing changed: the mbox was touched (copied with a new
   modification time, re-exported). A rebuild is safe, it only takes the time of the first open.
 - To force a rebuild, delete the `.mboxer\<mbox file name>\` folder next to the mbox (or the
-  folder under `%LOCALAPPDATA%\mboxer\index\`) and open the mbox again.
+  folder under `%LOCALAPPDATA%\mboxer\index\`, on a Mac under `~/Library/Application Support/mboxer/index/`)
+  and open the mbox again.
 - The version you run is at the right end of the status bar; the one on the releases page is
   the latest.

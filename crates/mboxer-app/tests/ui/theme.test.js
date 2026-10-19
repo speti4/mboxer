@@ -82,7 +82,7 @@ test("label and title: the button text names the mode, the tooltip names the nex
   assert.equal(Theme.label("auto"), "Auto");
   assert.equal(Theme.label("dark"), "Dark");
   assert.equal(Theme.label("sepia"), "Auto");
-  assert.equal(Theme.title("auto"), "Theme: follows Windows. Click for light.");
+  assert.equal(Theme.title("auto"), "Theme: follows the system. Click for light.");
   assert.equal(Theme.title("light"), "Theme: light. Click for dark.");
   assert.equal(Theme.title("dark"), "Theme: dark. Click for auto.");
 });

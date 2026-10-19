@@ -13,7 +13,7 @@ file, never the issue.
 <!-- tasks:index:start -->
 _Generated 2026-10-19 — edit the files, not this section._
 
-**State:** 9 backlog (5 ready · 0 blocked · 2 waiting · 2 ideas) · 0 in progress · 32 done · 0 dropped · 12 decisions
+**State:** 8 backlog (4 ready · 0 blocked · 2 waiting · 2 ideas) · 0 in progress · 33 done · 0 dropped · 12 decisions
 
 ### Ready
 
@@ -21,7 +21,6 @@ _Generated 2026-10-19 — edit the files, not this section._
 
 | # | Task | Size | Created |
 |---|---|---|---|
-| 019 | [macOS runtime differences: index home, quarantine, Finder open, UI keys and fon…](backlog/019-macos-runtime-differences.md) | S | 2026-10-18 |
 | 020 | [Print on macOS through a second webview window](backlog/020-macos-print-second-webview-window.md) | M | 2026-10-18 |
 | 041 | [THIRD-PARTY-LICENSES.html in the macOS zip](backlog/041-third-party-licences-in-the-macos-zip.md) | S | 2026-10-19 |
 
@@ -78,6 +77,7 @@ _none_
 |---|---|---|
 | 038 | [README links the changelog next to the releases](done/038-readme-links-the-changelog.md) | 2026-10-19 |
 | 036 | [Git workflow doc: current decision reference, the deps type, the expected index…](done/036-git-workflow-references-and-commit-types.md) | 2026-10-19 |
+| 019 | [macOS runtime differences: index home, quarantine, Finder open, UI keys and fon…](done/019-macos-runtime-differences.md) | 2026-10-19 |
 | 018 | [macOS build, .app bundle and CI](done/018-macos-build-bundle-and-ci.md) | 2026-10-19 |
 | 035 | [CLAUDE.md fit for a public repo: no personal settings, no contradictions, a com…](done/035-claude-md-review-before-publication.md) | 2026-10-18 |
 | 034 | [Git workflow policy for contributors and parallel sessions, with the commit rul…](done/034-git-workflow-policy-and-commit-hooks.md) | 2026-10-18 |
@@ -85,9 +85,8 @@ _none_
 | 032 | [Date column misaligned between conversation rows and plain rows in the list](done/032-list-date-column-alignment-in-conversation-view.md) | 2026-10-18 |
 | 030 | [Scrub the repo and rewrite the history per D-09](done/030-scrub-and-rewrite-history-per-d-09.md) | 2026-10-18 |
 | 027 | [Pre-publish audit of the history and the content](done/027-pre-publish-history-and-content-audit.md) | 2026-10-18 |
-| 026 | [README as a front page, the reference moved into docs](done/026-readme-front-page.md) | 2026-10-18 |
 
-_22 more in `done/`._
+_23 more in `done/`._
 
 ### Decisions
 

@@ -29,10 +29,46 @@ use crate::view::read_message_view;
 /// The largest page `list_rows` serves.
 const MAX_ROWS: usize = 500;
 
-/// The path given on the command line, opened at start-up by the webview.
+/// The paths the webview opens at start-up: the one given on the command
+/// line, then the files the system handed the app before the webview was up
+/// (macOS: Finder "Open with", a Dock drop). From this call on a system open
+/// reaches the webview as an [`OPEN_FILES_EVENT`] instead.
 #[tauri::command]
-pub fn initial_path() -> Option<String> {
-    std::env::args().nth(1)
+pub fn initial_paths(state: State<'_, AppState>) -> Vec<String> {
+    let mut paths: Vec<String> = std::env::args().skip(1).take(1).collect();
+    let mut pending = state.system_opens();
+    pending.webview_ready = true;
+    paths.append(&mut pending.paths);
+    paths
+}
+
+/// The event that carries the paths of a system open to the webview, a list of strings.
+pub const OPEN_FILES_EVENT: &str = "open-files";
+
+/// Files the system asks the running app to open (`RunEvent::Opened`, macOS
+/// only: Finder "Open with", a Dock drop, `open -a mboxer x.mbox`). A path
+/// that is not a local file is ignored. Before the webview has asked for its
+/// start-up paths the files wait with them; after that they go to the webview
+/// as an [`OPEN_FILES_EVENT`], which opens them like a dialog pick.
+#[cfg(target_os = "macos")]
+pub fn open_from_system(app: &AppHandle, urls: &[tauri::Url]) {
+    use tauri::Emitter;
+
+    let paths: Vec<String> = urls
+        .iter()
+        .filter_map(|url| url.to_file_path().ok())
+        .map(|path| path.display().to_string())
+        .collect();
+    if paths.is_empty() {
+        return;
+    }
+    let state = app.state::<AppState>();
+    let mut pending = state.system_opens();
+    if pending.webview_ready {
+        let _ = app.emit(OPEN_FILES_EVENT, paths);
+    } else {
+        pending.paths.extend(paths);
+    }
 }
 
 /// The version of the exe (the workspace `Cargo.toml`, stamped by `tauri-build`).

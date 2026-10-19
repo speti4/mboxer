@@ -12,7 +12,10 @@ pub mod state;
 pub mod types;
 pub mod view;
 
-/// Builds the window and runs the event loop until it closes.
+/// Builds the window and runs the event loop until it closes. On macOS the
+/// files the system asks the app to open (Finder "Open with", a Dock drop)
+/// arrive as `RunEvent::Opened` and go the way of a command-line path; the
+/// other platforms pass such a file as the first argument and have no event.
 pub fn run() {
     // The temporary attachment copies of earlier runs go, off the main thread.
     std::thread::spawn(attachments::clean_temp);
@@ -21,7 +24,7 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .manage(state::AppState::default())
         .invoke_handler(tauri::generate_handler![
-            commands::initial_path,
+            commands::initial_paths,
             commands::app_version,
             commands::open_mbox,
             commands::cancel_open,
@@ -41,6 +44,14 @@ pub fn run() {
             commands::save_all_attachments,
             commands::save_message_eml,
         ])
-        .run(tauri::generate_context!())
-        .expect("error while running the mboxer window");
+        .build(tauri::generate_context!())
+        .expect("error while building the mboxer window")
+        .run(|app, event| {
+            #[cfg(target_os = "macos")]
+            if let tauri::RunEvent::Opened { urls } = &event {
+                commands::open_from_system(app, urls);
+            }
+            #[cfg(not(target_os = "macos"))]
+            let _ = (app, event);
+        });
 }

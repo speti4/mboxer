@@ -747,7 +747,7 @@ body:not([data-view="ready"]) .panes {
 }
 
 #msg-body.source {
-  font-family: Consolas, monospace;
+  font-family: ui-monospace, Menlo, Consolas, monospace;
   font-size: 12px;
 }
 
@@ -775,7 +775,7 @@ body:not([data-view="ready"]) .panes {
 #msg-parts ul {
   margin: 4px 0 0;
   padding-left: 18px;
-  font-family: Consolas, monospace;
+  font-family: ui-monospace, Menlo, Consolas, monospace;
   font-size: 12px;
 }
 

@@ -31,7 +31,7 @@ enum Command {
     /// Walk an mbox once: count messages, report throughput, show a sample.
     Scan(ScanArgs),
     /// Build the sidecar full-text index next to an mbox (skipped when it is up to date).
-    #[command(after_help = INDEX_HELP)]
+    #[command(after_help = index_help())]
     Index(IndexArgs),
     /// Search an indexed mbox.
     Search(SearchArgs),
@@ -52,9 +52,28 @@ struct ScanArgs {
     quiet: bool,
 }
 
-const INDEX_HELP: &str = "The index goes to .mboxer\\<file name>\\ next to the mbox. When that folder is not \
-writable (a read-only share, a DVD), it goes under %LOCALAPPDATA%\\mboxer\\index\\ instead, or under \
-MBOXER_INDEX_HOME when that variable is set; `search` looks in both places.";
+/// The sidecar folder and the fallback index home (D-05) as this platform spells them.
+#[cfg(windows)]
+const INDEX_PLACES: (&str, &str) = (".mboxer\\<file name>\\", "%LOCALAPPDATA%\\mboxer\\index\\");
+#[cfg(target_os = "macos")]
+const INDEX_PLACES: (&str, &str) = (
+    ".mboxer/<file name>/",
+    "~/Library/Application Support/mboxer/index/",
+);
+#[cfg(not(any(windows, target_os = "macos")))]
+const INDEX_PLACES: (&str, &str) = (
+    ".mboxer/<file name>/",
+    "$XDG_DATA_HOME/mboxer/index/ (~/.local/share by default)",
+);
+
+fn index_help() -> String {
+    let (sidecar, fallback) = INDEX_PLACES;
+    format!(
+        "The index goes to {sidecar} next to the mbox. When that folder is not writable (a read-only \
+share, a DVD), it goes under {fallback} instead, or under MBOXER_INDEX_HOME when that variable is \
+set; `search` looks in both places."
+    )
+}
 
 #[derive(Args)]
 struct IndexArgs {

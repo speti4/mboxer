@@ -14,7 +14,7 @@
   const MODES = ["auto", "light", "dark"];
   const LABELS = { auto: "Auto", light: "Light", dark: "Dark" };
   const DESCRIPTIONS = {
-    auto: "Theme: follows Windows.",
+    auto: "Theme: follows the system.",
     light: "Theme: light.",
     dark: "Theme: dark.",
   };

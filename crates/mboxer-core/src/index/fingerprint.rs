@@ -3,8 +3,9 @@
 //! The index of `<dir>/<name>.mbox` is the directory `<dir>/.mboxer/<name>.mbox/`.
 //! When that directory cannot be created (a read-only share, a DVD, a denied
 //! folder) the index lives under the index home instead —
-//! `%LOCALAPPDATA%\mboxer\index\<name>.mbox-<path hash>\` — and [`status`]
-//! looks in both places (task 014, D-05). Its `mboxer.json` records the index
+//! `<data folder>/mboxer/index/<name>.mbox-<path hash>/`, the data folder being
+//! `%LOCALAPPDATA%` on Windows and `~/Library/Application Support` on macOS —
+//! and [`status`] looks in both places (task 014, D-05). Its `mboxer.json` records the index
 //! format version and a fingerprint of the mbox: size, modification time and a
 //! hash over a few sampled regions. Any mismatch makes the index stale; the
 //! caller rebuilds it from scratch.
@@ -44,16 +45,34 @@ pub fn index_dir(mbox: &Path) -> PathBuf {
 }
 
 /// The root of the fallback indexes: `$MBOXER_INDEX_HOME`, else
-/// `%LOCALAPPDATA%\mboxer\index`, else `<temp>/mboxer/index`.
+/// `mboxer/index` under the user's data folder (`%LOCALAPPDATA%` on Windows,
+/// `~/Library/Application Support` on macOS, `$XDG_DATA_HOME` or
+/// `~/.local/share` elsewhere; D-05), else `<temp>/mboxer/index`.
 pub fn default_index_home() -> PathBuf {
-    let set = |name: &str| std::env::var_os(name).filter(|value| !value.is_empty());
-    if let Some(home) = set(INDEX_HOME_ENV) {
+    let env = |name: &str| std::env::var_os(name).filter(|value| !value.is_empty());
+    if let Some(home) = env(INDEX_HOME_ENV) {
         return PathBuf::from(home);
     }
-    if let Some(local) = set("LOCALAPPDATA") {
-        return PathBuf::from(local).join("mboxer").join("index");
+    if let Some(data) = user_data_dir(std::env::consts::OS, env) {
+        return data.join("mboxer").join("index");
     }
     std::env::temp_dir().join("mboxer").join("index")
+}
+
+/// The per-user application data folder of `target_os` (a `std::env::consts::OS`
+/// value), read through `env`; `None` when the environment does not name one.
+fn user_data_dir(target_os: &str, env: impl Fn(&str) -> Option<OsString>) -> Option<PathBuf> {
+    match target_os {
+        "windows" => env("LOCALAPPDATA").map(PathBuf::from),
+        "macos" => env("HOME").map(|home| {
+            PathBuf::from(home)
+                .join("Library")
+                .join("Application Support")
+        }),
+        _ => env("XDG_DATA_HOME")
+            .map(PathBuf::from)
+            .or_else(|| env("HOME").map(|home| PathBuf::from(home).join(".local").join("share"))),
+    }
 }
 
 /// The fallback index directory of `mbox` under `home`:
@@ -324,6 +343,35 @@ mod tests {
     fn index_dir_is_a_sidecar_folder_next_to_the_mbox() {
         let dir = index_dir(Path::new("D:/mail/All mail.mbox"));
         assert_eq!(dir, Path::new("D:/mail/.mboxer/All mail.mbox"));
+    }
+
+    #[test]
+    fn the_data_folder_follows_the_platform() {
+        let vars = |name: &str| -> Option<OsString> {
+            match name {
+                "LOCALAPPDATA" => Some(r"C:\Users\x\AppData\Local".into()),
+                "HOME" => Some("/Users/x".into()),
+                _ => None,
+            }
+        };
+        assert_eq!(
+            user_data_dir("windows", vars),
+            Some(PathBuf::from(r"C:\Users\x\AppData\Local"))
+        );
+        assert_eq!(
+            user_data_dir("macos", vars),
+            Some(PathBuf::from("/Users/x/Library/Application Support"))
+        );
+        assert_eq!(
+            user_data_dir("linux", vars),
+            Some(PathBuf::from("/Users/x/.local/share"))
+        );
+        let xdg = |name: &str| (name == "XDG_DATA_HOME").then(|| OsString::from("/data"));
+        assert_eq!(user_data_dir("linux", xdg), Some(PathBuf::from("/data")));
+        let nothing = |_: &str| None;
+        assert_eq!(user_data_dir("windows", nothing), None);
+        assert_eq!(user_data_dir("macos", nothing), None);
+        assert_eq!(user_data_dir("linux", nothing), None);
     }
 
     #[test]
