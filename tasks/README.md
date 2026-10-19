@@ -13,7 +13,7 @@ file, never the issue.
 <!-- tasks:index:start -->
 _Generated 2026-10-19 — edit the files, not this section._
 
-**State:** 3 backlog (0 ready · 0 blocked · 3 waiting · 0 ideas) · 0 in progress · 39 done · 1 dropped · 12 decisions
+**State:** 2 backlog (0 ready · 0 blocked · 2 waiting · 0 ideas) · 1 in progress · 39 done · 1 dropped · 12 decisions
 
 ### Ready
 
@@ -35,7 +35,6 @@ _none_
 
 | # | Task | Waits for | Size | Created |
 |---|---|---|---|---|
-| 028 | [Publication day: visibility switch and the public-only repo settings](backlog/028-publication-day-repo-settings.md) | every other open task done first (user decision 2026-10-19) — 043, and 040 run by a colleague with a Mac; 029 follows 028 | S | 2026-10-18 |
 | 029 | [Authenticode signing of the release exe](backlog/029-windows-code-signing.md) | 028 (SignPath Foundation takes public repos only; user decision 2026-10-19) | M | 2026-10-18 |
 
 ### Ideas
@@ -44,7 +43,11 @@ _none_
 
 ### In progress
 
-_none_
+#### M5 Public release
+
+| # | Task | Started | Plan |
+|---|---|---|---|
+| 028 | [Publication day: visibility switch and the public-only repo settings](wip/028-publication-day-repo-settings.md) | 2026-10-19 | `none` |
 
 ### Closed – do not reopen
 
