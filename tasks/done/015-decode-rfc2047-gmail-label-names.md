@@ -5,7 +5,7 @@ created: 2026-10-17
 started: 2026-10-17
 closed: 2026-10-17
 milestone: M3 Comfort
-plan: 12-14-15-taskokat-fejlessz-k-le-keen-whale.md
+plan: none
 ---
 
 # 015 — Decode RFC 2047-encoded Gmail label names

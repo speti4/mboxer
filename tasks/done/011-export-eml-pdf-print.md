@@ -5,7 +5,7 @@ created: 2026-10-17
 started: 2026-10-18
 closed: 2026-10-18
 milestone: M3 Comfort
-plan: backlogb-l-a-task-011-jaunty-castle.md
+plan: none
 ---
 
 # 011 — Export a message: .eml, print / PDF

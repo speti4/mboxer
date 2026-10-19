@@ -32,5 +32,5 @@ Before a commit: the checks in CONTRIBUTING.md, "Checks before a commit" (more o
 - `tasks/` follows the project-pal task standard (`tasks/README.md`); `scripts/sync-issues.py` mirrors every
   task and decision file into a GitHub issue (D-008), so a task file reads as public text: it states decisions
   and results, not conversations; a decision stays `proposed` until the maintainer decides it
-- The repo is public: a task file's `plan:` field holds the plan file's bare name (`plan: some-plan.md`), never
-  its path, and no file carries a home folder path (`C:\Users\<name>\…`, `/Users/<name>/…`)
+- The repo is public: a task file's `plan:` field is `none` (a plan file lives outside the repo and its name is
+  not public text), and no file carries a home folder path (`C:\Users\<name>\…`, `/Users/<name>/…`)

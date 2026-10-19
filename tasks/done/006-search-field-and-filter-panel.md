@@ -5,7 +5,7 @@ created: 2026-10-17
 started: 2026-10-17
 closed: 2026-10-17
 milestone: M2 Viewer MVP
-plan: folytassuk-a-backlog-k-vetkez-purring-cupcake.md
+plan: none
 ---
 
 # 006 — Search field and filter panel

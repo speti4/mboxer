@@ -5,7 +5,7 @@ created: 2026-10-17
 started: 2026-10-18
 closed: 2026-10-18
 milestone: M3 Comfort
-plan: n-zz-k-t-a-backlogot-virtual-mango.md
+plan: none
 ---
 
 # 017 — Dark mode toggle with OS default

@@ -5,7 +5,7 @@ created: 2026-10-17
 started: 2026-10-17
 closed: 2026-10-17
 milestone: M2 Viewer MVP
-plan: folytassuk-a-008-taskkal-transient-dolphin.md
+plan: none
 ---
 
 # 008 — Attachments: list, open, save

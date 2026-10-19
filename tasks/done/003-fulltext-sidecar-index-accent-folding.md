@@ -5,7 +5,7 @@ created: 2026-10-17
 started: 2026-10-17
 closed: 2026-10-17
 milestone: M1 Index core
-plan: folytassuk-a-003-taskkal-parsed-panda.md
+plan: none
 ---
 
 # 003 — Sidecar full-text index with accent folding

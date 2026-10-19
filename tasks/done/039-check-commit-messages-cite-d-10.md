@@ -3,7 +3,7 @@ size: S
 origin: done/036-git-workflow-references-and-commit-types.md
 created: 2026-10-19
 started: 2026-10-19
-plan: n-zz-k-t-a-backlogot-toasty-dove.md
+plan: none
 milestone: M5 Public release
 closed: 2026-10-19
 changelog: housekeeping

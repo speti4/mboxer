@@ -5,7 +5,7 @@ created: 2026-10-17
 started: 2026-10-17
 closed: 2026-10-17
 milestone: M1 Index core
-plan: folytassuk-a-004-task-scalable-trinket.md
+plan: none
 ---
 
 # 004 — Index CLI filters and the 14 GB benchmark

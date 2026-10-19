@@ -4,7 +4,7 @@ origin: done/027-pre-publish-history-and-content-audit.md
 created: 2026-10-18
 started: 2026-10-18
 closed: 2026-10-18
-plan: folytassuk-a-030-task-replicated-fairy.md
+plan: none
 milestone: M5 Public release
 changelog: housekeeping
 ---
