@@ -2,7 +2,7 @@
 status: decided
 date: 2026-10-17
 cost: medium
-sources: [wip/003-fulltext-sidecar-index-accent-folding.md, D-002-rust-tauri2-sidecar-fulltext-index.md, folytassuk-a-003-taskkal-parsed-panda.md]
+sources: [done/003-fulltext-sidecar-index-accent-folding.md, D-002-rust-tauri2-sidecar-fulltext-index.md, folytassuk-a-003-taskkal-parsed-panda.md]
 ---
 
 # D-004 — The sidecar index lives in `.mboxer/<mbox name>/` beside the mbox and is rebuilt whole when stale
@@ -30,12 +30,12 @@ the user's data.
 - Tokenization: words, lower-cased, ASCII-folded (`AsciiFoldingFilter`, covers ő/ű) on both the
   index and the query side; phrase positions are kept on every text field.
 
-Proposed by the session on 2026-10-17; confirmed by the user on 2026-10-17 after the 14 GB run.
+Proposed on 2026-10-17 during task 003 planning; confirmed by the user on 2026-10-17 after the 14 GB run.
 
 ## Not chosen
 
 - Index under `%LOCALAPPDATA%\mboxer\<hash>`: survives a read-only mbox location, but is lost
-  when the mbox moves and invisible to the user; kept as a fallback idea (backlog) rather than the default.
+  when the mbox moves and invisible to the user; kept as a fallback rather than the default (became D-005).
 - A full-file hash as the fingerprint: 107 s on the 14 GB file at every open.
 - Incremental indexing of appended messages: Takeout never appends; a new export is a new file.
 - A hand-written key=value metadata file instead of JSON: serde is already in the build through tantivy.

@@ -2,7 +2,7 @@
 status: decided
 date: 2026-10-18
 cost: cheap
-sources: [wip/024-supply-chain-and-ci-hardening.md, backlog/025-release-notes-changelog-and-checksums.md, steady-baking-kurzweil.md]
+sources: [done/024-supply-chain-and-ci-hardening.md, done/025-release-notes-changelog-and-checksums.md, steady-baking-kurzweil.md]
 ---
 
 # D-011 — Crates come from crates.io only, under a fixed licence allowlist that includes MPL-2.0, and an advisory fails CI

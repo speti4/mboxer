@@ -18,12 +18,12 @@ cross windows) to a `print_message` command; Rust opens a hidden `print` webview
 the window afterwards; a capability entry covers the `print` window. Windows keeps the task 011 iframe path.
 Fallback if the second window does not print: a top-level `window.print()` with `@media print` CSS that leaves
 only the reader body visible.
-Why: Tauri/wry on macOS silently ignores `iframe.contentWindow.print()` (tauri-apps/tauri #13451, upstream, no
+Why: Tauri/wry on macOS silently ignores `iframe.contentWindow.print()` (tauri-apps/tauri#13451, upstream, no
 fix planned); the whole 011 print path depends on it. Full parity is the user's choice (2026-10-18).
 Done when: on a Mac *Print…* (`⌘P`) opens the native panel with the message laid out as the reader shows it,
 and *Save as PDF* writes the same picture; the Windows print preview is unchanged.
-User decision 2026-10-19: part of the backlog wave 039 + 041 + 020 in parallel task sessions. The author has no
-Mac: the macOS check is a cross-compile here, the run on a Mac goes into 040's manual round.
+Done in parallel with 039 and 041. The macOS check is a cross-compile here; the run on a Mac goes into 040's
+manual round.
 
 ## Steps
 

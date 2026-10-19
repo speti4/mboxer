@@ -56,7 +56,7 @@ stale index wait as a faded root; no new crate (D-002).
   utolsó × után empty nézet, kereső letiltva, tároló üres. Két hibát a check talált és javítottam: az aktív fájl
   újranyitása törölte a keresőszöveget; a billentyűs navigáció az aktív rooton ragadt. Képernyőkép dark + light: rendben
 - 2026-10-18 — commit `cba85f3` (feat, task 016)
-- 2026-10-18 — a usernek egy mbox-a van, ezért két szintetikus minta (`target/manual-round/sample-threads.mbox`,
+- 2026-10-18 — csak egy valódi mbox volt kéznél, ezért két szintetikus minta (`target/manual-round/sample-threads.mbox`,
   `sample-attachments.mbox`, a core fixture-ökből) állt a második és harmadik fájl szerepébe; a debug exe a 14 GB
   archívummal indult. A user kézi köre (multi-select Open…, váltás és keresés fájlonként, melléklet mindkét fájlból,
   bezárás nem aktív és aktív soron, újraindítás utáni visszatöltés, stale index halvány rootként): "minden ok". Nincs

@@ -22,9 +22,8 @@ Windows" becomes "follows the system"; `files.test.js` takes the OS as a paramet
 Why: the Windows assumptions the 2026-10-18 sweep found outside printing (020) and packaging (018).
 Done when: `cargo test` and the node tests pass on both CI runners; on a Mac an opened attachment carries the
 quarantine xattr, a read-only mbox folder indexes under `~/Library`, and Finder "Open with" opens the file.
-Run as a task session under docs/git-workflow.md, in parallel with 036, 038 and 018 (plan 2026-10-19); the
-`macos-latest` runner arrives with 018, so this branch rebases onto `main` after 018 merges. The author has no
-Mac: the on-Mac checks of the done-when are a follow-up. Docs: this task writes `docs/usage.md`; 018 writes
+Done in parallel with 036, 038 and 018; the `macos-latest` runner arrives with 018, so this work lands after
+018. The on-Mac checks of the done-when are a follow-up (040). Docs: this task writes `docs/usage.md`; 018 writes
 `docs/development.md`.
 
 ## Steps

@@ -21,9 +21,9 @@ macOS targets in `[graph] targets` (D-011). No Tauri CLI (D-002).
 Why: the first of three macOS tasks (plan 2026-10-18); it proves the workspace compiles and tests pass on macOS
 before 019 and 020. First step on Windows: `cargo check --target aarch64-apple-darwin -p mboxer-app`.
 Done when: the `macos-latest` CI job is green and the release zip holds an `.app` that starts on a Mac
-(manual round by a Mac user; the author has no Mac, the Gatekeeper step is D-007).
-Run as a task session under docs/git-workflow.md, in parallel with 036, 038 and 019 (plan 2026-10-19); the
-author has no Mac, so the script is verified by the CI job and the "starts on a Mac" check is a follow-up.
+(manual round on a Mac, 040; the Gatekeeper step is D-007).
+Done in parallel with 036, 038 and 019. The script is verified by the CI job, and the "starts on a Mac"
+check is a follow-up (040).
 Docs: this task writes `docs/development.md` (build and bundle); 019 writes `docs/usage.md`.
 
 ## Steps
@@ -54,8 +54,8 @@ Docs: this task writes `docs/development.md` (build and bundle); 019 writes `doc
 
 ## Deviations from the plan
 
-- A `bundle-macos` job nem csak tagre fut, hanem `workflow_dispatch`-re is: a szerző Mac nélkül csak így tudja
-  a scriptet valóban lefuttatni (lipo, iconutil, codesign, ditto), és a tesztelő is így kap buildet (a zip egy
+- A `bundle-macos` job nem csak tagre fut, hanem `workflow_dispatch`-re is: Mac nélkül csak így fut a script
+  valóban (lipo, iconutil, codesign, ditto), és egy kézi teszthez is így van build (a zip egy
   napig artifact). A `commit-rules` job kézi futtatáskor kimarad (nincs commit range).
 - A release notes lábléce (`scripts/changelog.py --notes`) is megnevezi a macOS zipet és az első indítás lépését:
   a `SHA256SUMS.txt` két zipet fed, a szöveg eddig egyet írt le.

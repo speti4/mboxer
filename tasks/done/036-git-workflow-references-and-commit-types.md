@@ -13,16 +13,14 @@ closed: 2026-10-19
 ## Context
 
 What: `docs/git-workflow.md` cites D-009 for the trailer rule, which D-010 superseded (its point 3 carries the rule);
-CONTRIBUTING's commit types leave out `deps:`, which the workflow doc lists; the doc does not say that a task
-session's `tasks_check` (without `write`) reports the stale index on its own close commit, which is expected; and
-a task session must see `git status` clean before it reports (035's close commit left the file's edits behind);
-the main session prepares a pull request only after the previous merge is pulled, because `tasks_next_id` sees
-only the checked-out tree and an id filed on an unmerged branch would be handed out twice (032 waited for #52).
-Why: found by the 035 and 032 task sessions (PRs #52, #53) and their merges; both files are what a contributor and
-every session read first.
-Done when: the doc cites D-010, CONTRIBUTING lists `deps:`, the task-session section names the expected failure
-and the clean-status check before the report, and the main-session section says to prepare after the last merge.
-Run as a task session under docs/git-workflow.md, in parallel with 038, 018 and 019 (plan 2026-10-19).
+CONTRIBUTING's commit types leave out `deps:`, which the workflow doc lists; and the doc's section on parallel
+work misses three rules learned in practice: the task-index check of a closing commit reports a stale index,
+which is expected; the working tree must be clean before a task is reported done (035's close commit left the
+file's edits behind); and a pull request is prepared only after the previous merge is pulled, so the same task
+id is never handed out twice (032 waited for #52).
+Why: found in the merges of pull requests #52 and #53; both files are what a contributor reads first.
+Done when: the doc cites D-010, CONTRIBUTING lists `deps:`, and the workflow doc names the three rules.
+Done in parallel with 038, 018 and 019.
 
 ## Steps
 

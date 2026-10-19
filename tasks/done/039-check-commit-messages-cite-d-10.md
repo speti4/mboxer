@@ -18,8 +18,7 @@ Why: 036 fixed the same citation in `docs/git-workflow.md`; the hook's message i
 when a commit is rejected, and it should point at the decision that is in force.
 Done when: `grep D-009 scripts/check-commit.sh` is empty and the messages cite D-010 point 3; the hook still rejects
 a `Claude-Session:` trailer and a session link.
-User decision 2026-10-19: part of the backlog wave 039 + 041 + 020 in parallel task sessions, 037 in the main
-session; 039 merges first.
+User decision 2026-10-19: done in parallel with 041, 020 and 037; 039 merges first.
 
 ## Steps
 

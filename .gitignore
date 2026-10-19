@@ -1,23 +1,24 @@
 # Rust / Tauri build output
 target/
-src-tauri/gen/
 crates/mboxer-app/gen/
 node_modules/
 dist/
 
-# mbox files and index sidecars never enter the repo
+# mail never enters the repo: mbox files, exported messages, Takeout downloads, index sidecars
 *.mbox
-*.idx
-*.sqlite
+*.eml
+takeout-*.zip
 .mboxer/
 
 # local
 .env
 *.log
+.DS_Store
+.claude/settings.local.json
 
 # synthetic test fixtures are the one exception to the mbox rule
 !crates/*/tests/fixtures/*.mbox
 __pycache__/
 
-# worktrees of parallel sessions (docs/git-workflow.md)
+# git worktrees that Claude Code creates under .claude/worktrees (docs/maintainer-sessions.md)
 .claude/worktrees/

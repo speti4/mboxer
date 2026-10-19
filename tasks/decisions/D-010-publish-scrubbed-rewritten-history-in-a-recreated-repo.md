@@ -3,7 +3,7 @@ status: decided
 date: 2026-10-18
 cost: one-way
 supersedes: D-009-publish-scrubbed-rewrite-history-before-switch.md
-sources: [D-009-publish-scrubbed-rewrite-history-before-switch.md, done/027-pre-publish-history-and-content-audit.md, wip/030-scrub-and-rewrite-history-per-d-09.md, folytassuk-a-030-task-replicated-fairy.md]
+sources: [D-009-publish-scrubbed-rewrite-history-before-switch.md, done/027-pre-publish-history-and-content-audit.md, done/030-scrub-and-rewrite-history-per-d-09.md, folytassuk-a-030-task-replicated-fairy.md]
 ---
 
 # D-010 — The repo goes public scrubbed, with the history rewritten once and pushed into a recreated GitHub repo
@@ -40,8 +40,7 @@ D-009 stands, with point 2 replaced:
    included) and future (`git config user.email`).
 5. 030 lands before 028 flips the visibility.
 
-The user chose the recreated repo on 2026-10-18 while planning task 030 ("nem lenne egyszerűbb egyet
-backupolni, majd törölni a remotet és full újrahúzni a remote oldalt?") and approved the plan the same day.
+The user chose the recreated repo on 2026-10-18 while planning task 030 and approved the plan the same day.
 
 ## Not chosen
 

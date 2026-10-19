@@ -14,9 +14,9 @@ plan: folytassuk-a-backlog-k-vetkez-purring-cupcake.md
 
 A search field (Ctrl+F / Ctrl+K focus, the list refreshing while typing with a debounce) and a
 filter panel (date range, sender, label, attachment) that combines with the text search; the
-matched words highlighted in the list. This is the reason the project exists (the pain of mboxviewer's
-Advanced Find). Done when: a user who knows no syntax finds a message by body word + sender in three
-interactions, at < 1 s per keystroke.
+matched words highlighted in the list. This is the reason the project exists: search one keystroke away.
+Done when: a user who knows no syntax finds a message by body word + sender in three interactions, at < 1 s
+per keystroke.
 
 The backend already knows everything (`QueryInput` → `SearchQuery` → `MboxIndex::list`, the `set_query` and
 `position_of` commands exist); most of the work is under `ui/`, no new crate.

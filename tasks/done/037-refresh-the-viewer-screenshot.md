@@ -16,8 +16,8 @@ What: regenerate `docs/images/viewer.png` over the demo mbox, which still shows 
 fixed; the throwaway WebView2 profile, subst drive and `--lang` setup of 026 keep the real archive out of it.
 Why: the screenshot is the README's first picture and goes public with 028.
 Done when: the committed screenshot shows the dates in one column and nothing but demo mail.
-User decision 2026-10-19: part of the backlog wave (039 + 041 + 020 in task sessions); 037 runs in the main
-session because the viewer and the manual round belong to one session at a time.
+User decision 2026-10-19: done alongside 039, 041 and 020; 037 drives the viewer, which one piece of work
+uses at a time.
 
 ## Steps
 

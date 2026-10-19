@@ -5,6 +5,7 @@ created: 2026-10-18
 started: 2026-10-18
 closed: 2026-10-18
 plan: local-repoban-profi-a-clever-pie.md
+milestone: M5 Public release
 ---
 
 # 021 — GitHub milestones from the roadmap and the first release v0.1.0
@@ -16,8 +17,7 @@ repo has no milestone, issue, tag or release, while `docs/usage.md` sends the us
 What: mirroring the four roadmap milestones as GitHub milestones (same titles, M1–M3 closed, M4 open), a `v0.1.0` tag,
 which the existing CI release job packages and publishes, hand-written release notes, one line each in the docs, D-008.
 Why: for the users the release zip is what counts, a milestone alone would be empty. User decision 2026-10-18: the
-"milestones + v0.1.0 release" variant; the tasks/ → issues mirror script is not needed (it would be a project-pal
-feature, only for a GitHub audience). Done when: 4 milestones in the right state, the `v0.1.0` release with one
+"milestones + v0.1.0 release" variant; the tasks/ → issues mirror script is not needed (reversed by 022, D-008). Done when: 4 milestones in the right state, the `v0.1.0` release with one
 `mboxer-0.1.0.zip` asset, the zip containing `mboxer.exe` (ProductVersion 0.1.0) + `usage.md`.
 
 ## Steps

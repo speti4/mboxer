@@ -18,7 +18,7 @@ macOS dependency graph adds objc2 and friends) and put the page into the zip nex
 Why: the licence page is part of what a release ships (D-012); the macOS zip must not be the exception.
 Done when: the macOS zip holds a licence page that lists the darwin-only crates, and `cargo deny check` still
 passes with the macOS targets.
-User decision 2026-10-19: part of the backlog wave 039 + 041 + 020 in parallel task sessions; 041 lands before
+User decision 2026-10-19: done in parallel with 039 and 020; 041 lands before
 the first release tag (028), which builds the macOS zip too.
 
 ## Steps

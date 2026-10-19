@@ -13,7 +13,7 @@ plan: peppy-imagining-pony.md
 ## Context
 
 The README rewritten as a front page: a one-line pitch, badges (CI, latest release, licence), a screenshot of
-the viewer over a synthetic mbox (never the author's archive), a feature list, download and quick start, and
+the viewer over a synthetic mbox (never a real archive), a feature list, download and quick start, and
 links to usage, build and decisions. The current long reference moves to `docs/reference.md`, or into
 `docs/usage.md` where it addresses the user. Why: today the README is a dense reference with no picture, and a
 visitor decides within one screen. Done when: the README fits on two screens and every moved paragraph has a home
@@ -63,7 +63,7 @@ to `CONTRIBUTING.md` (023). The screenshot is taken over a demo mbox that `scrip
 - 2026-10-18 — `README.md` 71 sor (a „két képernyő” határon belül); 0 törött relatív link a 8 érintett fájlban;
   a régi README minden bekezdésének van otthona (`docs/reference.md`, `docs/development.md`, `CONTRIBUTING.md`),
   50 kifejezéses greppel ellenőrizve
-- 2026-10-18 — a user megnézte a README-t és a képernyőképet, rendben („szuper, mehet a push”); commit `f640447`,
+- 2026-10-18 — a user jóváhagyta a README-t és a képernyőképet; commit `f640447`,
   pusholva, a `sync-issues` futás zöld
 - A badge-ek a privát repón nem renderelnek; ez a 028 checklistjére került (README badges a switch után)
 

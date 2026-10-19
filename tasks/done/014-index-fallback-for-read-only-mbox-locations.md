@@ -1,6 +1,6 @@
 ---
 size: S
-origin: wip/003-fulltext-sidecar-index-accent-folding.md
+origin: done/003-fulltext-sidecar-index-accent-folding.md
 created: 2026-10-17
 started: 2026-10-17
 closed: 2026-10-17
@@ -12,9 +12,9 @@ plan: 12-14-15-taskokat-fejlessz-k-le-keen-whale.md
 
 ## Context
 
-D-004 puts the index next to the mbox (`.mboxer/<név>/`); if that folder is not writable (DVD, read-only share,
+D-004 puts the index next to the mbox (`.mboxer/<name>/`); if that folder is not writable (DVD, read-only share,
 forbidden folder), the build stops with an error today. 014: if the primary `.building` directory cannot be created,
-the index is built under `%LOCALAPPDATA%\mboxer\index\<fájlnév>-<útvonal-hash>\`, and the open looks there too.
+the index is built under `%LOCALAPPDATA%\mboxer\index\<file name>-<path hash>\`, and the open looks there too.
 Why: a user's archive may sit on a network share. Done when: `mboxer index` succeeds on an mbox in a
 read-only folder, `mboxer search` finds the fallback index, and the test covers both locations.
 Planning decision 2026-10-17: the fallback directory is keyed by the mbox's *path* (not its content fingerprint,

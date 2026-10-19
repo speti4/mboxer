@@ -1,10 +1,11 @@
 ---
 size: S
-origin: wip/026-readme-front-page.md
+origin: done/026-readme-front-page.md
 created: 2026-10-18
 started: 2026-10-18
 closed: 2026-10-18
 plan: none
+milestone: M5 Public release
 ---
 
 # 032 — Date column misaligned between conversation rows and plain rows in the list
@@ -16,7 +17,7 @@ right after it, while a conversation row puts the count badge and the date at th
 line up (visible in `docs/images/viewer.png`). Give plain rows the same badge slot, or right-align the date column
 for both. Why: the list is the most-read part of the window and a ragged date column looks broken.
 Done when: dates align in one column in both views and in both themes.
-Run as a task session under docs/git-workflow.md, in parallel with 035 and 025; checked over synthetic data only.
+Done in parallel with 035 and 025; checked over synthetic data only.
 
 ## Steps
 

@@ -20,8 +20,7 @@ opening ten new issues; `CHANGELOG.md` stays in line with `scripts/changelog.py 
 Why: mixed widths sort and read wrong; the public repo starts consistent (user decision 2026-10-19).
 Done when: `tasks_check` has no narrow-id warning, a grep for two-digit decision ids finds only history that
 must stay, and a sync run edits the ten decision issues in place.
-Split (2026-10-19): the main session runs the renumber inside `tasks/` on this branch (the tool writes only in
-the main checkout); the task session does everything outside `tasks/`.
+Split (2026-10-19): the renumber tool rewrites `tasks/`; everything outside `tasks/` is fixed by hand.
 
 ## Steps
 

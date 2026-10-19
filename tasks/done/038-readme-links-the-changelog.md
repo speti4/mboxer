@@ -16,7 +16,7 @@ What: the README's download step and its docs list point to the releases but not
 (D-012); add the link, and a word on checking the zip against `SHA256SUMS.txt` where the download step is.
 Why: a visitor reading the front page should find what changed and how to verify the download without the docs.
 Done when: the README links `CHANGELOG.md` and names the checksum file at the download step.
-Run as a task session under docs/git-workflow.md, in parallel with 036, 018 and 019 (plan 2026-10-19).
+Done in parallel with 036, 018 and 019.
 
 ## Steps
 

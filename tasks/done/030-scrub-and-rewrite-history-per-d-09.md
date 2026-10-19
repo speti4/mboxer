@@ -1,6 +1,6 @@
 ---
 size: M
-origin: wip/027-pre-publish-history-and-content-audit.md
+origin: done/027-pre-publish-history-and-content-audit.md
 created: 2026-10-18
 started: 2026-10-18
 closed: 2026-10-18
@@ -8,7 +8,7 @@ plan: folytassuk-a-030-task-replicated-fairy.md
 milestone: M5 Public release
 ---
 
-# 030 — Scrub the repo and rewrite the history per D-009
+# 030 — Scrub the repo and rewrite the history per D-009 / D-010
 
 ## Context
 
@@ -61,7 +61,7 @@ Phase C — recreate the remote
 Phase D — working copy and close
 
 15. [x] working copy: fetch, hard reset, reflog expire, gc; the step-10 greps → 0 here too
-16. [x] Verification on a fresh clone from GitHub; close (follow-ups, memory note), commit, push
+16. [x] Verification on a fresh clone from GitHub; close (follow-ups), commit, push
 
 ## Log
 
@@ -74,7 +74,7 @@ Phase D — working copy and close
 - 2026-10-18 — Phase A: `origin.md` rewritten; `strip_plan_paths.py` (scratchpad) reduced 27 fields in 27 files;
   the framing sweep found 6 more lines than the 027 inventory (D-001, D-005, D-007 Context, done 014, 021, roadmap
   M3), all reworded; D-006's "the others" means other files and stays.
-- 2026-10-18 — Phase B: backup in `E:\projects\mboxer-pre-rewrite-2026-10-18\` (outside the repo, never pushed):
+- 2026-10-18 — Phase B: backup in a folder outside the repo (never pushed):
   `history.bundle` (370 KB, `main`, `origin/main`, `v0.1.0`), the release notes and JSON exports of the 39
   issues, milestones, labels, repo settings and 15 runs. `git filter-repo --replace-text` (10 rules: the two
   local paths, the plan-path prefix, the user folder, the 011 status line in its two quoted forms plus a

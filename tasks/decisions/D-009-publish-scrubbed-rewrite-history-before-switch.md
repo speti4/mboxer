@@ -43,9 +43,8 @@ author's.
 5. The scrub (1) and the rewrite (2–4) are one task (030) and land before 028 flips the visibility; 028 waits
    for 030.
 
-Proposed by the session on 2026-10-18 from the 027 audit; the user confirmed points 1–3 on 2026-10-18 and, after
-GitHub's e-mail privacy protection rejected a push with their developer mailbox, chose the noreply address for
-point 4 the same day.
+Proposed on 2026-10-18 from the task 027 audit; the user confirmed points 1–3 on 2026-10-18 and chose the GitHub
+noreply address for point 4 the same day.
 
 ## Not chosen
 
@@ -59,6 +58,6 @@ point 4 the same day.
   rewrite does not already give.
 - Keeping the personal address, or a second real mailbox: both end up harvestable in a public history, and the
   account's "block pushes that expose my email" protection rejects them unless the address is made public.
-- Dropping `Co-Authored-By` too (as docket does): the user keeps it as the record of how the code was written.
+- Dropping `Co-Authored-By` too: the user keeps it as the record of how the code was written.
 - Rewriting the Hungarian Logs into English: history of closed work, nobody reads it from the issue side, and the
   translation would be busywork with no reader.

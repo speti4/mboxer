@@ -16,8 +16,7 @@ What: the `test (macos-latest)` leg runs only on a `v*` tag and on a manual run;
 target with clippy on every code change instead; docs- and tasks-only changes skip ci.yml, while the commit rules
 move into their own workflow that runs on every push and pull request.
 Why: GitHub bills macOS minutes 10× and Windows 2×; since #61 every run costs 30–40 macOS-billed minutes, twice
-per change (pull request and main push), and the account goes over its 3000-minute Pro quota (~2000/month from
-mboxer alone). Asked by the claude-setup session (its task 002, step 3).
+per change (pull request and main push), which multiplies the billed minutes on every change.
 Done when: a main push and a pull request run carry no `macos-*` job, a manual run does, and the monthly estimate
 is under ~700 billed minutes.
 User decision 2026-10-19: the real macOS tests run on tag + workflow_dispatch only, not on pull requests; a

@@ -12,8 +12,8 @@ plan: j-backlog-tletek-expressive-breeze.md
 
 ## Context
 
-Today the search field's text goes unchanged into tantivy's lenient parser: `"frázis"`, `OR` and
-`-szó` work because of that, and `from:anna` only because `from` is a schema field name. `label:`,
+Today the search field's text goes unchanged into tantivy's lenient parser: `"phrase"`, `OR` and
+`-word` work because of that, and `from:anna` only because `from` is a schema field name. `label:`,
 `has:attachment`, `subject:`, `after:` / `before:` do nothing, and an operator typed into the field does
 not show up on the filter panel or in the label tree. 010 makes the field a real query language for
 keyboard users, the panel stays for everyone else. Why: power-user speed. Done when: every operator has a
@@ -69,7 +69,7 @@ alone.
   szöveg helyben átírva, címkekattintás → `label:` (szóközös név idézőjelben, konténer név `#` nélkül), All
   mail töröl, rossz dátum warning a státuszsorban, félkész dátum nem, két `label:` → anyLabels + labels,
   `subject:` eljut a backendig, Esc mindent ürít, badge 3. Debug exe buildelve a kézi körhöz
-- 2026-10-17 — user kézi kör a 14 GB-on: "fasza minden". Follow-up sweep: nincs nyitott lépés, a `to:` és a
+- 2026-10-17 — user kézi kör a 14 GB-on: minden rendben. Follow-up sweep: nincs nyitott lépés, a `to:` és a
   `subject:` panel-mező nélkül marad a terv szerint (szintaxis-only, README-ben dokumentálva) — nincs új
   backlog tétel. Closed
 

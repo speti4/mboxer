@@ -8,7 +8,7 @@ plan: cuddly-painting-trinket.md
 milestone: M5 Public release
 ---
 
-# 034 — Git workflow policy for contributors and parallel sessions, with the commit rules enforced
+# 034 — Git workflow policy for contributors and parallel work, with the commit rules enforced
 
 ## Context
 
@@ -18,7 +18,7 @@ merge, one manual round at a time, push only on the user's go), imported into CL
 CONTRIBUTING; a versioned `commit-msg` git hook (`.githooks/`, `core.hooksPath`) that rejects a `Claude-Session:`
 trailer and a non-noreply author, plus the same check as a CI job for pushes and PRs that bypass the local hook.
 Why: parallel sessions need the rules in context at start (user decision 2026-10-18: a policy file, not a decision);
-the trailer rule (D-009) is lost to the system reminder unless something checks it. Branch ruleset on main: 028.
+an unchecked rule is easy to break, so a hook and a CI job enforce the trailer rule (D-009). Branch ruleset on main: 028.
 Done when: a commit with the trailer fails locally and in CI, and a second session in a worktree follows the file.
 
 ## Steps

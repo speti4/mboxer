@@ -2,7 +2,7 @@
 status: decided
 date: 2026-10-17
 cost: cheap
-sources: [wip/014-index-fallback-for-read-only-mbox-locations.md, D-004-sidecar-index-location-and-freshness.md, 12-14-15-taskokat-fejlessz-k-le-keen-whale.md]
+sources: [done/014-index-fallback-for-read-only-mbox-locations.md, D-004-sidecar-index-location-and-freshness.md, 12-14-15-taskokat-fejlessz-k-le-keen-whale.md]
 ---
 
 # D-005 — When `.mboxer/` beside the mbox cannot be created, the index lives under `%LOCALAPPDATA%\mboxer\index\<name>-<path hash>\`
@@ -32,7 +32,7 @@ has a lasting effect on where mboxer writes on a user's machine, so it is record
   exists per mbox. The CLI prints the fallback on `index`, the viewer shows the index directory
   in the status bar tooltip.
 
-Proposed by the session on 2026-10-17 (task 014); confirmed by the user on 2026-10-18 ("Megerősítem").
+Proposed on 2026-10-17 during task 014 planning; confirmed by the user on 2026-10-18.
 
 Amended 2026-10-19: the index home is the platform's per-user data folder plus `mboxer/index` —
 `%LOCALAPPDATA%\mboxer\index` on Windows, `~/Library/Application Support/mboxer/index` on macOS,

@@ -1,6 +1,6 @@
 ---
 size: S
-origin: wip/024-supply-chain-and-ci-hardening.md
+origin: done/024-supply-chain-and-ci-hardening.md
 created: 2026-10-18
 started: 2026-10-18
 closed: 2026-10-18
@@ -18,7 +18,7 @@ Why: the repo has no release tags, so the action is pinned to a `master` commit 
 run reports "Latest version is 1, no update needed") and the pin would go stale silently; zizmor's pedantic
 persona flags it as `ref-version-mismatch`. One third-party action fewer in the release job.
 Done when: CI is green without the action and the test log shows the toolchain from `rust-toolchain.toml`.
-Run as the first task session under docs/git-workflow.md (task 034): its own worktree, a pull request, no new id.
+The first task done under the parallel-work rules of docs/git-workflow.md (034), through a pull request.
 
 ## Steps
 

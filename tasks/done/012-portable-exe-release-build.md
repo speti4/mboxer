@@ -18,7 +18,7 @@ nothing to install (D-002). Done when: a user on a clean Windows 11 opens their 
 exe. From 005: the exe is `crates/mboxer-app` (`cargo build --release` → `target\release\mboxer.exe`,
 release = windowed), the WebView2 profile is under `%LOCALAPPDATA%\io.github.speti4.mboxer` (the `tauri.conf.json`
 `identifier`), the usage doc mentions this. User decision 2026-10-17 (planning round): GitHub Actions too,
-with tests ("a gh action with tests"); the package `mboxer-<verzió>.zip` = `mboxer.exe` + `usage.md`
+with tests ("a gh action with tests"); the package `mboxer-<version>.zip` = `mboxer.exe` + `usage.md`
 (the CLI exe is a developer tool, left out). No new crate (D-002).
 
 ## Steps

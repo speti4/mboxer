@@ -20,12 +20,12 @@ Done when: `mboxer scan <mbox>` walks the 14 GB with flat memory, prints the mes
 headers of a sample; unit tests cover the Gmail Takeout format with nested MIME, quoted-printable and
 base64 parts.
 
-User decisions 2026-10-17: the session installs the toolchain (VS C++ build tools + Windows SDK, rustup)
+User decisions 2026-10-17: the toolchain (VS C++ build tools + Windows SDK, rustup) is installed
 with winget / the VS installer; the seek contract is a separate decision (D-003, proposed).
 
 Survey 2026-10-17 (64 MB sample, header names only): CRLF line endings; envelope `From <digits>@xxx
-<ctime-dátum>`; `>From ` escape in the body; average ~105 KB, max in the sample 5.6 MB; every message
-carries `X-Gmail-Labels` and `X-GM-THRID`; the D: drive is a SATA HDD (the scan is disk-bound).
+<ctime-date>`; `>From ` escape in the body; average ~105 KB, max in the sample 5.6 MB; every message
+carries `X-Gmail-Labels` and `X-GM-THRID`; the test disk is a SATA HDD (the scan is disk-bound).
 
 Build-time crates (D-002 justification, runtime dependencies stay at zero):
 - `mail-parser 0.11` — RFC 5322 + MIME, 41 charsets (ISO-8859-2, windows-1250), RFC 2047/2231,

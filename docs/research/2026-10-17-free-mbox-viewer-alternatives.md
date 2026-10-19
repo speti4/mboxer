@@ -3,18 +3,16 @@
 Question: is there a free Windows GUI that opens a 14–50 GB Gmail Takeout mbox and searches message
 bodies fast? Answer: no. Verdict recorded in `tasks/decisions/D-001-build-own-viewer-instead-of-buying.md`.
 
-| Tool | Type | Large files | Body search | Free? | Verdict |
+| Tool | Type | Large files | Body search | Free? | Fit for this use |
 |---|---|---|---|---|---|
-| eneam/mboxviewer (status quo) | Win32 GUI, AGPL | yes, headers kept in memory | full scan of the file, slow | yes | the tool being replaced |
-| Mbox Viewer (mboxviewerpro.com, MS Store) | native GUI | 50 GB+ streaming, 1 MB buffer, re-open < 1 s | streaming scan, not indexed | free ≤ 1 GB, Pro paid (one-time or yearly) | not free at our size; main pain unsolved |
-| mboxShell (dcarrero, Rust, MIT, 46 stars) | terminal TUI | 50 GB+, ~500 MB RAM, bincode sidecar index | metadata indexed (< 200 ms per 1M msgs); body = streaming scan | yes | no GUI; good implementation reference |
-| zoltanf/MboxViewer (Electron, GPL-3, 1 star) | desktop GUI | SQLite sidecar index | indexed | yes | immature, no confirmed Windows build, Electron |
-| Thunderbird + ImportExportTools NG | mail client import | stalls reported on 60–89 GB | Gloda index after import | yes | an import, not a viewer; heavy |
-| CoolUtils / SysTools / Aryson / BitRecover "free viewers" | proprietary | claims only | claims only | freemium | vendor marketing, unverified |
+| Mbox Viewer (mboxviewerpro.com, MS Store) | native GUI | 50 GB+ streaming, 1 MB buffer, re-open < 1 s | streaming scan, not indexed | free ≤ 1 GB, Pro paid (one-time or yearly) | free tier below this archive size; body search not indexed |
+| mboxShell (dcarrero, Rust, MIT) | terminal TUI | 50 GB+, ~500 MB RAM, bincode sidecar index | metadata indexed (< 200 ms per 1M msgs); body = streaming scan | yes | no GUI; good implementation reference |
+| zoltanf/MboxViewer (Electron, GPL-3) | desktop GUI | SQLite sidecar index | indexed | yes | no confirmed Windows build; Electron runtime |
+| Thunderbird + ImportExportTools NG | mail client import | stalls reported on 60–89 GB | Gloda index after import | yes | an import into a mail client, not a viewer |
+| CoolUtils / SysTools / Aryson / BitRecover "free viewers" | proprietary | not verified | not verified | freemium | claims not verified |
 
 ## Sources
 
-- https://github.com/eneam/mboxviewer and https://sourceforge.net/projects/mbox-viewer/reviews/
 - https://mboxviewerpro.com/ and https://mboxviewerpro.com/mboxshell/
 - https://github.com/dcarrero/mboxshell
 - https://github.com/zoltanf/MboxViewer

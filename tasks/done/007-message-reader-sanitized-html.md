@@ -16,13 +16,13 @@ Today the reader shows the plain text part (`<pre id="msg-body">`), the html→t
 HTML-only message. 007 replaces this: the HTML body renders in a sandboxed `srcdoc` iframe, scripts
 stripped, remote content blocked by default (a per-message "Show" button), HTML / Text / Source
 view switch, Copy button, links clicked in the body open in the system browser; the 006 highlighting
-carries over into the sanitized HTML. Why: an HTML mail should look like mail; mboxviewer renders it
-badly, WebView2 does it natively. Done when: any message renders readably, and without permission
-not a single network request leaves the app.
+carries over into the sanitized HTML. Why: an HTML mail should look like mail, and WebView2 renders
+it natively. Done when: any message renders readably, and without permission not a single network request
+leaves the app.
 
 User decisions 2026-10-17 (planning round): "open in browser" = only the body's links open in the
 system browser, no separate "open message in browser" button; the sanitizer runs in the webview
-(JS, DOMParser — the user left it to me, the zero-crate solution), with two independent layers under it:
+(JS, DOMParser — the option that adds no crate), with two independent layers under it:
 the sandbox iframe (`allow-same-origin`, without scripts) and the iframe's own meta CSP (`default-src 'none'`);
 013 (unescaping `>From ` lines in the plain text body) merges into this task.
 

@@ -13,7 +13,7 @@ plan: folytassuk-a-003-taskkal-parsed-panda.md
 ## Context
 
 The heart of M1: a persistent tantivy index goes on top of the 002 streaming reader, next to the mbox
-(`.mboxer/<mbox fájlnév>/`), indexing the metadata (from, to, cc, subject, date, labels, has-attachment,
+(`.mboxer/<mbox file name>/`), indexing the metadata (from, to, cc, subject, date, labels, has-attachment,
 attachment names) and the body text with accent- and case-insensitive tokenization, and storing the
 `offset/len` identity of D-003 for the seek. On reopen the index is reused if the mbox has not changed
 (size + mtime + sampled hash + format version), otherwise it is rebuilt. Done when: the build runs

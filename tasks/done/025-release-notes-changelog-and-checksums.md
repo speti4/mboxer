@@ -20,7 +20,7 @@ Why: the v0.1.0 notes were written by hand because the generated ones were a bar
 the task files already hold the history, and the MIT / Apache crates inside the one exe require their notices.
 Done when: a dry run of the release script (or a throwaway `-rc` tag, deleted afterwards) produces the notes,
 the checksum file and the licence file.
-Run as a task session under docs/git-workflow.md, in parallel with 035 and 032; no tag is pushed without the user.
+Done in parallel with 035 and 032; no tag is pushed without the maintainer.
 
 ## Steps
 

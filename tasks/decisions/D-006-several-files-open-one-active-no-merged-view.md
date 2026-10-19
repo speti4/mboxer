@@ -31,9 +31,9 @@ index tells one file from another.
   in the webview's storage; at start-up only files whose index is fresh are reopened, the others
   wait in the pane until clicked.
 
-Proposed by the session on 2026-10-18 from the user's choice of the stacked reading
-("egymás alatt/felett jelenjen meg, egyszerre csak egyiknek legyen kinyitva a struktúrája");
-confirmed by the user on 2026-10-18 with the plan approval and the manual round of task 016.
+Proposed on 2026-10-18 during task 016 planning, from the user's choice of the stacked layout (files one
+below the other, only one expanded at a time); confirmed by the user on 2026-10-18 with the plan approval and
+the manual round of task 016.
 
 ## Not chosen
 

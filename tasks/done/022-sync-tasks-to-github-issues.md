@@ -5,6 +5,7 @@ created: 2026-10-18
 started: 2026-10-18
 closed: 2026-10-18
 plan: local-repoban-profi-a-clever-pie.md
+milestone: M5 Public release
 ---
 
 # 022 — One-way sync of tasks/ to GitHub issues and milestones
@@ -21,7 +22,7 @@ changes nothing. Why: the milestone progress bars become real, and the backlog i
 without cloning, while the task files stay the only source of truth. User decisions 2026-10-18: variant
 "one-way sync from CI" over a one-shot backfill or GitHub-as-backlog; decisions mirrored with a `decision`
 label; issue bodies in English only (the 16 Hungarian `## Context` sections of `done/` files are translated
-once, Log / Verification untouched); the script lives in this repo, a project-pal template later.
+once, Log / Verification untouched); the script lives in this repo, a reusable template later.
 Done when: 29 issues exist with the right state, milestone and labels, a second run reports `unchanged 29`,
 the workflow is green, and closing this task closes its own issue through CI.
 
@@ -49,8 +50,8 @@ the workflow is green, and closing this task closes its own issue through CI.
 - 2026-10-18 — backfill from the dev machine: `applied: created 30, updated 0, unchanged 0`, the 4 milestone descriptions
   rewritten from the roadmap paragraphs; second run `created 0, updated 0, unchanged 30`; `--check` exits 0.
   Issue numbers happen to equal the task ids (#1–#22) and D-001–D-008 are #23–#30 (the repo had no issues or PRs).
-- 2026-10-18 — follow-up not filed here: lifting the script into project-pal as a `/tasks init` template is a project-pal
-  task, to be opened in that repo when this has run for a while (user decision 2026-10-18: script lives here first).
+- 2026-10-18 — follow-up not filed here: lifting the script into a reusable template belongs to the task tooling, not to
+  this repo, to be opened there when this has run for a while (user decision 2026-10-18: script lives here first).
 - 2026-10-18 — commit `17c3275` pushed; `sync-issues.yml` run 39127643289 green in 15 s, log line
   `applied: created 0, updated 0, unchanged 30`. Closing: this file moved to `done/`, the push after it must close
   issue #22 through the workflow (the end-to-end proof, recorded under Verification by the next session or by hand).
@@ -77,8 +78,8 @@ the workflow is green, and closing this task closes its own issue through CI.
 
 ## Closing checklist
 
-- [x] every follow-up is a `backlog/` file (`/tasks add`) or deleted with a reason in the Log — the project-pal
-      template is a project-pal task, named in the Log
+- [x] every follow-up is a `backlog/` file (`/tasks add`) or deleted with a reason in the Log — the reusable
+      template belongs to the task tooling, named in the Log
 - [x] Verification written, dated
 - [x] `tasks_check` green, README index regenerated
 - [x] moved to `done/` with `closed: 2026-10-18`

@@ -19,15 +19,16 @@ Before a commit: the checks in CONTRIBUTING.md, "Checks before a commit" (more o
 `Cargo.lock` or `.github/` change).
 
 ## Data outside the repo (never commit)
-- The author's mbox: a 14 GB Gmail Takeout export on a local drive (the path stays out of the repo)
-- Index sidecars written next to any mbox (`*.idx`, `.mboxer/`); test fixtures are small synthetic samples only
+- The maintainer's mbox: a 14 GB Gmail Takeout export on a local drive (the path stays out of the repo)
+- Index sidecars written next to any mbox (`.mboxer/`); test fixtures are small synthetic samples only
   (`crates/mboxer-core/tests/fixtures/`)
 - Any real message content: never paste it into task files, docs or commits
 
 ## Conventions
 - Project conventions (language, names, docs to update) are in CONTRIBUTING.md; a new crate follows its
   "Dependencies: one exe" section (D-002): the one-line reason is a comment in `Cargo.toml`
-- Git: branches, pull requests, commit rules and parallel sessions follow @docs/git-workflow.md
+- Git: branches, pull requests and commit rules follow @docs/git-workflow.md; parallel sessions follow
+  @docs/maintainer-sessions.md
 
 ## Tasks
 - `tasks/` follows the project-pal task standard (`tasks/README.md`); a task file's H1 and Context paragraph are

@@ -21,7 +21,7 @@ issues off; `pull_request_template.md`; `CODEOWNERS`. Why: these are the first t
 community profile look for, and the people who use an mbox viewer hold private mail, so the templates must keep
 it out of public issues. Done when: GitHub's Community Standards page is complete except for the items that need
 a public repo. Planning decisions 2026-10-18 (approved plan): reports go through GitHub private vulnerability
-reporting only, with no e-mail fallback, because no real mailbox is published (D-009); the copyright line names
+reporting only, with no e-mail fallback, because no real mailbox is published (D-009/D-010); the copyright line names
 the git author; CONTRIBUTING takes over the README's build prerequisites and checks (026).
 
 ## Steps

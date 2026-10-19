@@ -23,7 +23,7 @@ rule is that no real message content ever enters the repo, and that has to be pr
 M5 task, because D-009 shapes 023, 025 and 026.
 Done when: the audit report is in this task's Log and D-009 is decided.
 User decisions 2026-10-18: 027 goes first; this task audits and decides only, the scrub is a follow-up task;
-the "colleagues / 2–5 users" framing is removed everywhere — the colleagues get the public release like anyone.
+the small-audience ("2–5 users") framing is removed everywhere.
 
 ## Steps
 

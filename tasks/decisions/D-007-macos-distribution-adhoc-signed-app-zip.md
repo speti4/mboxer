@@ -2,19 +2,19 @@
 status: decided
 date: 2026-10-18
 cost: cheap
-sources: [backlog/018-macos-build-bundle-and-ci.md, D-002-rust-tauri2-sidecar-fulltext-index.md, m-rj-k-fel-hogy-mekkora-scalable-boole.md]
+sources: [done/018-macos-build-bundle-and-ci.md, D-002-rust-tauri2-sidecar-fulltext-index.md, m-rj-k-fel-hogy-mekkora-scalable-boole.md]
 ---
 
 # D-007 — macOS builds ship as an ad-hoc signed universal `.app` in a zip, without notarization
 
 ## Context
 
-The macOS assessment of 2026-10-18 (plan file in `sources`) needed a distribution rule before the build
+The macOS assessment of 2026-10-18 needed a distribution rule before the build
 task (018): a bare Mach-O is not what a Mac user double-clicks, Apple Silicon refuses any unsigned
 binary from the internet, and Gatekeeper blocks an app that is not notarized by a Developer ID.
 Notarization needs the Apple Developer Program (99 USD a year), a Developer ID certificate and a Mac or
 CI secrets to sign with. The audience is the same as on Windows, where the unsigned exe
-already goes through a SmartScreen click (task 012). The author has no Mac at the moment.
+already goes through a SmartScreen click (task 012).
 
 ## Decision
 
@@ -30,8 +30,8 @@ already goes through a SmartScreen click (task 012). The author has no Mac at th
 - Developer ID signing and notarization stay open as a later decision, when the user count or the
   Gatekeeper friction justifies the yearly fee; the Tauri documentation's CI variables cover it.
 
-Proposed by the session on 2026-10-18 from the user's choice "aláírás nélkül, kézi engedélyezés";
-confirmed by the user on 2026-10-18 ("D-07-t megerősítem").
+Proposed on 2026-10-18 during the macOS planning before task 018, from the user's choice of no signing
+fee and a one-time manual approval; confirmed by the user on 2026-10-18.
 
 ## Not chosen
 
@@ -40,5 +40,5 @@ confirmed by the user on 2026-10-18 ("D-07-t megerősítem").
 - A `.dmg`: a second packaging tool for no gain over a zip when there is nothing to install.
 - Tauri CLI (`cargo tauri build`) for the bundle: a 5–10 minute `cargo install` in CI and a second
   build path next to the Windows one; the hand-written bundle is ~80 lines and visible.
-- Apple Silicon only: cheaper CI minutes, but an Intel Mac among the users would be a surprise;
-  the second target costs one more `cargo build`.
+- Apple Silicon only: cheaper CI minutes, but it would leave Intel Macs unsupported; the second target
+  costs one more `cargo build`.

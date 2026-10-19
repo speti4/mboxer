@@ -1,6 +1,6 @@
 ---
 size: S
-origin: wip/026-readme-front-page.md
+origin: done/026-readme-front-page.md
 created: 2026-10-18
 started: 2026-10-19
 closed: 2026-10-19
@@ -18,8 +18,7 @@ turned dark, so the caption was hard to read (seen in the 026 screenshot runs, d
 profile). Check whether `setTheme("light")` reaches the window and whether a repaint or focus change fixes it.
 Why: 017 promised the title bar follows the override. Done when: the caption matches the override in all three
 modes.
-User decision 2026-10-19: every open task is done before the repo goes public (028); 031 runs now, while the
-viewer is free.
+User decision 2026-10-19: every open task is done before the repo goes public (028); 031 runs now.
 
 ## Log
 
@@ -29,8 +28,8 @@ viewer is free.
   aktiválása utáni kattintás), a többi 20-ban `#F3F3F3`; *Dark* és *Auto* mindig helyes; indulás eltárolt
   *Light*-tal 2/2 helyes. A hibás eset után a következő *Light* váltás mindig világos címsort adott. Az ok
   valószínűleg időzítés: a DWM attribútum átáll (`0`), de a címsor nem rajzolódik újra.
-- 2026-10-19 — a képernyő-automatizálás (kurzor, kattintások) zavarta a user munkáját, a task session leállítva;
-  a felvételek törölve (az egyiken a user saját ablaka volt).
+- 2026-10-19 — a képernyő-automatizálás (kurzor, kattintások) a debug ablakon kívülre is kattintott, a munka
+  leállítva, a felvételek törölve.
 - 2026-10-19 — dropped: ritka, kozmetikai, egy újabb váltás megoldja (user decision).
 
 ## Deviations from the plan

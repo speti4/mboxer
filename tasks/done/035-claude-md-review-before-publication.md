@@ -12,15 +12,15 @@ milestone: M5 Public release
 
 ## Context
 
-What: drop the "User communication: Hungarian" line (it belongs in the author's global file; a contributor's session
+What: drop the "User communication: Hungarian" line (a personal preference, not a repo rule; a contributor's AI assistant
 would answer in Hungarian); one rule for the dependency justification (task file vs `Cargo.toml` comment, today both,
 CONTRIBUTING says the comment); point to CONTRIBUTING's checks instead of a stale list (cargo deny and zizmor since
 024); cut what the repo already says (edition, the doubled English / kebab-case line); a short Commands block out of
 the Scope paragraph; the Tasks section as one pointer line.
-Why: review 2026-10-18 against the current memory / best-practices docs (keep it lean, no contradictions, no
+Why: review 2026-10-18 against Claude Code's CLAUDE.md guidance (keep it lean, no contradictions, no
 frequently changing facts); the file is public from 028 on.
-Done when: CLAUDE.md has no personal or contradicting line and a fresh session finds build, test and checks in it.
-Run as a task session under docs/git-workflow.md, in parallel with 025 and 032.
+Done when: CLAUDE.md has no personal or contradicting line and a new AI assistant session finds build, test and checks in it.
+Done in parallel with 025 and 032.
 
 ## Steps
 
@@ -47,7 +47,7 @@ Run as a task session under docs/git-workflow.md, in parallel with 025 and 032.
 - 2026-10-18 — CLAUDE.md előtte: Scope (crate-ok + build/run/test + docs-leltár), Data, Conventions (7 sor),
   Tasks (1 hosszú sor); utána: Layout, Commands, Data (változatlan szabályok), Conventions (2 sor), Tasks (1 sor).
   Hová kerültek az elhagyott szabályok (mind megvolt már, új helyre nem kellett költöztetni):
-  - "User communication: Hungarian" — a szerző globális CLAUDE.md-je fedi; a repóba nem kell
+  - "User communication: Hungarian" — személyes beállítás, nem repó-szabály; a repóba nem kell
   - Rust edition 2024 — `Cargo.toml` (`edition = "2024"`) és CONTRIBUTING.md Conventions
   - fmt + clippy lista — CONTRIBUTING.md "Checks before a commit" (cargo deny, zizmor is); CLAUDE.md oda mutat
   - English / kebab-case — CONTRIBUTING.md Conventions
