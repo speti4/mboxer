@@ -44,7 +44,9 @@ the current view on the clipboard. In the Text view the mboxrd quoting of body l
 Source view shows the bytes as they are in the file.
 
 *Save .eml…* (`Ctrl+S`) writes the message as it sits in the mbox. *Print…* (`Ctrl+P`) opens the print
-preview with the message laid out as the reader shows it, and a PDF printer turns it into a PDF.
+preview with the message laid out as the reader shows it, and a PDF printer turns it into a PDF. On a Mac the
+printout opens in a print window of its own under the native print panel (*PDF › Save as PDF*); the window stays
+until it is closed.
 
 ### Attachments
 

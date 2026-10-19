@@ -636,6 +636,28 @@ pub async fn save_message_eml(
     .await
 }
 
+/// Prints `html`, the finished print document of the reader's message, in a
+/// print window of its own (macOS, task 020): WKWebView ignores `print()` on
+/// the iframe the other platforms print from. `subject` titles the window;
+/// `allow_remote` lets the remote images the user allowed in the reader load.
+/// Async, so the window is not built inside a synchronous command.
+#[tauri::command]
+pub async fn print_message(
+    app: AppHandle,
+    html: String,
+    subject: String,
+    allow_remote: bool,
+) -> Result<(), String> {
+    crate::print::check_html(&html)?;
+    #[cfg(target_os = "macos")]
+    return crate::print::open_window(&app, html, &subject, allow_remote);
+    #[cfg(not(target_os = "macos"))]
+    {
+        let _ = (app, subject, allow_remote);
+        Err("printing through a print window is only used on macOS".to_owned())
+    }
+}
+
 /// A file dialog that starts in the folder of the last save.
 fn save_dialog(app: &AppHandle, title: &str) -> FileDialogBuilder<tauri::Wry> {
     let mut dialog = app.dialog().file().set_title(title);

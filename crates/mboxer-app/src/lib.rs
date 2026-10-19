@@ -8,6 +8,7 @@
 pub mod attachments;
 pub mod commands;
 pub mod folders;
+pub mod print;
 pub mod state;
 pub mod types;
 pub mod view;
@@ -16,13 +17,20 @@ pub mod view;
 /// files the system asks the app to open (Finder "Open with", a Dock drop)
 /// arrive as `RunEvent::Opened` and go the way of a command-line path; the
 /// other platforms pass such a file as the first argument and have no event.
+/// The print windows of macOS (task 020) load their page from the
+/// `mboxer-print:` scheme, drop their document when they close, and close
+/// with the main window, so closing it still quits the app.
 pub fn run() {
     // The temporary attachment copies of earlier runs go, off the main thread.
     std::thread::spawn(attachments::clean_temp);
-    tauri::Builder::default()
+    let builder = tauri::Builder::default();
+    #[cfg(target_os = "macos")]
+    let builder = builder.register_uri_scheme_protocol(print::PRINT_SCHEME, print::serve);
+    builder
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
         .manage(state::AppState::default())
+        .on_window_event(on_window_event)
         .invoke_handler(tauri::generate_handler![
             commands::initial_paths,
             commands::app_version,
@@ -43,6 +51,7 @@ pub fn run() {
             commands::save_attachment,
             commands::save_all_attachments,
             commands::save_message_eml,
+            commands::print_message,
         ])
         .build(tauri::generate_context!())
         .expect("error while building the mboxer window")
@@ -54,4 +63,23 @@ pub fn run() {
             #[cfg(not(target_os = "macos"))]
             let _ = (app, event);
         });
+}
+
+/// A closed print window drops its document; a closed main window takes the
+/// print windows with it.
+fn on_window_event(window: &tauri::Window, event: &tauri::WindowEvent) {
+    use tauri::Manager;
+    if !matches!(event, tauri::WindowEvent::Destroyed) {
+        return;
+    }
+    let label = window.label();
+    if print::job_of_label(label).is_some() {
+        window.state::<state::AppState>().print_jobs().remove(label);
+    } else if label == "main" {
+        for (other, open) in window.webview_windows() {
+            if print::job_of_label(&other).is_some() {
+                let _ = open.destroy();
+            }
+        }
+    }
 }

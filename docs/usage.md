@@ -98,6 +98,9 @@ Two buttons at the right end of the reader's view bar take the shown message out
   selected (HTML with its inline images, Text or Source). Pick a printer, or *Save as PDF* /
   *Microsoft Print to PDF* as the destination to get a PDF file. Remote images blocked in the
   reader stay out of the printout; click *Show* first if you want them in.
+  On a Mac (`⌘P`) the same printout opens in a print window of its own with the macOS print
+  panel over it; *PDF › Save as PDF* in the panel writes a PDF. Close the print window when you
+  are done; it also closes with the viewer.
 
 ## Light and dark
 
