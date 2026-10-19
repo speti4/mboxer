@@ -13,7 +13,7 @@ file, never the issue.
 <!-- tasks:index:start -->
 _Generated 2026-10-19 — edit the files, not this section._
 
-**State:** 8 backlog (4 ready · 0 blocked · 2 waiting · 2 ideas) · 0 in progress · 34 done · 0 dropped · 12 decisions
+**State:** 7 backlog (3 ready · 0 blocked · 2 waiting · 2 ideas) · 1 in progress · 34 done · 0 dropped · 12 decisions
 
 ### Ready
 
@@ -29,7 +29,6 @@ _Generated 2026-10-19 — edit the files, not this section._
 | # | Task | Size | Created |
 |---|---|---|---|
 | 037 | [Refresh the README screenshot after the date column fix](backlog/037-refresh-the-viewer-screenshot.md) | S | 2026-10-18 |
-| 039 | [The commit hook's error messages cite D-10, not D-09](backlog/039-check-commit-messages-cite-d-10.md) | S | 2026-10-19 |
 
 ### Needs decision
 
@@ -65,7 +64,11 @@ _none_
 
 ### In progress
 
-_none_
+#### M5 Public release
+
+| # | Task | Started | Plan |
+|---|---|---|---|
+| 039 | [The commit hook's error messages cite D-10, not D-09](wip/039-check-commit-messages-cite-d-10.md) | 2026-10-19 | `n-zz-k-t-a-backlogot-toasty-dove.md` |
 
 ### Closed – do not reopen
 
