@@ -95,6 +95,18 @@ test("unknown operators, negated fields and phrases stay free text", () => {
   assert.equal(parse('"big bad" wolf OR -cat').free, '"big bad" wolf OR -cat');
 });
 
+test("a colon in a subject word is not an operator: Re: and Fwd: reach the backend as free text", () => {
+  const parsed = parse("Re: számla from:anna");
+  assert.equal(parsed.free, "Re: számla ");
+  assert.equal(parsed.from, "anna");
+  assert.equal(parsed.subject, "");
+  assert.deepEqual(parsed.warnings, []);
+  assert.equal(parse("re:számla").free, "re:számla");
+  assert.equal(parse("Fwd: Re: 10:30").free, "Fwd: Re: 10:30");
+  assert.equal(parse('"Re: számla"').free, '"Re: számla"');
+  assert.equal(parse("https://example.com/a").free, "https://example.com/a");
+});
+
 test("the free text ends with a space when the raw text does or an operator came last", () => {
   assert.equal(parse("szaml").free, "szaml");
   assert.equal(parse("szamla ").free, "szamla ");

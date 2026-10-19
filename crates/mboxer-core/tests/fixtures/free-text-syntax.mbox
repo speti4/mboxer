@@ -1,0 +1,59 @@
+From anna@example.com Thu Jan  1 09:00:00 2026
+From: Anna <anna@example.com>
+To: Bela <bela@example.com>
+Subject: Re: =?UTF-8?Q?sz=C3=A1mla_febru=C3=A1r?=
+Date: Thu, 1 Jan 2026 09:00:00 +0100
+Message-ID: <syntax1@example.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+
+Küldöm a másolatot.
+
+From anna@example.com Fri Jan  2 09:00:00 2026
+From: Anna <anna@example.com>
+To: Bela <bela@example.com>
+Subject: =?UTF-8?Q?Sz=C3=A1mla_m=C3=A1rcius?=
+Date: Fri, 2 Jan 2026 09:00:00 +0100
+Message-ID: <syntax2@example.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+
+Találkozó 10:30 órakor a könyvelővel.
+
+From anna@example.com Sat Jan  3 09:00:00 2026
+From: Anna <anna@example.com>
+To: Bela <bela@example.com>
+Subject: Re: =?UTF-8?Q?eb=C3=A9d_ut=C3=A1n?=
+Date: Sat, 3 Jan 2026 09:00:00 +0100
+Message-ID: <syntax3@example.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+
+A számla holnap jön. Részletek: https://example.com/invoice/2026
+
+From anna@example.com Sun Jan  4 09:00:00 2026
+From: Anna <anna@example.com>
+To: Bela <bela@example.com>
+Subject: Heti spam =?UTF-8?Q?jelent=C3=A9s?=
+Date: Sun, 4 Jan 2026 09:00:00 +0100
+Message-ID: <syntax4@example.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+
+Ez spam, a számla nem ide tartozik.
+
+From anna@example.com Mon Jan  5 09:00:00 2026
+From: Anna <anna@example.com>
+To: Bela <bela@example.com>
+Subject: =?UTF-8?Q?Sz=C3=A1ml=C3=A1z=C3=A1s?=
+Date: Mon, 5 Jan 2026 09:00:00 +0100
+Message-ID: <syntax5@example.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+
+A számlázási rendszer 10 órától 30 percig áll.

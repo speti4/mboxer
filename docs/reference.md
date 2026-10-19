@@ -85,8 +85,13 @@ the field, and an operator you type shows up in the panel and in the folder sele
 | `has:attachment`, `-has:attachment` | with, without an attachment |
 | `label:Inbox`, `label:"Work/Invoices"` | the first `label:` is the folder-pane node (it and its sub-labels), further ones are exact labels that must all be present; a container name (`label:Work`, `label:Categories`) selects the container |
 
-Operator names are case-insensitive; `-` only negates `has:`. An unknown `foo:bar` is passed to the search
-engine as is (it warns in the status bar); a bad date or `has:` value is a warning and the token is ignored.
+Operator names are case-insensitive; `-` only negates `has:`. Anything else with a colon is plain text:
+`Re: számla` searches the words `re` and `számla`, and a word with punctuation inside (`re:számla`, `10:30`,
+a URL, an unknown `foo:bar`) matches its parts in that order, like a phrase. The rest of the free-text syntax
+is `OR` between two words (it binds tighter than the implicit AND: `számla ebéd OR március` is `számla` with
+either of the others), `-word`, `-"a phrase"` or `NOT word` to exclude (an exclusion alone lists every other
+message), and a trailing `*` for a prefix (`szaml*`); brackets, braces, `^`, `~` and the like are
+punctuation. A bad date or `has:` value is a warning and the token is ignored.
 The panel adds the sort order (newest first, or best match when there are words to score) and the
 *Conversations* view. All of it is one query. The words you searched for (and the `from:` / `subject:` values)
 are highlighted in the list and in the message body, the selected message stays selected when it is still in
@@ -141,6 +146,8 @@ messages, then a summary: message count, throughput, largest message, labels, pa
 
 `index` builds the sidecar index and skips the build when the index already matches the file.
 
-`search` needs that index. Query words are AND-ed, `"quotes"` make a phrase, accents and case are folded, the
+`search` needs that index. The query words follow the viewer's free-text syntax (AND-ed, `"quotes"`, `OR`,
+`-word`, a trailing `*`, a colon is plain text; a query that starts with `-` goes after `--`), accents and
+case are folded, the
 filters narrow the result, and every hit line carries the message's byte offset and length in the mbox. Dates
 are UTC days here, and `--before` is exclusive (unlike the viewer's `before:`).

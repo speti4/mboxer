@@ -11,7 +11,7 @@
   "use strict";
 
   const OPERATORS = new Set(["from", "to", "subject", "label", "after", "before", "has"]);
-  // tantivy's boolean keywords in the free text; not words to highlight.
+  // The boolean keywords of the free text (`free_text.rs` in the core); not words to highlight.
   const KEYWORDS = new Set(["OR", "AND", "NOT"]);
 
   // ---------- folding ----------

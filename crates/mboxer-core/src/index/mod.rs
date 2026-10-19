@@ -3,11 +3,12 @@
 //!
 //! Layout and freshness live in [`fingerprint`], the field set and the
 //! accent-folding tokenizer in [`schema`], the one-pass build in [`build`] and
-//! the query side in [`search`]. The index is a cache of the mbox: when the
+//! the query side in [`search`], with the free-text grammar in `free_text`. The index is a cache of the mbox: when the
 //! mbox changes (decision D-004) the whole index is rebuilt, never patched.
 
 pub mod build;
 pub mod fingerprint;
+mod free_text;
 pub mod listing;
 pub mod schema;
 pub mod search;
