@@ -41,7 +41,7 @@ Run as a task session under docs/git-workflow.md, in parallel with 038, 018 and 
   típuslistája `deps:`-szel bővült; a task-session szakasz új pontja a `tasks_check` várt stale-index jelentését
   és a tiszta `git status`-t írja le a jelentés előtt; a main-session szakasz PR-előkészítő pontja az előző merge
   `git pull`-ja után indul (`tasks_next_id` a kicsekkolt fát olvassa). `scripts/check-commit.sh` nem ellenőriz
-  típus-prefixet, így `deps:` ott nem igényelt változást; a hibaüzenetei még D-09-re hivatkoznak, ez a PR
+  típus-prefixet, így `deps:` ott nem igényelt változást; a hibaüzenetei még D-009-re hivatkoznak, ez a PR
   Follow-ups szakaszába került. Lezárva a branchen, PR nyitva.
 
 ## Deviations from the plan

@@ -32,8 +32,8 @@ session; 039 merges first.
 ## Log
 
 - 2026-10-19 — promoted on `task/039-check-commit-messages-cite-d-10`.
-- 2026-10-19 — `scripts/check-commit.sh`: a két üzenet `D-010 point 3`-ra hivatkozik, a fejléc-komment csak D-10-re.
-  `docs/` és `CONTRIBUTING.md` nem idézi szó szerint az üzeneteket, ott nincs teendő; a `CHANGELOG.md` D-09-es
+- 2026-10-19 — `scripts/check-commit.sh`: a két üzenet `D-010 point 3`-ra hivatkozik, a fejléc-komment csak D-010-re.
+  `docs/` és `CONTRIBUTING.md` nem idézi szó szerint az üzeneteket, ott nincs teendő; a `CHANGELOG.md` D-009-es
   sora a 030-as task történeti címe, marad.
 
 ## Deviations from the plan

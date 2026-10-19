@@ -13,7 +13,7 @@ file, never the issue.
 <!-- tasks:index:start -->
 _Generated 2026-10-19 — edit the files, not this section._
 
-**State:** 3 backlog (0 ready · 0 blocked · 3 waiting · 0 ideas) · 1 in progress · 38 done · 1 dropped · 12 decisions
+**State:** 3 backlog (0 ready · 0 blocked · 3 waiting · 0 ideas) · 0 in progress · 39 done · 1 dropped · 12 decisions
 
 ### Ready
 
@@ -44,11 +44,7 @@ _none_
 
 ### In progress
 
-#### M5 Public release
-
-| # | Task | Started | Plan |
-|---|---|---|---|
-| 043 | [Pad the decision ids to three digits before the repo goes public](wip/043-pad-decision-ids-to-three-digits.md) | 2026-10-19 | `n-zz-k-t-a-backlogot-toasty-dove.md` |
+_none_
 
 ### Closed – do not reopen
 
@@ -60,6 +56,7 @@ _none_
 
 | # | Task | Closed |
 |---|---|---|
+| 043 | [Pad the decision ids to three digits before the repo goes public](done/043-pad-decision-ids-to-three-digits.md) | 2026-10-19 |
 | 042 | [Cut the CI minutes: macOS tests on tags and manual runs](done/042-cut-ci-minutes.md) | 2026-10-19 |
 | 041 | [THIRD-PARTY-LICENSES.html in the macOS zip](done/041-third-party-licences-in-the-macos-zip.md) | 2026-10-19 |
 | 039 | [The commit hook's error messages cite D-010, not D-009](done/039-check-commit-messages-cite-d-10.md) | 2026-10-19 |
@@ -69,9 +66,8 @@ _none_
 | 020 | [Print on macOS through a second webview window](done/020-macos-print-second-webview-window.md) | 2026-10-19 |
 | 019 | [macOS runtime differences: index home, quarantine, Finder open, UI keys and fon…](done/019-macos-runtime-differences.md) | 2026-10-19 |
 | 018 | [macOS build, .app bundle and CI](done/018-macos-build-bundle-and-ci.md) | 2026-10-19 |
-| 035 | [CLAUDE.md fit for a public repo: no personal settings, no contradictions, a com…](done/035-claude-md-review-before-publication.md) | 2026-10-18 |
 
-_28 more in `done/`._
+_29 more in `done/`._
 
 ### Decisions
 

@@ -5,7 +5,7 @@ replaces eneam/mboxviewer: fast, stable, searchable. Order: first a headless ind
 search speed on the real 14 GB file, then the Tauri UI on top of it, then the comfort features.
 State lives in the task files and the generated index, never here. The `## ` headings are mirrored one-way as
 GitHub milestones with identical titles, and the task files as issues under them, by `scripts/sync-issues.py`
-(the task files are the source of truth); a release tag closes the milestones it ships: M1–M3 → v0.1.0 (D-08).
+(the task files are the source of truth); a release tag closes the milestones it ships: M1–M3 → v0.1.0 (D-008).
 
 ## M1 Index core
 

@@ -32,6 +32,7 @@ not the list. The summary under a heading is written by hand and kept by the gen
 - Refresh the README screenshot after the date column fix ([037](https://github.com/speti4/mboxer/blob/main/tasks/done/037-refresh-the-viewer-screenshot.md))
 - README links the changelog next to the releases ([038](https://github.com/speti4/mboxer/blob/main/tasks/done/038-readme-links-the-changelog.md))
 - The commit hook's error messages cite D-010, not D-009 ([039](https://github.com/speti4/mboxer/blob/main/tasks/done/039-check-commit-messages-cite-d-10.md))
+- Pad the decision ids to three digits before the repo goes public ([043](https://github.com/speti4/mboxer/blob/main/tasks/done/043-pad-decision-ids-to-three-digits.md))
 
 ### Other
 
