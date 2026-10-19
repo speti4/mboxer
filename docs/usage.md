@@ -73,7 +73,7 @@ Everything below is a cache: deleting it costs a rebuild, never data.
 | The search index | `.mboxer\<mbox file name>\` next to the mbox | `.mboxer/<mbox file name>/` next to the mbox |
 | The index when that folder is not writable (a read-only share, a DVD) | `%LOCALAPPDATA%\mboxer\index\` | `~/Library/Application Support/mboxer/index/` |
 | One small `.lock` file per mbox, so that two builds of it never run at once | `%LOCALAPPDATA%\mboxer\index\` | `~/Library/Application Support/mboxer/index/` |
-| Attachments you open from a message (cleaned at the next start) | `%TEMP%\mboxer\` | `$TMPDIR/mboxer/` |
+| Attachments you open from a message (one folder per running mboxer, cleaned at a start once that mboxer has quit) | `%TEMP%\mboxer\attachments\` | `$TMPDIR/mboxer/attachments/` |
 | The web view's own data (window state, cache) | `%LOCALAPPDATA%\io.github.speti4.mboxer\` | the folders named `io.github.speti4.mboxer` under `~/Library/` |
 
 The index folder is named `.mboxer`: Windows shows it, the Mac Finder hides it, as it hides every name that

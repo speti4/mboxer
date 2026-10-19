@@ -19,6 +19,7 @@ not the list. The summary under a heading is written by hand and kept by the gen
 - A colon in free text is read as a field name, so `Re: számla` finds nothing ([050](https://github.com/speti4/mboxer/blob/main/tasks/done/050-colon-in-free-text-reaches-the-query-parser.md))
 - Swap the index atomically, lock the build, and skip a bad message instead of failing the build ([052](https://github.com/speti4/mboxer/blob/main/tasks/done/052-atomic-index-swap-build-lock-and-skipped-messages.md))
 - Attachment and reader hardening: blocked extensions, reserved names, referrer, style text ([053](https://github.com/speti4/mboxer/blob/main/tasks/done/053-attachment-and-reader-hardening.md))
+- Keep the attachment copies and the index's last-resort home in separate temp folders ([054](https://github.com/speti4/mboxer/blob/main/tasks/done/054-temp-folder-split-between-attachments-and-the-index-fallback.md))
 
 ### Project housekeeping
 

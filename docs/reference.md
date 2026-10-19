@@ -53,9 +53,10 @@ until it is closed.
 ### Attachments
 
 A strip under the headers lists the attachments: name, size, and an `inline` tag on images that belong to the
-HTML body. A click on a chip decodes the attachment from the mbox into a temporary file under `%TEMP%\mboxer\`
-(on a Mac `$TMPDIR/mboxer/`) and opens it with the default application. *Save…* asks where to put it, and *Save
-all…* writes every attachment of the message into a folder without overwriting (`name (2).ext`). Attachments
+HTML body. A click on a chip decodes the attachment from the mbox into a temporary file under
+`%TEMP%\mboxer\attachments\<process id>\` (on a Mac `$TMPDIR/mboxer/attachments/<process id>/`) and opens it with
+the default application. *Save…* asks where to put it, and *Save all…* writes every attachment of the message
+into a folder without overwriting (`name (2).ext`). Attachments
 that the system would run instead of open can only be saved: on Windows `.exe`, `.bat`, `.ps1`, `.js`, `.lnk`
 and the like, packages and disk images (`.msix`, `.appinstaller`, `.iso`, `.img`, `.vhd`, `.cab`), help files
 (`.chm`), Excel add-ins (`.xll`) and shell link and search files (`.scf`, `.settingcontent-ms`, `.library-ms`,
@@ -65,8 +66,11 @@ Java Web Start files (`.jnlp`). Both lists apply on both systems, since an attac
 machine it is forwarded to.
 Every written file is marked as downloaded from the internet, as a mail client marks it: the Mark of the Web on
 Windows, so Office opens it in Protected View, and the `com.apple.quarantine` attribute on a Mac, so Gatekeeper
-checks it before it opens. The temporary copies are removed at the next start. Inline images referenced by `cid:` are shown inside the HTML body; text attachments
-(csv, ics) are saved byte for byte in their original charset.
+checks it before it opens. A second click reuses the copy when its bytes are unchanged, so a file still open in
+its application opens again. Each running mboxer keeps a lock file in its own folder; a later start removes the
+folders whose mboxer has quit and never touches the last-resort index home beside them (`mboxer/index`). Inline
+images referenced by `cid:` are shown inside the HTML body; text attachments (csv, ics) are saved byte for byte in
+their original charset.
 
 ### Search
 
