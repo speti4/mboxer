@@ -399,9 +399,6 @@ fn search(args: &SearchArgs) -> Result<(), Box<dyn Error>> {
     writeln!(out, "hits:              {}", result.total)?;
     writeln!(out, "open:              {:.1} ms", ms(open_elapsed))?;
     writeln!(out, "search:            {:.1} ms", ms(search_elapsed))?;
-    for warning in &result.warnings {
-        writeln!(out, "warning:           {warning}")?;
-    }
     if !result.hits.is_empty() {
         writeln!(out)?;
     }

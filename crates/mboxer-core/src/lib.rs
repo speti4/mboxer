@@ -16,7 +16,7 @@ pub mod reader;
 /// The MIME parser behind [`message`], re-exported so callers see one version of its types.
 pub use mail_parser;
 
-pub use envelope::is_envelope;
+pub use envelope::{is_envelope, unquote_from_lines};
 pub use error::{Error, Result};
 pub use index::{
     BuildOptions, BuildReport, Hit, INDEX_HOME_ENV, IndexMeta, IndexStatus, ListRow, Listing,

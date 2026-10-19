@@ -188,7 +188,6 @@ pub struct ListInfo {
     /// Matching messages and conversations behind those rows.
     pub messages: usize,
     pub conversations: usize,
-    pub warnings: Vec<String>,
     /// A newer query for the file came in before this one was done: the
     /// listing was not replaced, and the fields above describe the one in
     /// place. The webview drops such an answer by its own query token.
@@ -502,12 +501,11 @@ mod tests {
             total: 4,
             messages: 9,
             conversations: 4,
-            warnings: vec![],
             superseded: false,
         };
         assert_eq!(
             serde_json::to_value(&info).unwrap(),
-            serde_json::json!({"generation": 3, "total": 4, "messages": 9, "conversations": 4, "warnings": [], "superseded": false})
+            serde_json::json!({"generation": 3, "total": 4, "messages": 9, "conversations": 4, "superseded": false})
         );
         assert!(info.superseded().superseded);
         let position = PositionInfo {

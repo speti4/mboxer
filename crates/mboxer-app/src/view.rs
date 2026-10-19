@@ -9,7 +9,7 @@ use std::path::Path;
 use mboxer_core::mail_parser::Message;
 use mboxer_core::{
     RawMessage, TextKind, TextPart, attachments, html_to_plain_text, parse, part_tree, read_at,
-    summarize, text_parts,
+    summarize, text_parts, unquote_from_lines,
 };
 
 use crate::types::{BodyKind, BodyView, MessageView};
@@ -69,20 +69,13 @@ fn html_part(parts: &[TextPart]) -> Option<&TextPart> {
     parts.iter().find(|part| part.kind == TextKind::Html)
 }
 
-/// Undoes the mboxrd quoting of a body for display: one `>` comes off every
-/// line that is `>`s followed by `From `. The bytes in the file stay as written
-/// (D-003): mboxo and mboxrd cannot be told apart, so this is a display choice.
+/// Undoes the mboxrd quoting of a body for display with the core's
+/// [`unquote_from_lines`], the one the `.eml` export uses. The bytes in the
+/// file stay as written (D-003): mboxo and mboxrd cannot be told apart, so
+/// this is a display choice. Only an ASCII `>` comes off, so the text stays
+/// valid UTF-8 and the lossy conversion never replaces anything.
 pub fn unescape_from_lines(text: &str) -> String {
-    text.split_inclusive('\n')
-        .map(|line| {
-            let quoted = line.len() - line.trim_start_matches('>').len();
-            if quoted > 0 && line[quoted..].starts_with("From ") {
-                &line[1..]
-            } else {
-                line
-            }
-        })
-        .collect()
+    String::from_utf8_lossy(&unquote_from_lines(text.as_bytes())).into_owned()
 }
 
 /// A message `mail-parser` could not parse: identity plus its raw bytes.
