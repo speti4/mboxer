@@ -3,6 +3,7 @@ size: S
 origin: done/018-macos-build-bundle-and-ci.md
 created: 2026-10-19
 started: 2026-10-19
+closed: 2026-10-19
 plan: C:\Users\peter\.claude\plans\n-zz-k-t-a-backlogot-toasty-dove.md
 milestone: M4 macOS
 ---
@@ -29,7 +30,7 @@ the first release tag (028), which builds the macOS zip too.
    a Linux job renders it, see below)
 3. [x] `deny.toml` / `about.toml` cover the darwin targets; `cargo deny check` passes with them
 4. [x] docs: `docs/development.md` (the macOS bundle), the header comment of `scripts/bundle-macos.sh`
-5. [ ] local checks (CONTRIBUTING.md), `uvx zizmor .github`; a manual `bundle-macos` run on the branch shows the
+5. [x] local checks (CONTRIBUTING.md), `uvx zizmor .github`; a manual `bundle-macos` run on the branch shows the
    page in the zip with the darwin-only crates (objc2 …)
 
 ## Log
@@ -79,11 +80,26 @@ the first release tag (028), which builds the macOS zip too.
 
 ## Verification
 
-- 
+- 2026-10-19 — helyben: `cargo fmt --check`, `cargo clippy --all-targets -- -D warnings`, `cargo test` zöld;
+  `cargo deny check`: advisories, bans, licenses, sources ok (a `deny.toml` mindhárom targettel);
+  `uvx zizmor .github`: No findings; `actionlint` (actionlint-py, shellcheck-py-jal) hibátlan;
+  `bash -n` és shellcheck a `scripts/bundle-macos.sh`-ra tiszta; a `release.ps1` parse-hibamentes.
+- 2026-10-19 — friss `CARGO_HOME`-mal: host-only fetch után a Windows-lap `--frozen`-nel bukik (a régi
+  `release.ps1` útja), `scripts/bundle-macos.sh --licences-only` és utána a Windows-lap hibátlan.
+- 2026-10-19 — kézi CI-futás a branchen (run 39262031629): minden job zöld; `licences-macos` 3m32s
+  (ubuntu, a checkekkel párhuzamosan), `bundle-macos` 12m. A letöltött `macos-zip` artifact:
+  `mboxer-0.1.0-macos.zip` gyökerében `usage.md`, `THIRD-PARTY-LICENSES.html` (273 KB) és `mboxer.app`; a zip
+  SHA-256-ja egyezik a `SHA256SUMS.txt` sorával. A lap 272 crate-et listáz, köztük objc2, objc2-app-kit,
+  objc2-foundation, objc2-web-kit, objc2-core-foundation, objc2-quartz-core, objc2-exception-helper,
+  objc2-encode, block2, dispatch2, core-foundation(-sys), core-graphics(-types), swift-rs, embed_plist;
+  `windows*` / `webview2*` / `winapi*` egy sincs; a bevezető az új, platformsemleges szöveg. Sorvégektől
+  eltekintve bájtra azonos a helyben renderelt lappal.
+- A Windows `release` job `cargo fetch`-es útja csak tagen fut; az első tag (028) bizonyítja élesben.
 
 ## Closing checklist
 
-- [ ] every follow-up is a `backlog/` file (`/tasks add`) or deleted with a reason in the Log
-- [ ] Verification written, dated
-- [ ] `tasks_check` green, README index regenerated
-- [ ] moved to `done/` with `closed: YYYY-MM-DD`
+- [x] every follow-up is a `backlog/` file (`/tasks add`) or deleted with a reason in the Log — nincs follow-up
+- [x] Verification written, dated
+- [x] `tasks_check` green, README index regenerated — task sessionben `tasks_check` `write` nélkül; az indexet a
+  main session regenerálja a pull request előkészítésekor
+- [x] moved to `done/` with `closed: 2026-10-19`
