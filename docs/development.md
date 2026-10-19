@@ -18,8 +18,9 @@ checks before a commit and the project rules are in [CONTRIBUTING.md](../CONTRIB
 - `docs/` — the usage guide that ships in the release zip, the full reference, this page, origin, research,
   dated benchmarks and the README screenshot.
 - `tasks/` — the backlog, the work in flight, the history and the decisions (the task standard).
-- `.github/workflows/` — CI (fmt, clippy, test, the dependency policy, the workflow lint, the commit rules), the
-  tagged release and the issue sync; `.github/dependabot.yml` — the weekly dependency updates.
+- `.github/workflows/` — CI (fmt, clippy, test, the oldest supported Rust, the changelog and usage-guide
+  checks, the dependency policy, the workflow lint, the commit rules), the tagged release and the issue sync;
+  `.github/dependabot.yml` — the weekly dependency updates.
 - `.githooks/` — the `commit-msg` hook over `scripts/check-commit.sh`, enabled per clone with
   `git config core.hooksPath .githooks` ([git-workflow.md](git-workflow.md)).
 - `deny.toml` — the dependency policy `cargo deny` checks: licences, advisories, bans, sources (D-011);
@@ -55,9 +56,10 @@ so nothing newer than the declared minimum slips in), `deny` (`cargo deny check`
 crate, crates.io as the only source, D-011; and `about.toml` accepts the same licences) and `workflow-lint`
 (zizmor over the workflows and `dependabot.yml`; a finding accepted on purpose is listed with its reason in
 `.github/zizmor.yml`, scoped to the lines it covers). The `test` job adds macos-latest only on a tag and on a
-manual run: macOS runners are slower and scarcer, so the macOS tests run on tags and manual runs (task 042, set
-while the repo was private). `.github/workflows/commit-rules.yml` runs `commit-rules` (`scripts/check-commit.sh`
-over every pushed commit and the pull request text, the rules of [git-workflow.md](git-workflow.md)) on the same
+manual run (task 042): macOS runners are slower and scarcer, and a macOS test run on every pull request and
+again on its merge would hold one twice per change and lengthen every wait for CI, while the macOS-target clippy
+in `lint` already compiles the macOS code of every change. `.github/workflows/commit-rules.yml` runs
+`commit-rules` (`scripts/check-commit.sh` over every pushed commit and the pull request text, the rules of [git-workflow.md](git-workflow.md)) on the same
 pushes and pull requests. The workflows run with a read-only token by default; only the release job may write
 contents and only the issue sync may write issues, and the sync runs only in `speti4/mboxer`, never in a fork.
 Cargo runs with `--locked` in CI and in the release scripts, so a `Cargo.lock` out of step with the manifests
@@ -103,7 +105,7 @@ cargo install cargo-about --version 0.9.2 --locked --features cli   # once; the 
 scripts\release.ps1                     # dist\: the zip, SHA256SUMS.txt, release-notes-<version>.md
 ```
 
-Pushing a tag `v<version>` runs the four jobs, `test` on both platforms, and `licences-macos`, which renders the
+Pushing a tag `v<version>` runs the five jobs, `test` on both platforms, and `licences-macos`, which renders the
 licence page of the macOS zip on Linux; when they pass, two more: `bundle-macos` builds the macOS zip on a macOS
 runner (see [The macOS bundle](#the-macos-bundle)) and hands it over as a one-day artifact, and the `release`
 job checks that the tag is on `main`, installs the pinned cargo-about, runs `release.ps1`, verifies the macOS zip
@@ -184,8 +186,10 @@ python -I scripts/changelog.py --check         # exit 1 when it is out of date
 python -I scripts/changelog.py --notes 0.2.0   # one release's notes (a version without a tag: Unreleased)
 ```
 
-Between releases the committed *Unreleased* list may lag behind `tasks/done/`: closing a task does not touch
-the changelog, so parallel task branches do not conflict over it.
+Between releases the committed *Unreleased* list matches `tasks/done/` exactly: the lint job's `--check` fails
+on any difference, so the change that closes a task also runs `python -I scripts/changelog.py` and commits the
+regenerated `CHANGELOG.md`. Two task branches that both add a line meet in the changelog; the later one reruns
+the script after its rebase instead of merging the lists by hand.
 
 ## The issue mirror
 

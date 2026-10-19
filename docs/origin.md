@@ -4,7 +4,7 @@ mboxer started as a greenfield project with one concrete problem behind it.
 
 ## Starting point
 
-A Gmail mailbox archived with Google Takeout arrives as one large mbox file: about 13 GB in the reference case
+A Gmail mailbox archived with Google Takeout arrives as one large mbox file: about 14 GB in the reference case
 (`All mail Including Spam and Trash.mbox`, with Takeout's settings files next to it). Years of mail in one file
 are hard to use without a viewer built for that size.
 

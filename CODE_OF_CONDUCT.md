@@ -1,7 +1,8 @@
 # Code of conduct
 
 mboxer adopts the [Contributor Covenant, version 2.1](https://www.contributor-covenant.org/version/2/1/code_of_conduct/)
-as its code of conduct, for the issues, pull requests, discussions and every other project space.
+as its code of conduct, for the issues, pull requests, reports made under the [security policy](SECURITY.md)
+and every other project space.
 
 In short: be kind and constructive, assume good intent, and keep criticism about the work, never about the
 person. Harassment, insults and personal attacks are not tolerated.

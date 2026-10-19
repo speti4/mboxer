@@ -7,7 +7,8 @@ version = "0.2.0"
 edition = "2024"
 license = "MIT"
 repository = "https://github.com/speti4/mboxer"
-# Tauri 2.12 and tauri-plugin-dialog require 1.90 (task 005).
+# Tauri 2.12 and tauri-plugin-dialog require 1.90 (task 005). The msrv job reads it from here; the local
+# command in CONTRIBUTING.md, "Checks before a commit", names it too.
 rust-version = "1.90"
 # Never published to crates.io; also lets cargo-deny accept the path dependencies (task 024).
 publish = false
