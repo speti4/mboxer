@@ -1,7 +1,7 @@
 # mboxer — reference
 
 The full behaviour of the viewer and the command line. For a first start, read the short guide in
-[usage.md](usage.md), which also ships in the release zip.
+[usage.md](usage.md), which also ships in the release zip as `usage.html`.
 
 ## The viewer
 

@@ -57,7 +57,7 @@ with `(Get-FileHash mboxer-<version>.zip).Hash` in PowerShell, or with `shasum -
 on a Mac. Each zip also carries a build provenance attestation: with the [GitHub CLI](https://cli.github.com/),
 `gh attestation verify <zip> --repo speti4/mboxer` shows that this repository's release workflow built it.
 
-The [usage guide](docs/usage.md) (also inside the zip) covers the rest; the [reference](docs/reference.md)
+The [usage guide](docs/usage.md) (also inside the zip, as `usage.html`) covers the rest; the [reference](docs/reference.md)
 describes every feature, the search syntax and the `mboxer-cli` command line.
 
 **Found a bug?** [Open an issue](https://github.com/speti4/mboxer/issues/new/choose) and describe it with made-up

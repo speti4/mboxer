@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Builds the macOS app bundle and packs the release zip: dist/mboxer-<version>-macos.zip holding
-# mboxer.app, usage.md and THIRD-PARTY-LICENSES.html, with SHA256SUMS.txt next to it (tasks 018, 041,
-# D-007). The macOS counterpart of scripts/release.ps1; it runs on a Mac or on the macos-latest runner,
+# mboxer.app, usage.html (docs/usage.md rendered by scripts/render-usage-guide.py, task 048) and
+# THIRD-PARTY-LICENSES.html, with SHA256SUMS.txt next to it (tasks 018, 041, D-007). The macOS counterpart of scripts/release.ps1; it runs on a Mac or on the macos-latest runner,
 # never on Windows, except --licences-only.
 #
 # The version is the workspace Cargo.toml one, the only place it is written. The script builds the
@@ -25,9 +25,9 @@
 #
 # Needs: the Rust toolchain of rust-toolchain.toml with both darwin targets
 # (rustup target add aarch64-apple-darwin x86_64-apple-darwin), the Xcode command line tools
-# (lipo, iconutil, codesign, plutil, ditto) and, unless --licences names a page, cargo-about
-# (cargo install cargo-about --version 0.9.2 --locked --features cli). --licences-only needs cargo and
-# cargo-about only.
+# (lipo, iconutil, codesign, plutil, ditto), python3 for the guide and, unless --licences names a page,
+# cargo-about (cargo install cargo-about --version 0.9.2 --locked --features cli). --licences-only needs
+# cargo and cargo-about only.
 set -euo pipefail
 
 skip_build=0
@@ -99,7 +99,7 @@ if [ -n "$licences_only" ]; then
 fi
 
 # What can fail fast runs before the build: the tools, the targets and the inputs.
-tools=(cargo rustup lipo iconutil codesign plutil ditto shasum)
+tools=(cargo rustup lipo iconutil codesign plutil ditto shasum python3)
 [ -n "$licences" ] || tools+=(cargo-about)
 for tool in "${tools[@]}"; do
     command -v "$tool" > /dev/null || { echo "$tool not found" >&2; exit 1; }
@@ -235,7 +235,8 @@ printf 'APPL????' > "$app/Contents/PkgInfo"
 codesign --force --deep --sign - "$app"
 codesign --verify --deep --strict "$app"
 
-cp "$guide" "$stage/usage.md"
+# The user guide as the same HTML page the Windows zip carries (task 048).
+python3 -I "$root/scripts/render-usage-guide.py" --guide "$guide" --out "$stage/usage.html"
 if [ -n "$licences" ]; then
     cp "$licences" "$stage/THIRD-PARTY-LICENSES.html"
 else
@@ -247,7 +248,7 @@ mkdir -p "$out"
 out="$(cd "$out" && pwd)"
 zip="$out/mboxer-$version-macos.zip"
 rm -f "$zip"
-# As Finder's Compress does: a zip whose root holds mboxer.app, usage.md and THIRD-PARTY-LICENSES.html,
+# As Finder's Compress does: a zip whose root holds mboxer.app, usage.html and THIRD-PARTY-LICENSES.html,
 # resource forks and extended attributes sequestered into __MACOSX, symlinks kept.
 ditto -c -k --sequesterRsrc "$stage" "$zip"
 

@@ -83,7 +83,11 @@ uvx zizmor .github
 ```
 
 `scripts\release.ps1` builds the release profile (fat LTO, stripped) and packs `target\release\mboxer.exe`,
-`docs\usage.md` and `THIRD-PARTY-LICENSES.html` into `dist\mboxer-<version>.zip`. The version is the workspace
+`usage.html` and `THIRD-PARTY-LICENSES.html` into `dist\mboxer-<version>.zip`. `usage.html` is `docs\usage.md`
+as one self-contained page (inline CSS, light and dark, no script), rendered by `scripts\render-usage-guide.py`
+with the Python standard library, because Windows has no default app for `.md`; `bundle-macos.sh` packs the same
+page. The renderer knows only the Markdown the guide uses and stops with the line number on anything else; the
+lint job runs `python -I scripts/render-usage-guide.py --check` (its self-test, then the guide in memory). The version is the workspace
 `Cargo.toml` one, the only place it is written: `tauri-build` stamps it into the exe's properties and the status
 bar shows it. Next to the zip it writes `SHA256SUMS.txt` (the zip's SHA-256 in the `sha256sum -c` format) and
 `release-notes-<version>.md`. The licence page comes from
@@ -119,9 +123,9 @@ one universal binary and lays out `mboxer.app`: `Contents/MacOS/mboxer`, `Conten
 `CFBundleVersion`, the `.mbox` document type, `LSMinimumSystemVersion` 10.13 as Tauri 2 defaults it) and
 `Contents/Resources/icon.icns`, which `iconutil` makes from the committed `icons/icon.iconset/`. The bundle is
 ad-hoc signed (`codesign -s -`) and not notarized (D-007): Apple Silicon loads it, Gatekeeper asks the user once.
-`ditto` packs `mboxer.app`, `docs/usage.md` and `THIRD-PARTY-LICENSES.html` into
-`dist/mboxer-<version>-macos.zip`, the way Finder's *Compress* does, and `SHA256SUMS.txt` next to it holds the
-zip's line in the `shasum -a 256 -c` format. No Tauri CLI is involved (D-002); the bundle is the script.
+`ditto` packs `mboxer.app`, `usage.html` (the rendered guide, as in the Windows zip) and
+`THIRD-PARTY-LICENSES.html` into `dist/mboxer-<version>-macos.zip`, the way Finder's *Compress* does, and
+`SHA256SUMS.txt` next to it holds the zip's line in the `shasum -a 256 -c` format. No Tauri CLI is involved (D-002); the bundle is the script.
 
 The licence page is cargo-about with the `about.toml` and the template of `release.ps1`, over the crates of the
 two darwin builds instead of the Windows one (`--target aarch64-apple-darwin --target x86_64-apple-darwin`), so

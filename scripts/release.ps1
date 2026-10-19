@@ -5,8 +5,9 @@ its checksum and its release notes next to it (task 025).
 
 .DESCRIPTION
 The version is the workspace Cargo.toml one, the only place it is written. The zip holds
-mboxer.exe, usage.md (docs\usage.md) and THIRD-PARTY-LICENSES.html (cargo-about over the crates
-compiled into the exe, with about.toml and scripts\third-party-licenses.hbs). Next to the zip go
+mboxer.exe, usage.html (docs\usage.md rendered by scripts\render-usage-guide.py, task 048) and
+THIRD-PARTY-LICENSES.html (cargo-about over the crates compiled into the exe, with about.toml and
+scripts\third-party-licenses.hbs). Next to the zip go
 SHA256SUMS.txt (the zip's SHA-256 in `sha256sum -c` format) and release-notes-<version>.md
 (scripts\changelog.py --notes, the body of the GitHub release). CI runs this script on a
 v<version> tag with -Tag set, which must match the version; by hand the tag check is skipped.
@@ -88,7 +89,9 @@ $stage = Join-Path ([System.IO.Path]::GetTempPath()) "mboxer-release-$version"
 if (Test-Path $stage) { Remove-Item -Recurse -Force $stage }
 New-Item -ItemType Directory -Force $stage | Out-Null
 Copy-Item $exe (Join-Path $stage "mboxer.exe")
-Copy-Item $guide (Join-Path $stage "usage.md")
+# The user guide as one self-contained HTML page: Windows has no default app for .md (task 048).
+& $python @pythonArgs -I (Join-Path $root "scripts\render-usage-guide.py") --guide $guide --out (Join-Path $stage "usage.html")
+if ($LASTEXITCODE -ne 0) { throw "rendering the usage guide failed ($LASTEXITCODE)" }
 
 # The notices of the crates compiled into the exe (their MIT, Apache-2.0, BSD and MPL-2.0 licences ask for
 # them). cargo-about reads the graph through `cargo metadata`, which wants the sources of every platform's
