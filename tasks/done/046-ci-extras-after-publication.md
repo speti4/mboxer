@@ -6,6 +6,7 @@ started: 2026-10-19
 closed: 2026-10-19
 plan: none
 milestone: M5 Public release
+changelog: housekeeping
 ---
 
 # 046 — CI extras once the minutes are free: MSRV, changelog check, fork guard
