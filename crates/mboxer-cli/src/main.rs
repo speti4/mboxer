@@ -92,7 +92,7 @@ struct IndexArgs {
 
 #[derive(Args)]
 struct SearchArgs {
-    /// Path to the mbox file (its index must exist, see `mboxer index`).
+    /// Path to the mbox file (its index must exist, see `mboxer-cli index`).
     mbox: PathBuf,
     /// Free-text query over subject, body, addresses and attachment names; words are AND-ed,
     /// "quotes" make a phrase. Optional when a filter is given.
@@ -335,9 +335,11 @@ fn search(args: &SearchArgs) -> Result<(), Box<dyn Error>> {
     let open_start = Instant::now();
     let index = match MboxIndex::open(&args.mbox)? {
         Opened::Ready(index) => index,
-        Opened::Missing => return Err("no index for this mbox; run `mboxer index` first".into()),
+        Opened::Missing => {
+            return Err("no index for this mbox; run `mboxer-cli index` first".into());
+        }
         Opened::Stale(reason) => {
-            return Err(format!("index is stale ({reason}); run `mboxer index`").into());
+            return Err(format!("index is stale ({reason}); run `mboxer-cli index`").into());
         }
     };
     let open_elapsed = open_start.elapsed();

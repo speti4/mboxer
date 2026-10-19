@@ -1,6 +1,6 @@
 [package]
 name = "mboxer-core"
-description = "Streaming mbox reader and message model for mboxer"
+description = "Streaming mbox reader, message model and sidecar full-text index for mboxer"
 version.workspace = true
 edition.workspace = true
 license.workspace = true

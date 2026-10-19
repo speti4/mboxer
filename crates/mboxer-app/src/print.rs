@@ -8,7 +8,7 @@
 //! page has loaded the window runs `Webview::print()`, the native print panel
 //! with *Save as PDF*. wry runs that panel as a sheet on the webview's own
 //! window and reports no end, so the window is a visible preview the user
-//! closes; it is dropped with the main window. Windows keeps the iframe path.
+//! closes; it is dropped with the main window. The other platforms keep the iframe path.
 //!
 //! The jobs, the page response with its CSP and the input checks are plain
 //! code with unit tests; only [`open_window`] and the hooks need a Mac.

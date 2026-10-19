@@ -1,6 +1,6 @@
 [package]
 name = "mboxer-app"
-description = "The mboxer desktop viewer: Tauri 2 on WebView2 over mboxer-core"
+description = "The mboxer desktop viewer: Tauri 2 (WebView2 / WKWebView) over mboxer-core"
 version.workspace = true
 edition.workspace = true
 license.workspace = true

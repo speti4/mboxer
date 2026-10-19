@@ -23,6 +23,8 @@
     }
   },
   "bundle": {
-    "icon": ["icons/icon.ico", "icons/icon.png"]
+    "icon": ["icons/icon.ico", "icons/icon.png"],
+    "publisher": "Szőke Péter",
+    "copyright": "Copyright (c) 2026 Szőke Péter. MIT License."
   }
 }

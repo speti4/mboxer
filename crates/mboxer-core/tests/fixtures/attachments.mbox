@@ -4,7 +4,7 @@ X-Gmail-Labels: Inbox,Opened
 Message-ID: <att1@mail.example.com>
 Date: Mon, 19 Jan 2026 09:00:00 +0100
 From: =?UTF-8?Q?Anna_P=C3=A9lda?= <anna@example.com>
-To: peter@example.com
+To: gabor@example.com
 Subject: =?UTF-8?Q?Mell=C3=A9kletek?=
 MIME-Version: 1.0
 Content-Type: multipart/mixed; boundary="mixed-att"
@@ -19,12 +19,12 @@ Content-Type: multipart/alternative; boundary="alt-att"
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
 
-Kedves Péter, a számla és az összesítő mellékelve.
+Kedves Gábor, a számla és az összesítő mellékelve.
 --alt-att
 Content-Type: text/html; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
 
-<html><body><p>Kedves <b>Péter</b>, a számla mellékelve.</p><img src="cid:logo@example.com" alt="logo" width="1" height="1"></body></html>
+<html><body><p>Kedves <b>Gábor</b>, a számla mellékelve.</p><img src="cid:logo@example.com" alt="logo" width="1" height="1"></body></html>
 --alt-att--
 --rel-att
 Content-Type: image/png; name="logo.png"
@@ -53,7 +53,7 @@ Content-Type: message/rfc822
 Content-Disposition: attachment
 
 From: Carol <carol@example.com>
-To: peter@example.com
+To: gabor@example.com
 Subject: Forwarded original
 Date: Sun, 18 Jan 2026 10:00:00 +0100
 Message-ID: <orig@mail.example.com>
@@ -82,7 +82,7 @@ X-Gmail-Labels: Inbox
 Message-ID: <att2@mail.example.com>
 Date: Tue, 20 Jan 2026 09:00:00 +0100
 From: "Webshop" <hirlevel@example.com>
-To: peter@example.com
+To: gabor@example.com
 Subject: Inline only
 MIME-Version: 1.0
 Content-Type: multipart/related; boundary="rel-only"

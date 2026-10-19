@@ -1,4 +1,4 @@
-//! End-to-end tests of the `mboxer` executable over a synthetic fixture.
+//! End-to-end tests of the `mboxer-cli` executable over a synthetic fixture.
 //!
 //! The fixture is copied into a temporary directory first: `index` writes the
 //! sidecar next to the mbox, and the fixtures directory must stay clean.
@@ -110,7 +110,7 @@ fn search_without_an_index_fails_with_a_hint() {
     let output = mboxer(&["search", mbox.to_str().unwrap(), "számla"]);
     assert_eq!(output.status.code(), Some(1));
     let stderr = String::from_utf8_lossy(&output.stderr);
-    assert!(stderr.contains("run `mboxer index`"), "{stderr}");
+    assert!(stderr.contains("run `mboxer-cli index`"), "{stderr}");
 }
 
 #[test]

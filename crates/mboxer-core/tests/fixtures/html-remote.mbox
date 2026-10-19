@@ -4,7 +4,7 @@ X-Gmail-Labels: Inbox,Opened
 Message-ID: <remote1@mail.example.com>
 Date: Thu, 15 Jan 2026 09:00:00 +0100
 From: "Webshop" <hirlevel@example.com>
-To: peter@example.com
+To: gabor@example.com
 Subject: =?UTF-8?Q?Sz=C3=A1mla_k=C3=A9pekkel?=
 MIME-Version: 1.0
 Content-Type: multipart/alternative; boundary="alt-remote"
@@ -32,7 +32,7 @@ X-Gmail-Labels: Inbox
 Message-ID: <remote2@mail.example.com>
 Date: Fri, 16 Jan 2026 09:00:00 +0100
 From: "Portal" <portal@example.com>
-To: peter@example.com
+To: gabor@example.com
 Subject: HTML only frame
 MIME-Version: 1.0
 Content-Type: text/html; charset="UTF-8"

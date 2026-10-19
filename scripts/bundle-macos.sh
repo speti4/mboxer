@@ -184,7 +184,7 @@ cat > "$app/Contents/Info.plist" <<PLIST
     <key>NSHighResolutionCapable</key>
     <true/>
     <key>NSHumanReadableCopyright</key>
-    <string>MIT License</string>
+    <string>Copyright (c) 2026 Szőke Péter. MIT License.</string>
     <key>CFBundleDocumentTypes</key>
     <array>
         <dict>

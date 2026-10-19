@@ -1,5 +1,5 @@
 // mboxer shell: open flow, folders, the search field and filter panel, the
-// virtualised message list, the reader. Plain JS on the global Tauri API
+// virtualized message list, the reader. Plain JS on the global Tauri API
 // (`withGlobalTauri`), no bundler.
 (function () {
   "use strict";
@@ -164,6 +164,11 @@
     return numberFormat.format(n);
   }
 
+  // The backend's error messages start in lower case; one shown on its own starts a sentence.
+  function sentence(text) {
+    return text.charAt(0).toUpperCase() + text.slice(1);
+  }
+
   function setView(view) {
     document.body.dataset.view = view;
   }
@@ -234,7 +239,7 @@
   // ---------- HTML sanitizer ----------
   //
   // The HTML of a message is parsed into an inert document (DOMParser loads
-  // nothing and runs nothing), stripped to a safe subset and serialised into a
+  // nothing and runs nothing), stripped to a safe subset and serialized into a
   // sandboxed iframe whose own CSP blocks every remote request. Remote
   // references move into `data-mboxer-*` attributes so that the per-message
   // "Show" button can put them back; the CSP is relaxed for images only then.
@@ -556,7 +561,7 @@
       return;
     }
     el.errorPath.textContent = path;
-    el.errorText.textContent = text;
+    el.errorText.textContent = sentence(text);
     el.retryBtn.hidden = !path;
     state.errorPath = path || state.errorPath;
     setView("error");
@@ -739,10 +744,10 @@
 
   function indexStateText(index) {
     if (index.state === "reused") {
-      return `index reused (built ${fullDate(index.builtAtUnix)})`;
+      return `Index reused (built ${fullDate(index.builtAtUnix)})`;
     }
     const unparsed = index.parseFailures === 1 ? "1 unparsed message" : `${fmt(index.parseFailures)} unparsed messages`;
-    return `index built in ${fmt(index.buildSecs)} s, ${unparsed}`;
+    return `Index built in ${fmt(index.buildSecs)} s, ${unparsed}`;
   }
 
   // ---------- query model ----------
@@ -1268,7 +1273,7 @@
     selectLabel(label);
   });
 
-  // ---------- virtualised list ----------
+  // ---------- virtualized list ----------
 
   // Installs a new listing. With `keepSelection` the selected message stays
   // selected (and its reader view stays) when it is still in the listing.
@@ -1651,7 +1656,7 @@
     if (view.cc.length) rows.push(...headerRow("Cc", view.cc.join(", ")));
     rows.push(...headerRow("Date", fullDate(view.date)));
     if (view.labels.length) rows.push(...headerRow("Labels", view.labels.join(", ")));
-    if (view.messageId) rows.push(...headerRow("Message-Id", view.messageId));
+    if (view.messageId) rows.push(...headerRow("Message-ID", view.messageId));
     el.msgHeaders.replaceChildren(...rows);
 
     renderAttachments(view);
@@ -1759,7 +1764,7 @@
       const result = await invoke(command, args);
       onDone(result);
     } catch (err) {
-      flashStatus(`${err}`, "error", SAVED_FLASH_MS);
+      flashStatus(sentence(String(err)), "error", SAVED_FLASH_MS);
     } finally {
       button.classList.remove("busy");
     }
@@ -2291,7 +2296,7 @@
     el.emptyOpenBtn.textContent = mac(el.emptyOpenBtn.textContent);
   }
 
-  // The exe's version at the right end of the status bar (task 012).
+  // The app's version at the right end of the status bar (task 012).
   async function showVersion() {
     try {
       const version = await invoke("app_version");
