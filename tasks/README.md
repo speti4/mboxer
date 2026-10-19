@@ -13,7 +13,7 @@ edit the file, never the issue. Everything here is English.
 <!-- tasks:index:start -->
 _Generated 2026-10-20 — edit the files, not this section._
 
-**State:** 6 backlog (1 ready · 0 blocked · 2 waiting · 3 ideas) · 0 in progress · 64 done · 2 dropped · 13 decisions
+**State:** 4 backlog (1 ready · 0 blocked · 2 waiting · 1 idea) · 0 in progress · 64 done · 2 dropped · 13 decisions
 
 ### Ready
 
@@ -48,8 +48,6 @@ _none_
 | # | Task | Size | Created |
 |---|---|---|---|
 | 069 | [The viewer reads a message through the index's limit, and the CLI's paging brea…](backlog/069-viewer-reads-through-the-index-and-cli-ties-by-offset.md) | S | 2026-10-19 |
-| 071 | [The highlight folds only what the index folds outside the Latin blocks](backlog/071-highlight-folds-only-what-the-index-folds-outside-latin.md) | S | 2026-10-20 |
-| 072 | [Fold the combining dot of a lower-cased İ in the index](backlog/072-fold-the-dot-of-a-lower-cased-capital-i-with-dot.md) | S | 2026-10-20 |
 
 ### In progress
 
