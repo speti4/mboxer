@@ -1,6 +1,6 @@
 ---
 status: waiting
-waits-for: 023-026 done (030, the scrub and rewrite per D-10, closed 2026-10-18)
+waits-for: 041 merged (the first release builds the macOS zip too, which needs the licence page; 023-026 and 037 are done)
 size: S
 origin: session 2026-10-18
 created: 2026-10-18
