@@ -60,9 +60,9 @@ cargo test
 
 A change to `Cargo.toml`, `Cargo.lock` or `.github/` also runs `cargo deny check` and `uvx zizmor .github`
 (see [docs/development.md](docs/development.md#ci-and-releases)). CI (`.github/workflows/ci.yml`) runs all of
-them on every push and pull request. A change in behaviour
-comes with a test: Rust tests sit beside the code or under each crate's `tests/`, and the UI modules have
-Node tests under `crates/mboxer-app/tests/ui/`.
+them on every push and pull request that changes code, the macOS tests on a release tag or a manual run. A
+change in behaviour comes with a test: Rust tests sit beside the code or under each crate's `tests/`, and the UI
+modules have Node tests under `crates/mboxer-app/tests/ui/`.
 
 ## Dependencies: one exe
 

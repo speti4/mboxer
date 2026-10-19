@@ -38,14 +38,19 @@ the `icon.iconset/` PNGs that the macOS bundle turns into `icon.icns`.
 
 ## CI and releases
 
-`.github/workflows/ci.yml` runs four jobs on every push and pull request: `test` (windows-latest and
-macos-latest: `cargo fmt --check`, `cargo clippy --all-targets -- -D warnings`, `cargo test`), `deny` (`cargo deny
-check` against `deny.toml` for the Windows and the two macOS targets: licences from the allowlist, no RustSec
-advisory or yanked crate, crates.io as the only source, D-011; and `about.toml` accepts the same licences),
-`workflow-lint` (zizmor over the workflows and `dependabot.yml`; a finding accepted on purpose is listed with its
-reason in `.github/zizmor.yml`) and `commit-rules` (`scripts/check-commit.sh` over every pushed commit and the
-pull request text, the rules of [git-workflow.md](git-workflow.md)). The workflows run with a read-only token by
-default; only the release job may write contents and only the issue sync may write issues.
+`.github/workflows/ci.yml` runs four jobs on every push to `main` and every pull request that changes more than
+`docs/`, `tasks/` and Markdown files: `test` (windows-latest: `cargo clippy --all-targets -- -D warnings`, `cargo
+test`), `lint` (ubuntu: `cargo fmt --check` and `cargo clippy --target aarch64-apple-darwin --all-targets -- -D
+warnings`, which compiles the macOS-only code without a Mac), `deny` (`cargo deny check` against `deny.toml` for
+the Windows and the two macOS targets: licences from the allowlist, no RustSec advisory or yanked crate,
+crates.io as the only source, D-011; and `about.toml` accepts the same licences) and `workflow-lint` (zizmor over
+the workflows and `dependabot.yml`; a finding accepted on purpose is listed with its reason in
+`.github/zizmor.yml`). The `test` job adds macos-latest only on a tag and on a manual run: GitHub bills a macOS
+minute ten times, a Windows minute twice the Linux rate (task 042). `.github/workflows/commit-rules.yml` runs
+`commit-rules` (`scripts/check-commit.sh` over every pushed commit and the pull request text, the rules of
+[git-workflow.md](git-workflow.md)) on every push to `main` and every pull request, docs-only ones included. The
+workflows run with a read-only token by default; only the release job may write contents and only the issue sync
+may write issues.
 The Rust toolchain comes from the runner's own rustup, which installs the channel and the components that
 `rust-toolchain.toml` names, so no action is involved.
 
@@ -75,11 +80,12 @@ cargo install cargo-about --version 0.9.2 --locked --features cli   # once; the 
 scripts\release.ps1                     # dist\: the zip, SHA256SUMS.txt, release-notes-<version>.md
 ```
 
-Pushing a tag `v<version>` runs the three jobs and, when they pass, two more: `bundle-macos` builds the macOS
-zip on a macOS runner (see [The macOS bundle](#the-macos-bundle)) and hands it over as a one-day artifact, and
-the `release` job installs the pinned cargo-about, runs `release.ps1`, verifies the macOS zip against its
-checksum line, appends that line to `SHA256SUMS.txt` and publishes the two zips and the checksum file as a
-GitHub release titled `mboxer <version>`, with the notes file as its text, through the runner's `gh` CLI. Both
+Pushing a tag `v<version>` runs the four jobs, `test` on both platforms, and, when they pass, two more:
+`bundle-macos` builds the macOS zip on a macOS runner (see [The macOS bundle](#the-macos-bundle)) and hands it
+over as a one-day artifact, and the `release` job installs the pinned cargo-about, runs `release.ps1`, verifies
+the macOS zip against its checksum line, appends that line to `SHA256SUMS.txt` and publishes the two zips and
+the checksum file as a GitHub release titled `mboxer <version>`, with the notes file as its text, through the
+runner's `gh` CLI. Both
 release jobs build without the Rust cache, so nothing a pull request run cached reaches a zip.
 
 ### The macOS bundle
@@ -95,10 +101,11 @@ ad-hoc signed (`codesign -s -`) and not notarized (D-07): Apple Silicon loads it
 `ditto` packs `mboxer.app` and `docs/usage.md` into `dist/mboxer-<version>-macos.zip`, the way Finder's
 *Compress* does, and `SHA256SUMS.txt` next to it holds the zip's line in the `shasum -a 256 -c` format. No
 Tauri CLI is involved (D-02); the bundle is the script. The author has no Mac, so the script is verified by the
-CI job: a manual run of the workflow on a branch (`gh workflow run ci.yml --ref <branch>`) runs `bundle-macos`
-without a tag and keeps the zip as the `macos-zip` artifact for a day, which is also how a Mac tester gets a
-build. A change to the script is linted here with `bash -n scripts/bundle-macos.sh` and shellcheck
-(`uvx --from shellcheck-py shellcheck -s bash scripts/bundle-macos.sh`).
+CI job: a manual run of the workflow on a branch (`gh workflow run ci.yml --ref <branch>`) runs the macOS tests
+and `bundle-macos` without a tag and keeps the zip as the `macos-zip` artifact for a day, which is also how a Mac
+tester gets a build. A pull request that touches macOS code gets such a run before its merge, because its own
+runs test on Windows only. A change to the script is linted here with `bash -n scripts/bundle-macos.sh` and
+shellcheck (`uvx --from shellcheck-py shellcheck -s bash scripts/bundle-macos.sh`).
 
 ```bash
 rustup target add aarch64-apple-darwin x86_64-apple-darwin   # once

@@ -1,7 +1,7 @@
 #!/bin/sh
 # The commit rules of docs/git-workflow.md (D-09, D-10): no Claude-Session trailer and no Claude Code session
 # link in a commit message or a pull request text, and the maintainer commits with the GitHub noreply address.
-# Called by .githooks/commit-msg and by the commit-rules job in .github/workflows/ci.yml.
+# Called by .githooks/commit-msg and by the commit-rules job in .github/workflows/commit-rules.yml.
 #
 #   check-commit.sh MESSAGE_FILE [NAME EMAIL]...
 #

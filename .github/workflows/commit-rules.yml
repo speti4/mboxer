@@ -1,0 +1,57 @@
+# The commit rules of docs/git-workflow.md (scripts/check-commit.sh, task 034) for every pushed or proposed
+# commit and the pull request text, which a squash merge turns into the commit message; the local hook can be
+# skipped. Its own workflow without a path filter, so a docs- or tasks-only change, which skips ci.yml, is
+# still checked (task 042). A tag or a manual run has no commit range, so neither triggers it.
+# Actions are pinned by commit SHA and bumped by dependabot (task 024).
+name: commit-rules
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: commit-rules-${{ github.ref }}
+  # A newer push supersedes a pull request run; a main run always finishes.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  commit-rules:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Check the commits and the pull request text
+        env:
+          EVENT: ${{ github.event_name }}
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.sha }}
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          failed=0
+          if [ "$EVENT" = pull_request ]; then
+            range="$BASE..$HEAD"
+            printf '%s\n\n%s\n' "$PR_TITLE" "$PR_BODY" > "$RUNNER_TEMP/pull-request.txt"
+            sh scripts/check-commit.sh "$RUNNER_TEMP/pull-request.txt" || { echo "  in the pull request text"; failed=1; }
+          elif [ "$BEFORE" = 0000000000000000000000000000000000000000 ]; then
+            range="$AFTER^!"
+          else
+            range="$BEFORE..$AFTER"
+          fi
+          for commit in $(git rev-list "$range"); do
+            git log -1 --format=%B "$commit" > "$RUNNER_TEMP/message.txt"
+            sh scripts/check-commit.sh "$RUNNER_TEMP/message.txt" \
+              "$(git log -1 --format=%an "$commit")" "$(git log -1 --format=%ae "$commit")" \
+              "$(git log -1 --format=%cn "$commit")" "$(git log -1 --format=%ce "$commit")" \
+              || { echo "  in $commit"; failed=1; }
+          done
+          exit "$failed"
