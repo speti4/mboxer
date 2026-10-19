@@ -13,8 +13,8 @@ checks before a commit and the project rules are in [CONTRIBUTING.md](../CONTRIB
   open-or-build flow, the message view, the label order), the static UI under `ui/`, the capability file and
   the icon.
 - `crates/mboxer-cli` — the `mboxer-cli` executable, with its end-to-end tests under `tests/`.
-- `scripts/` — helper scripts for measurements, the icon, the demo mbox, the release zip, the changelog and the
-  issue mirror.
+- `scripts/` — helper scripts for measurements, the icon, the demo mbox, the Windows release zip, the macOS
+  bundle, the changelog and the issue mirror.
 - `docs/` — the usage guide that ships in the release zip, the full reference, this page, origin, research,
   dated benchmarks and the README screenshot.
 - `tasks/` — the backlog, the work in flight, the history and the decisions (the task standard).
@@ -33,17 +33,19 @@ The UI is plain HTML, CSS and JavaScript embedded in the exe: no Node toolchain,
 change under `crates/mboxer-app/ui/` takes effect on the next `cargo run`. The pure modules (`query.js`,
 `theme.js`, `files.js`) have Node tests under `crates/mboxer-app/tests/ui/`, which `cargo test` runs through
 `tests/ui_query.rs` when `node` is on `PATH`. The application icon is generated once by `scripts\make-icon.py`
-(Pillow) and committed.
+(Pillow) and committed: `icon.ico` for the Windows exe, `icon.png` for the window icon on the other targets and
+the `icon.iconset/` PNGs that the macOS bundle turns into `icon.icns`.
 
 ## CI and releases
 
-`.github/workflows/ci.yml` runs four jobs on every push and pull request: `test` (windows-latest: `cargo fmt
---check`, `cargo clippy --all-targets -- -D warnings`, `cargo test`), `deny` (`cargo deny check` against
-`deny.toml`: licences from the allowlist, no RustSec advisory or yanked crate, crates.io as the only source,
-D-011; and `about.toml` accepts the same licences), `workflow-lint` (zizmor over the workflows and `dependabot.yml`; a finding accepted on purpose is
-listed with its reason in `.github/zizmor.yml`) and `commit-rules` (`scripts/check-commit.sh` over every pushed
-commit and the pull request text, the rules of [git-workflow.md](git-workflow.md)). The workflows run with a
-read-only token by default; only the release job may write contents and only the issue sync may write issues.
+`.github/workflows/ci.yml` runs four jobs on every push and pull request: `test` (windows-latest and
+macos-latest: `cargo fmt --check`, `cargo clippy --all-targets -- -D warnings`, `cargo test`), `deny` (`cargo deny
+check` against `deny.toml` for the Windows and the two macOS targets: licences from the allowlist, no RustSec
+advisory or yanked crate, crates.io as the only source, D-011; and `about.toml` accepts the same licences),
+`workflow-lint` (zizmor over the workflows and `dependabot.yml`; a finding accepted on purpose is listed with its
+reason in `.github/zizmor.yml`) and `commit-rules` (`scripts/check-commit.sh` over every pushed commit and the
+pull request text, the rules of [git-workflow.md](git-workflow.md)). The workflows run with a read-only token by
+default; only the release job may write contents and only the issue sync may write issues.
 The Rust toolchain comes from the runner's own rustup, which installs the channel and the components that
 `rust-toolchain.toml` names, so no action is involved.
 
@@ -73,10 +75,45 @@ cargo install cargo-about --version 0.9.2 --locked --features cli   # once; the 
 scripts\release.ps1                     # dist\: the zip, SHA256SUMS.txt, release-notes-<version>.md
 ```
 
-Pushing a tag `v<version>` runs the three jobs and, when they pass, the release job installs the pinned
-cargo-about, runs the script and publishes the zip and `SHA256SUMS.txt` as a GitHub release titled
-`mboxer <version>`, with the notes file as its text, through the runner's `gh` CLI. The release job builds
-without the Rust cache, so nothing a pull request run cached reaches the zip.
+Pushing a tag `v<version>` runs the three jobs and, when they pass, two more: `bundle-macos` builds the macOS
+zip on a macOS runner (see [The macOS bundle](#the-macos-bundle)) and hands it over as a one-day artifact, and
+the `release` job installs the pinned cargo-about, runs `release.ps1`, verifies the macOS zip against its
+checksum line, appends that line to `SHA256SUMS.txt` and publishes the two zips and the checksum file as a
+GitHub release titled `mboxer <version>`, with the notes file as its text, through the runner's `gh` CLI. Both
+release jobs build without the Rust cache, so nothing a pull request run cached reaches a zip.
+
+### The macOS bundle
+
+`scripts/bundle-macos.sh` is the macOS counterpart of `release.ps1` and runs on a Mac or on the `macos-latest`
+runner (bash, the Xcode command line tools: `lipo`, `iconutil`, `codesign`, `plutil`, `ditto`). It builds the
+release profile for `aarch64-apple-darwin` and `x86_64-apple-darwin`, joins the two binaries with `lipo` into
+one universal binary and lays out `mboxer.app`: `Contents/MacOS/mboxer`, `Contents/Info.plist` (the
+`io.github.speti4.mboxer` identifier, the `Cargo.toml` version as `CFBundleShortVersionString` and
+`CFBundleVersion`, the `.mbox` document type, `LSMinimumSystemVersion` 10.13 as Tauri 2 defaults it) and
+`Contents/Resources/icon.icns`, which `iconutil` makes from the committed `icons/icon.iconset/`. The bundle is
+ad-hoc signed (`codesign -s -`) and not notarized (D-07): Apple Silicon loads it, Gatekeeper asks the user once.
+`ditto` packs `mboxer.app` and `docs/usage.md` into `dist/mboxer-<version>-macos.zip`, the way Finder's
+*Compress* does, and `SHA256SUMS.txt` next to it holds the zip's line in the `shasum -a 256 -c` format. No
+Tauri CLI is involved (D-02); the bundle is the script. The author has no Mac, so the script is verified by the
+CI job: a manual run of the workflow on a branch (`gh workflow run ci.yml --ref <branch>`) runs `bundle-macos`
+without a tag and keeps the zip as the `macos-zip` artifact for a day, which is also how a Mac tester gets a
+build. A change to the script is linted here with `bash -n scripts/bundle-macos.sh` and shellcheck
+(`uvx --from shellcheck-py shellcheck -s bash scripts/bundle-macos.sh`).
+
+```bash
+rustup target add aarch64-apple-darwin x86_64-apple-darwin   # once
+scripts/bundle-macos.sh                 # dist/: the zip and SHA256SUMS.txt
+scripts/bundle-macos.sh --skip-build    # pack what target/<target>/release already holds
+```
+
+On Windows the darwin targets compile as far as `cargo check` goes, which catches a `cfg(windows)` gap before
+CI does. The one build script that needs a C compiler for the darwin target (`objc2-exception-helper`, a
+helper only the link step uses) is skipped with the `DOCS_RS` variable it honours, so no Apple SDK is needed:
+
+```powershell
+rustup target add aarch64-apple-darwin x86_64-apple-darwin   # once
+$env:DOCS_RS = "1"; cargo check --target aarch64-apple-darwin -p mboxer-app -p mboxer-cli
+```
 
 ### The changelog
 
