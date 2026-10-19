@@ -13,7 +13,7 @@ edit the file, never the issue. Everything here is English.
 <!-- tasks:index:start -->
 _Generated 2026-10-19 — edit the files, not this section._
 
-**State:** 14 backlog (10 ready · 0 blocked · 2 waiting · 2 ideas) · 0 in progress · 46 done · 1 dropped · 13 decisions
+**State:** 13 backlog (9 ready · 0 blocked · 2 waiting · 2 ideas) · 0 in progress · 47 done · 1 dropped · 13 decisions
 
 ### Ready
 
@@ -27,7 +27,6 @@ _Generated 2026-10-19 — edit the files, not this section._
 | 053 | [Attachment and reader hardening: blocked extensions, reserved names, referrer, …](backlog/053-attachment-and-reader-hardening.md) | S | 2026-10-19 |
 | 054 | [Keep the attachment copies and the index's last-resort home in separate temp fo…](backlog/054-temp-folder-split-between-attachments-and-the-index-fallback.md) | S | 2026-10-19 |
 | 055 | [The usage guide says what the viewer does](backlog/055-usage-guide-matches-the-viewer.md) | S | 2026-10-19 |
-| 056 | [The commit hook checks the type prefix, and the required checks hold after a re…](backlog/056-commit-hook-checks-the-type-and-ci-re-checks-edited-pull-requests.md) | S | 2026-10-19 |
 | 057 | [CONTRIBUTING's pre-commit list matches CI, and the private-era wording goes](backlog/057-contributing-checks-match-ci-and-private-era-leftovers.md) | S | 2026-10-19 |
 | 058 | [Task files: dead origin paths, plan slugs, and who closes a milestone](backlog/058-dead-task-references-plan-slugs-and-milestone-closing.md) | S | 2026-10-19 |
 | 059 | [Refresh the README screenshot and the social preview over the demo mbox](backlog/059-refresh-the-screenshots-over-the-demo-mbox.md) | S | 2026-10-19 |
@@ -73,6 +72,7 @@ _none_
 
 | # | Task | Closed |
 |---|---|---|
+| 056 | [The commit hook checks the type prefix, and the required checks hold after a re…](done/056-commit-hook-checks-the-type-and-ci-re-checks-edited-pull-requests.md) | 2026-10-19 |
 | 049 | [The label tree panics on a label whose ninth byte is inside a multibyte charact…](done/049-label-tree-panics-on-a-multibyte-boundary.md) | 2026-10-19 |
 | 048 | [The usage guide in the zips in a format that opens with a double-click](done/048-usage-guide-readable-in-the-zip.md) | 2026-10-19 |
 | 047 | [Keep project housekeeping apart from user-facing changes in the changelog](done/047-housekeeping-tasks-in-the-changelog.md) | 2026-10-19 |
@@ -82,9 +82,8 @@ _none_
 | 043 | [Pad the decision ids to three digits before the repo goes public](done/043-pad-decision-ids-to-three-digits.md) | 2026-10-19 |
 | 042 | [Cut the CI minutes: macOS tests on tags and manual runs](done/042-cut-ci-minutes.md) | 2026-10-19 |
 | 041 | [THIRD-PARTY-LICENSES.html in the macOS zip](done/041-third-party-licences-in-the-macos-zip.md) | 2026-10-19 |
-| 039 | [The commit hook's error messages cite D-010, not D-009](done/039-check-commit-messages-cite-d-10.md) | 2026-10-19 |
 
-_36 more in `done/`._
+_37 more in `done/`._
 
 ### Decisions
 

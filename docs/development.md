@@ -175,7 +175,8 @@ release goes like this:
 2. Tag the merge commit `v<version>` and push the tag; the release job takes the notes from the changelog (the
    new tag takes the *Unreleased* summary).
 3. Afterwards, `python -I scripts/changelog.py` stamps the section with the version and the tag's date; commit
-   it with the next change.
+   it with the next change. Until then `--check` reads the newest tag without a section as not there yet and
+   prints a notice, so the pull requests opened in between, dependabot's included, stay green.
 
 ```powershell
 python -I scripts/changelog.py                 # rewrite CHANGELOG.md

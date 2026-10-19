@@ -5,8 +5,9 @@ How changes reach `main`: the rules for every contributor, checked by a hook and
 ## For everyone
 
 - **Branch, pull request, squash merge.** Nothing is pushed to `main` directly. A branch becomes a pull request,
-  CI has to be green, and the pull request is squash-merged, so `main` stays linear with one commit per change.
-  The squash commit's message is the pull request title and description, so write both as a commit message.
+  CI has to be green (the ruleset on `main` requires `test (windows-latest)`, `lint`, `msrv`, `deny`,
+  `workflow-lint` and `commit-rules`), and the pull request is squash-merged, so `main` stays linear with one
+  commit per change. The squash commit's message is the pull request title and description, so write both as a commit message.
 - **Titles.** Commit subjects and pull request titles are imperative and start with a type: `feat:`, `fix:`,
   `docs:`, `ci:`, `chore:`, `tasks:`, `deps:` (dependabot).
 - **Trailers.** `Co-Authored-By:` lines are fine, including one for an AI assistant (`Co-Authored-By: Claude
@@ -18,7 +19,8 @@ How changes reach `main`: the rules for every contributor, checked by a hook and
   own.
 - **The hook.** Once per clone, `git config core.hooksPath .githooks` enables the `commit-msg` hook, which checks
   the rules above (`scripts/check-commit.sh`). The `commit-rules` CI job runs the same check over every pushed
-  commit and over the pull request text, so a skipped hook still fails the pull request.
+  commit and over the pull request text, whose title is held to the subject rule, and runs again when the title
+  or the description is edited, so a skipped hook still fails the pull request.
 - **Dependabot.** Its pull requests carry the `deps:` prefix and are squash-merged once CI is green.
 
 How the maintainer runs several sessions at once is in [maintainer-sessions.md](maintainer-sessions.md).

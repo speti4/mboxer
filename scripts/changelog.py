@@ -18,6 +18,10 @@ the summary under Unreleased; after the tag, a run stamps the section with the v
     python -I scripts/changelog.py --check             # exit 1 when CHANGELOG.md is out of date
     python -I scripts/changelog.py --notes 0.2.0 --out dist/release-notes-0.2.0.md
 
+Between a tag push and the commit that stamps its section, `--check` reads a newest tag that CHANGELOG.md has no
+`## <version>` heading for as not there yet, so its tasks are still checked under Unreleased and a pull request
+opened in that window stays green (task 056); a run without `--check` stamps it.
+
 `--notes` prints (or writes) one section as release notes, with a footer on the checksum and the licence file;
 scripts/release.ps1 calls it and the release job publishes the result. A version without a tag yet gets the
 Unreleased section (a dry run before the tag). Needs git with the tags (CI: a full-depth checkout) and nothing
@@ -28,6 +32,7 @@ from __future__ import annotations
 
 import argparse
 import importlib.util
+import os
 import re
 import subprocess
 import sys
@@ -163,12 +168,22 @@ def read_summaries(text: str) -> dict[str, str]:
 # --- the sections ---------------------------------------------------------------------------
 
 
-def build_sections() -> list[Section]:
-    """Newest first: Unreleased, then every release tag."""
+def unstamped_tags(tags: list[tuple[str, str]], summaries: dict[str, str]) -> tuple[list[tuple[str, str]], list[str]]:
+    """The tags without the newest ones CHANGELOG.md has no section for yet, and those versions. Only the newest
+    run counts: an older tag without its section is still an error for `--check`."""
+    kept = list(tags)
+    pending: list[str] = []
+    while kept and kept[-1][0] not in summaries:
+        pending.insert(0, kept.pop()[0])
+    return kept, pending
+
+
+def build_sections(tags: list[tuple[str, str]]) -> list[Section]:
+    """Newest first: Unreleased, then every release tag of `tags` (oldest first)."""
     done = load_done()
     claimed: set[str] = set()
     sections: list[Section] = []
-    for version, date in release_tags():
+    for version, date in tags:
         keys = keys_at(version) - claimed
         claimed |= keys
         missing = sorted(keys - done.keys())
@@ -286,8 +301,16 @@ def main() -> int:
 
     url = repo_url()
     current = CHANGELOG.read_text(encoding="utf-8") if CHANGELOG.is_file() else ""
-    sections = build_sections()
-    attach_summaries(sections, read_summaries(current))
+    summaries = read_summaries(current)
+    tags = release_tags()
+    if args.check:
+        tags, pending = unstamped_tags(tags, summaries)
+        notice = "::notice::" if os.environ.get("GITHUB_ACTIONS") == "true" else "notice: "
+        for version in pending:
+            print(f"{notice}v{version} has no section in CHANGELOG.md yet; its tasks are checked under Unreleased"
+                  " until `python -I scripts/changelog.py` stamps it")
+    sections = build_sections(tags)
+    attach_summaries(sections, summaries)
 
     if args.notes is not None:
         version = args.notes.removeprefix("v")
