@@ -13,7 +13,7 @@ edit the file, never the issue. Everything here is English.
 <!-- tasks:index:start -->
 _Generated 2026-10-19 — edit the files, not this section._
 
-**State:** 9 backlog (4 ready · 0 blocked · 2 waiting · 3 ideas) · 0 in progress · 55 done · 2 dropped · 13 decisions
+**State:** 8 backlog (3 ready · 0 blocked · 2 waiting · 3 ideas) · 0 in progress · 56 done · 2 dropped · 13 decisions
 
 ### Ready
 
@@ -23,7 +23,6 @@ _Generated 2026-10-19 — edit the files, not this section._
 |---|---|---|---|
 | 051 | [set_query takes its generation before the files lock, and the sync commands blo…](backlog/051-query-generation-race-and-sync-commands-on-the-files-lock.md) | M | 2026-10-19 |
 | 055 | [The usage guide says what the viewer does](backlog/055-usage-guide-matches-the-viewer.md) | S | 2026-10-19 |
-| 059 | [Refresh the README screenshot and the social preview over the demo mbox](backlog/059-refresh-the-screenshots-over-the-demo-mbox.md) | S | 2026-10-19 |
 | 064 | [Manual round over a large archive after the hardening wave: rebuild under an op…](backlog/064-manual-round-over-a-large-archive-after-the-hardening-wave.md) | S | 2026-10-19 |
 
 ### Needs decision
@@ -71,6 +70,7 @@ _none_
 |---|---|---|
 | 066 | [The plan: field is none in every task file, the rule is written down](done/066-plan-field-policy-for-prompt-derived-names.md) | 2026-10-19 |
 | 062 | [The commit-rule wording names the scope form, the CI header gives the runner-ti…](done/062-commit-rule-wording-ci-header-and-lint-entry.md) | 2026-10-19 |
+| 059 | [Refresh the README screenshot and the social preview over the demo mbox](done/059-refresh-the-screenshots-over-the-demo-mbox.md) | 2026-10-19 |
 | 058 | [Task files: dead origin paths, plan slugs, and who closes a milestone](done/058-dead-task-references-plan-slugs-and-milestone-closing.md) | 2026-10-19 |
 | 057 | [CONTRIBUTING's pre-commit list matches CI, and the private-era wording goes](done/057-contributing-checks-match-ci-and-private-era-leftovers.md) | 2026-10-19 |
 | 056 | [The commit hook checks the type prefix, and the required checks hold after a re…](done/056-commit-hook-checks-the-type-and-ci-re-checks-edited-pull-requests.md) | 2026-10-19 |
@@ -78,9 +78,8 @@ _none_
 | 053 | [Attachment and reader hardening: blocked extensions, reserved names, referrer, …](done/053-attachment-and-reader-hardening.md) | 2026-10-19 |
 | 052 | [Swap the index atomically, lock the build, and skip a bad message instead of fa…](done/052-atomic-index-swap-build-lock-and-skipped-messages.md) | 2026-10-19 |
 | 050 | [A colon in free text is read as a field name, so Re: számla finds nothing](done/050-colon-in-free-text-reaches-the-query-parser.md) | 2026-10-19 |
-| 049 | [The label tree panics on a label whose ninth byte is inside a multibyte charact…](done/049-label-tree-panics-on-a-multibyte-boundary.md) | 2026-10-19 |
 
-_45 more in `done/`._
+_46 more in `done/`._
 
 ### Decisions
 
