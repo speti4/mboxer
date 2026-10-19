@@ -13,7 +13,7 @@ file, never the issue.
 <!-- tasks:index:start -->
 _Generated 2026-10-19 — edit the files, not this section._
 
-**State:** 8 backlog (5 ready · 0 blocked · 1 waiting · 2 ideas) · 0 in progress · 31 done · 0 dropped · 12 decisions
+**State:** 9 backlog (5 ready · 0 blocked · 2 waiting · 2 ideas) · 0 in progress · 32 done · 0 dropped · 12 decisions
 
 ### Ready
 
@@ -21,9 +21,9 @@ _Generated 2026-10-19 — edit the files, not this section._
 
 | # | Task | Size | Created |
 |---|---|---|---|
-| 018 | [macOS build, .app bundle and CI](backlog/018-macos-build-bundle-and-ci.md) | M | 2026-10-18 |
 | 019 | [macOS runtime differences: index home, quarantine, Finder open, UI keys and fon…](backlog/019-macos-runtime-differences.md) | S | 2026-10-18 |
 | 020 | [Print on macOS through a second webview window](backlog/020-macos-print-second-webview-window.md) | M | 2026-10-18 |
+| 041 | [THIRD-PARTY-LICENSES.html in the macOS zip](backlog/041-third-party-licences-in-the-macos-zip.md) | S | 2026-10-19 |
 
 #### M5 Public release
 
@@ -37,6 +37,12 @@ _Generated 2026-10-19 — edit the files, not this section._
 _none_
 
 ### Waiting on
+
+#### M4 macOS
+
+| # | Task | Waits for | Size | Created |
+|---|---|---|---|---|
+| 040 | [Manual round on a Mac: the bundle starts and the 019 runtime paths work](backlog/040-manual-round-on-a-mac.md) | a Mac user with the macOS zip from a `bundle-macos` run (the author has no Mac) | S | 2026-10-19 |
 
 #### M5 Public release
 
@@ -72,6 +78,7 @@ _none_
 |---|---|---|
 | 038 | [README links the changelog next to the releases](done/038-readme-links-the-changelog.md) | 2026-10-19 |
 | 036 | [Git workflow doc: current decision reference, the deps type, the expected index…](done/036-git-workflow-references-and-commit-types.md) | 2026-10-19 |
+| 018 | [macOS build, .app bundle and CI](done/018-macos-build-bundle-and-ci.md) | 2026-10-19 |
 | 035 | [CLAUDE.md fit for a public repo: no personal settings, no contradictions, a com…](done/035-claude-md-review-before-publication.md) | 2026-10-18 |
 | 034 | [Git workflow policy for contributors and parallel sessions, with the commit rul…](done/034-git-workflow-policy-and-commit-hooks.md) | 2026-10-18 |
 | 033 | [Install the Rust toolchain in CI without a third-party action](done/033-install-the-toolchain-without-a-third-party-action.md) | 2026-10-18 |
@@ -79,9 +86,8 @@ _none_
 | 030 | [Scrub the repo and rewrite the history per D-09](done/030-scrub-and-rewrite-history-per-d-09.md) | 2026-10-18 |
 | 027 | [Pre-publish audit of the history and the content](done/027-pre-publish-history-and-content-audit.md) | 2026-10-18 |
 | 026 | [README as a front page, the reference moved into docs](done/026-readme-front-page.md) | 2026-10-18 |
-| 025 | [Release notes and changelog from the task files, checksums and third-party lice…](done/025-release-notes-changelog-and-checksums.md) | 2026-10-18 |
 
-_21 more in `done/`._
+_22 more in `done/`._
 
 ### Decisions
 
