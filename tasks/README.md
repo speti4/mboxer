@@ -13,7 +13,7 @@ edit the file, never the issue. Everything here is English.
 <!-- tasks:index:start -->
 _Generated 2026-10-19 — edit the files, not this section._
 
-**State:** 15 backlog (11 ready · 0 blocked · 2 waiting · 2 ideas) · 0 in progress · 45 done · 1 dropped · 13 decisions
+**State:** 14 backlog (10 ready · 0 blocked · 2 waiting · 2 ideas) · 1 in progress · 45 done · 1 dropped · 13 decisions
 
 ### Ready
 
@@ -21,7 +21,6 @@ _Generated 2026-10-19 — edit the files, not this section._
 
 | # | Task | Size | Created |
 |---|---|---|---|
-| 049 | [The label tree panics on a label whose ninth byte is inside a multibyte charact…](backlog/049-label-tree-panics-on-a-multibyte-boundary.md) | S | 2026-10-19 |
 | 050 | [A colon in free text is read as a field name, so Re: számla finds nothing](backlog/050-colon-in-free-text-reaches-the-query-parser.md) | M | 2026-10-19 |
 | 051 | [set_query takes its generation before the files lock, and the sync commands blo…](backlog/051-query-generation-race-and-sync-commands-on-the-files-lock.md) | M | 2026-10-19 |
 | 052 | [Swap the index atomically, lock the build, and skip a bad message instead of fa…](backlog/052-atomic-index-swap-build-lock-and-skipped-messages.md) | M | 2026-10-19 |
@@ -62,7 +61,11 @@ _none_
 
 ### In progress
 
-_none_
+#### M6 Hardening
+
+| # | Task | Started | Plan |
+|---|---|---|---|
+| 049 | [The label tree panics on a label whose ninth byte is inside a multibyte charact…](wip/049-label-tree-panics-on-a-multibyte-boundary.md) | 2026-10-19 | `reviewold-a-repo-jelenlegi-fancy-kite.md` |
 
 ### Closed – do not reopen
 
