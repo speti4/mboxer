@@ -13,7 +13,7 @@ edit the file, never the issue. Everything here is English.
 <!-- tasks:index:start -->
 _Generated 2026-10-19 — edit the files, not this section._
 
-**State:** 12 backlog (5 ready · 0 blocked · 2 waiting · 5 ideas) · 0 in progress · 53 done · 1 dropped · 13 decisions
+**State:** 10 backlog (5 ready · 0 blocked · 2 waiting · 3 ideas) · 0 in progress · 54 done · 2 dropped · 13 decisions
 
 ### Ready
 
@@ -53,9 +53,7 @@ _none_
 |---|---|---|---|
 | 060 | [Index quality follow-ups: token length, completions, nested parts, limits, mult…](backlog/060-index-quality-follow-ups-from-the-review.md) | M | 2026-10-19 |
 | 061 | [Small hygiene follow-ups: toolchain pin, ignores, arguments, cancel, logs, dupl…](backlog/061-small-hygiene-follow-ups-from-the-review.md) | S | 2026-10-19 |
-| 063 | [Free-text follow-ups: the tantivy exclusion assertion, the empty warnings, the …](backlog/063-free-text-follow-ups-tantivy-assertion-warnings-and-highlight.md) | S | 2026-10-19 |
-| 065 | [Show the skipped messages in the viewer, not only their count](backlog/065-show-the-skipped-messages-in-the-viewer.md) | S | 2026-10-19 |
-| 066 | [Decide what the plan: field carries and whether closed files are rewritten](backlog/066-plan-field-policy-for-prompt-derived-names.md) | S | 2026-10-19 |
+| 063 | [Free-text follow-ups: the highlight split and the tantivy exclusion assertion](backlog/063-free-text-follow-ups-tantivy-assertion-warnings-and-highlight.md) | S | 2026-10-19 |
 
 ### In progress
 
@@ -65,12 +63,14 @@ _none_
 
 | # | Task | Closed | Reason | Reopen when |
 |---|---|---|---|---|
+| 065 | [Show the skipped messages in the viewer, not only their count](dropped/065-show-the-skipped-messages-in-the-viewer.md) | 2026-10-19 | Gmail caps a message near 50 MB, so a Takeout export never reaches the 256 MB skip limit; the skip of task 052 is a safeguard that no real archive triggers, and a list of skipped messages would stay empty | a real archive reports a skipped message in the status line |
 | 031 | [Native title bar stays dark when the Light override runs under dark-mode Windows](dropped/031-title-bar-stays-dark-under-light-override.md) | 2026-10-19 | rare and cosmetic; the next theme switch always draws the right title bar, so a fix is not worth its cost (decided 2026-10-19) | a user reports it, or tao changes how set_theme repaints the Windows title bar |
 
 ### Recently done
 
 | # | Task | Closed |
 |---|---|---|
+| 066 | [The plan: field is none in every task file, the rule is written down](done/066-plan-field-policy-for-prompt-derived-names.md) | 2026-10-19 |
 | 062 | [The commit-rule wording names the scope form, the CI header gives the runner-ti…](done/062-commit-rule-wording-ci-header-and-lint-entry.md) | 2026-10-19 |
 | 058 | [Task files: dead origin paths, plan slugs, and who closes a milestone](done/058-dead-task-references-plan-slugs-and-milestone-closing.md) | 2026-10-19 |
 | 057 | [CONTRIBUTING's pre-commit list matches CI, and the private-era wording goes](done/057-contributing-checks-match-ci-and-private-era-leftovers.md) | 2026-10-19 |
@@ -80,9 +80,8 @@ _none_
 | 050 | [A colon in free text is read as a field name, so Re: számla finds nothing](done/050-colon-in-free-text-reaches-the-query-parser.md) | 2026-10-19 |
 | 049 | [The label tree panics on a label whose ninth byte is inside a multibyte charact…](done/049-label-tree-panics-on-a-multibyte-boundary.md) | 2026-10-19 |
 | 048 | [The usage guide in the zips in a format that opens with a double-click](done/048-usage-guide-readable-in-the-zip.md) | 2026-10-19 |
-| 047 | [Keep project housekeeping apart from user-facing changes in the changelog](done/047-housekeeping-tasks-in-the-changelog.md) | 2026-10-19 |
 
-_43 more in `done/`._
+_44 more in `done/`._
 
 ### Decisions
 
