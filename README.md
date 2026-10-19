@@ -28,7 +28,9 @@ second, one exe, nothing to install.
 ## Download and start
 
 1. Download `mboxer-<version>.zip` from the [latest release](https://github.com/speti4/mboxer/releases/latest)
-   and unzip it anywhere.
+   and unzip it anywhere; [CHANGELOG.md](CHANGELOG.md) says what each release changed. To check the download,
+   compare `(Get-FileHash mboxer-<version>.zip).Hash` in PowerShell with the value in `SHA256SUMS.txt` from the
+   same release.
 2. Start `mboxer.exe`. The exe is not code-signed, so SmartScreen may warn on the first start: *More info*,
    then *Run anyway*.
 3. *Open* (`Ctrl+O`) your Takeout `.mbox` file and wait for the first index build.
@@ -51,6 +53,8 @@ target\release\mboxer.exe [file.mbox]
 - [Usage guide](docs/usage.md): for the people who only run it
 - [Reference](docs/reference.md): the viewer, the search syntax, the index and the CLI
 - [Development](docs/development.md): layout, CI, releases and helper scripts
+- [Changelog](CHANGELOG.md): every release and the tasks it closed, with the zips and checksums on the
+  [releases page](https://github.com/speti4/mboxer/releases)
 - [Contributing](CONTRIBUTING.md) and the [security policy](SECURITY.md)
 - [Why mboxer exists](docs/origin.md), [the alternatives it was measured against](docs/research/),
   [benchmarks](docs/benchmarks/)
