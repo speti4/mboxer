@@ -80,6 +80,10 @@ moves its copies under their own sub-folder.
 - 2026-10-19, lock release across processes: after the test run, the folder the test binary had claimed under
   `<temp>/mboxer/attachments/` was probed from a separate PowerShell process: the pid no longer ran, and a byte
   lock on its `.lock` file was granted, so a later start removes it. The viewer itself was not started.
+- 2026-10-19, after rebasing onto task 052 (whose build locks live inside the index home, which the clean-up
+  leaves alone): `cargo fmt --all --check`, `cargo clippy --all-targets --locked -- -D warnings`, `cargo test
+  --locked`, `python -I scripts/changelog.py --check` and `python -I scripts/render-usage-guide.py --check` green
+  again.
 
 ## Closing checklist
 
