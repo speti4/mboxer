@@ -49,7 +49,8 @@ capability: it runs no script.
 `.github/workflows/ci.yml` runs five jobs on every push to `main` and every pull request: `test` (windows-latest:
 `cargo clippy --all-targets --locked -- -D warnings`, `cargo test --locked`), `lint` (ubuntu: `cargo fmt --check`,
 `cargo clippy --target aarch64-apple-darwin --all-targets --locked -- -D warnings`, which compiles the macOS-only
-code without a Mac, and `scripts/changelog.py --check`, skipped on a tag; see [The changelog](#the-changelog)),
+code without a Mac, `scripts/changelog.py --check`, skipped on a tag (see [The changelog](#the-changelog)), and
+`scripts/render-usage-guide.py --check`, which renders the usage guide the release zips carry),
 `msrv` (ubuntu: `cargo check` for the macOS target with the toolchain that `rust-version` in `Cargo.toml` names,
 so nothing newer than the declared minimum slips in), `deny` (`cargo deny check` against
 `deny.toml` for the Windows and the two macOS targets: licences from the allowlist, no RustSec advisory or yanked
