@@ -5,14 +5,16 @@ The full behaviour of the viewer and the command line. For a first start, read t
 
 ## The viewer
 
-`mboxer.exe` (or `cargo run -p mboxer-app -- [file.mbox]` during development) opens an mbox through a file
-dialog or from its first argument. It builds the sidecar index on the first open, with progress and a cancel
+`mboxer.exe` on Windows, `mboxer.app` on macOS (or `cargo run -p mboxer-app -- [file.mbox]` during development)
+opens an mbox through a file dialog or from its first argument; on macOS also from Finder's *Open With* and a
+drop on the Dock icon. It builds the sidecar index on the first open, with progress and a cancel
 button, and reuses it afterwards. Then it shows the archive in three panes: the Gmail label tree with counts,
 the message list, and a reader with the headers and the body. The list shows the newest messages first and is
 virtualised, so a 100 000-message archive scrolls like a short one.
 
 Several mbox files can be open side by side (a split Takeout export, more than one export). Each is a row at
-the top of the folder pane, one is active at a time, and the open set is remembered across starts (D-006).
+the top of the folder pane, one is active at a time, and the open set is remembered across starts
+([D-006](../tasks/decisions/D-006-several-files-open-one-active-no-merged-view.md)).
 
 ### Labels
 
@@ -52,11 +54,14 @@ until it is closed.
 
 A strip under the headers lists the attachments: name, size, and an `inline` tag on images that belong to the
 HTML body. A click on a chip decodes the attachment from the mbox into a temporary file under `%TEMP%\mboxer\`
-and opens it with the default application. *Save…* asks where to put it, and *Save all…* writes every
-attachment of the message into a folder without overwriting (`name (2).ext`). Executable attachments (`.exe`,
-`.bat`, `.ps1`, `.js`, `.lnk` and the like) can only be saved. Every written file carries the Mark of the Web,
-so Office opens it in Protected View, as with a file downloaded from a mail client; the temporary copies are
-removed at the next start. Inline images referenced by `cid:` are shown inside the HTML body; text attachments
+(on a Mac `$TMPDIR/mboxer/`) and opens it with the default application. *Save…* asks where to put it, and *Save
+all…* writes every attachment of the message into a folder without overwriting (`name (2).ext`). Attachments
+that the system would run instead of open can only be saved: on Windows `.exe`, `.bat`, `.ps1`, `.js`, `.lnk`
+and the like, on a Mac `.app`, `.command`, `.pkg`, `.dmg`, `.sh`, AppleScript, Automator and internet-location
+files; one list covers both systems, since an attachment is as dangerous on the machine it is forwarded to.
+Every written file is marked as downloaded from the internet, as a mail client marks it: the Mark of the Web on
+Windows, so Office opens it in Protected View, and the `com.apple.quarantine` attribute on a Mac, so Gatekeeper
+checks it before it opens. The temporary copies are removed at the next start. Inline images referenced by `cid:` are shown inside the HTML body; text attachments
 (csv, ics) are saved byte for byte in their original charset.
 
 ### Search
@@ -97,7 +102,7 @@ the result, and *Clear* or `Esc` in the field empties the whole query, label inc
 | `Enter` in the list | focus the reader; `Esc` returns |
 | `Ctrl+S`, `Ctrl+P` | save the message as `.eml`, print it |
 
-On a Mac `⌘` stands for `Ctrl` (the handler takes either key; the tooltips say `⌘`).
+On a Mac `⌘` stands for `Ctrl`: both keys work, and the tooltips show `⌘`.
 
 ### Theme
 
@@ -108,13 +113,16 @@ HTML mail is designed for one.
 ## The index
 
 The index is a cache in `.mboxer\<file name>\` next to the mbox; delete it any time. It is rebuilt whole when
-it no longer matches the file (D-004). When that folder is not writable (a read-only share, a DVD), the index
-goes under `%LOCALAPPDATA%\mboxer\index\` (on a Mac `~/Library/Application Support/mboxer/index/`; D-005);
+it no longer matches the file ([D-004](../tasks/decisions/D-004-sidecar-index-location-and-freshness.md)). When
+that folder is not writable (a read-only share, a DVD), the index goes under `%LOCALAPPDATA%\mboxer\index\` (on
+a Mac `~/Library/Application Support/mboxer/index/`;
+[D-005](../tasks/decisions/D-005-index-fallback-under-localappdata.md));
 `MBOXER_INDEX_HOME` overrides that root, and every open looks in both places. Accents and case are folded on both the index and the query side, so `szamla` finds `Számla`.
 
 ## The command line
 
-`mboxer-cli.exe` works on the same file and the same index, without a window.
+`mboxer-cli` (`mboxer-cli.exe` on Windows) works on the same file and the same index, without a window. It is a
+developer tool and not part of the release zips: build it with `cargo build --release -p mboxer-cli`.
 
 ```powershell
 mboxer-cli scan <file.mbox> [--sample 3] [--limit N] [--quiet]
