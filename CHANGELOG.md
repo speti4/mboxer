@@ -23,6 +23,7 @@ The first public release, and the first with a macOS build: `mboxer-<version>-ma
 - Release notes and changelog from the task files, checksums and third-party licences ([025](https://github.com/speti4/mboxer/blob/main/tasks/done/025-release-notes-changelog-and-checksums.md))
 - README as a front page, the reference moved into docs ([026](https://github.com/speti4/mboxer/blob/main/tasks/done/026-readme-front-page.md))
 - Date column misaligned between conversation rows and plain rows in the list ([032](https://github.com/speti4/mboxer/blob/main/tasks/done/032-list-date-column-alignment-in-conversation-view.md))
+- macOS in the user docs, the security policy and the bug report form ([044](https://github.com/speti4/mboxer/blob/main/tasks/done/044-macos-in-the-user-docs.md))
 
 ### Project housekeeping
 
