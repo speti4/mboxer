@@ -13,7 +13,7 @@ file, never the issue.
 <!-- tasks:index:start -->
 _Generated 2026-10-19 — edit the files, not this section._
 
-**State:** 8 backlog (4 ready · 0 blocked · 2 waiting · 2 ideas) · 0 in progress · 34 done · 0 dropped · 12 decisions
+**State:** 7 backlog (3 ready · 0 blocked · 2 waiting · 2 ideas) · 0 in progress · 35 done · 0 dropped · 12 decisions
 
 ### Ready
 
@@ -29,7 +29,6 @@ _Generated 2026-10-19 — edit the files, not this section._
 | # | Task | Size | Created |
 |---|---|---|---|
 | 037 | [Refresh the README screenshot after the date column fix](backlog/037-refresh-the-viewer-screenshot.md) | S | 2026-10-18 |
-| 039 | [The commit hook's error messages cite D-10, not D-09](backlog/039-check-commit-messages-cite-d-10.md) | S | 2026-10-19 |
 
 ### Needs decision
 
@@ -76,6 +75,7 @@ _none_
 | # | Task | Closed |
 |---|---|---|
 | 042 | [Cut the CI minutes: macOS tests on tags and manual runs](done/042-cut-ci-minutes.md) | 2026-10-19 |
+| 039 | [The commit hook's error messages cite D-10, not D-09](done/039-check-commit-messages-cite-d-10.md) | 2026-10-19 |
 | 038 | [README links the changelog next to the releases](done/038-readme-links-the-changelog.md) | 2026-10-19 |
 | 036 | [Git workflow doc: current decision reference, the deps type, the expected index…](done/036-git-workflow-references-and-commit-types.md) | 2026-10-19 |
 | 019 | [macOS runtime differences: index home, quarantine, Finder open, UI keys and fon…](done/019-macos-runtime-differences.md) | 2026-10-19 |
@@ -84,9 +84,8 @@ _none_
 | 034 | [Git workflow policy for contributors and parallel sessions, with the commit rul…](done/034-git-workflow-policy-and-commit-hooks.md) | 2026-10-18 |
 | 033 | [Install the Rust toolchain in CI without a third-party action](done/033-install-the-toolchain-without-a-third-party-action.md) | 2026-10-18 |
 | 032 | [Date column misaligned between conversation rows and plain rows in the list](done/032-list-date-column-alignment-in-conversation-view.md) | 2026-10-18 |
-| 030 | [Scrub the repo and rewrite the history per D-09](done/030-scrub-and-rewrite-history-per-d-09.md) | 2026-10-18 |
 
-_24 more in `done/`._
+_25 more in `done/`._
 
 ### Decisions
 
