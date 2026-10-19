@@ -4,7 +4,7 @@ origin: wip/057-contributing-checks-match-ci-and-private-era-leftovers.md
 created: 2026-10-19
 started: 2026-10-19
 closed: 2026-10-19
-plan: reviewold-a-repo-jelenlegi-fancy-kite.md
+plan: none
 milestone: M6 Hardening
 changelog: housekeeping
 ---
