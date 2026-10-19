@@ -7,6 +7,14 @@ not the list. The summary under a heading is written by hand and kept by the gen
 
 ## Unreleased
 
+<!-- The summary above is written by hand; the list below is generated from tasks/done/ by scripts/changelog.py. -->
+
+### Project housekeeping
+
+- Publication day: visibility switch and the public-only repo settings ([028](https://github.com/speti4/mboxer/blob/main/tasks/done/028-publication-day-repo-settings.md))
+
+## 0.2.0 — 2026-10-19
+
 The first public release, and the first with a macOS build: `mboxer-<version>-macos.zip` holds a universal `mboxer.app`, ad-hoc signed and not notarized, so macOS asks once under *System Settings → Privacy & Security → Open Anyway*. The macOS build is a preview that has not yet been tested on a Mac. Both zips come with a build provenance attestation (`gh attestation verify <zip> --repo speti4/mboxer`).
 
 <!-- The summary above is written by hand; the list below is generated from tasks/done/ by scripts/changelog.py. -->

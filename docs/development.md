@@ -50,7 +50,7 @@ capability: it runs no script.
 `cargo clippy --target aarch64-apple-darwin --all-targets --locked -- -D warnings`, which compiles the macOS-only
 code without a Mac, and `scripts/changelog.py --check`, skipped on a tag; see [The changelog](#the-changelog)),
 `msrv` (ubuntu: `cargo check` for the macOS target with the toolchain that `rust-version` in `Cargo.toml` names,
-so nothing newer than the declared minimum slips in; not a required check), `deny` (`cargo deny check` against
+so nothing newer than the declared minimum slips in), `deny` (`cargo deny check` against
 `deny.toml` for the Windows and the two macOS targets: licences from the allowlist, no RustSec advisory or yanked
 crate, crates.io as the only source, D-011; and `about.toml` accepts the same licences) and `workflow-lint`
 (zizmor over the workflows and `dependabot.yml`; a finding accepted on purpose is listed with its reason in
@@ -65,7 +65,7 @@ fails the build instead of being rewritten.
 
 CodeQL runs as GitHub's default setup (Rust, JavaScript/TypeScript, Python, Actions), managed in the repository
 settings, not as a workflow file. A ruleset protects `main`: changes arrive through a pull request with squash merge only,
-the checks `test (windows-latest)`, `lint`, `deny`, `workflow-lint` and `commit-rules` must pass, the history
+the checks `test (windows-latest)`, `lint`, `msrv`, `deny`, `workflow-lint` and `commit-rules` must pass, the history
 stays linear, and force pushes and deletion are blocked. Another ruleset keeps `v*` tags from being moved or
 deleted.
 The Rust toolchain comes from the runner's own rustup, which installs the channel and the components that
