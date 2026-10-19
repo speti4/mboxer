@@ -762,7 +762,7 @@ fn the_word_being_typed_matches_as_a_prefix_when_asked() {
     };
     assert_eq!(hits(&from("ann", false)), 0);
     assert_eq!(hits(&from("ann", true)), 1);
-    assert_eq!(hits(&from("pet", true)), 1);
+    assert_eq!(hits(&from("gab", true)), 1);
     assert_eq!(hits(&from("zzz", true)), 0);
 
     // The listing behind the viewer goes through the same clause.

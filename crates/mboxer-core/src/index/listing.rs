@@ -1,4 +1,4 @@
-//! A full, sorted result set for a virtualised list, optionally grouped by
+//! A full, sorted result set for a virtualized list, optionally grouped by
 //! Gmail thread.
 //!
 //! [`MboxIndex::search`] serves one page per call, which is right for a CLI but

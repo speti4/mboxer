@@ -44,7 +44,7 @@ pub struct Fields {
     pub from: Field,
     pub to: Field,
     pub cc: Field,
-    /// Bare lower-cased addresses for exact filters and counts.
+    /// Bare lower-cased addresses, written for exact filters and counts; no query reads them yet.
     pub from_addr: Field,
     pub to_addr: Field,
     pub subject: Field,

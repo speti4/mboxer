@@ -71,7 +71,7 @@ pub fn open_from_system(app: &AppHandle, urls: &[tauri::Url]) {
     }
 }
 
-/// The version of the exe (the workspace `Cargo.toml`, stamped by `tauri-build`).
+/// The app's version (the workspace `Cargo.toml`, stamped by `tauri-build`).
 #[tauri::command]
 pub fn app_version(app: AppHandle) -> String {
     app.package_info().version.to_string()

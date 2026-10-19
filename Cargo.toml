@@ -16,31 +16,32 @@ publish = false
 mboxer-core = { path = "crates/mboxer-core" }
 # RFC 5322 + MIME parsing, 41 charsets (ISO-8859-2, windows-1250), RFC 2047/2231 — see task 002 / D-002.
 mail-parser = "0.11"
-# Subcommands and flags grow in task 004 (index, search) — see task 002 / D-002.
+# Argument parsing for mboxer-cli (derive): subcommands, flags, help — see task 002 / D-002.
 clap = { version = "4.5", features = ["derive"] }
 # Inverted index, tokenizer chain (accent folding), fast fields, mmap reopen — see task 003 / D-002, D-004.
 # zstd left out: it compiles C; lz4_flex is pure Rust.
 tantivy = { version = "0.27", default-features = false, features = ["mmap", "lz4-compression"] }
-# The sidecar's `mboxer.json` (fingerprint, format version); both already in the build through tantivy.
+# The sidecar's `mboxer.json` (fingerprint, format version) and the app's IPC types; both already in the build
+# through tantivy.
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 # Test indexes in a temporary directory; already in the build through tantivy's `mmap` feature.
 tempfile = "3"
-# The WebView2 window, IPC, async runtime and asset embedding of the D-002 shell: one portable exe,
-# nothing to install (WebView2 ships with Windows 11) — see task 005.
-tauri = { version = "2", features = [] }
+# The window, IPC, async runtime and asset embedding of the D-002 shell, on the system web view (WebView2 on
+# Windows 11, WKWebView on macOS): one portable exe or app, nothing to install — see tasks 005, 018.
+tauri = "2"
 # Build script: Windows icon/version resource, app manifest (Common Controls v6 for the native
 # dialog) and capability schemas — see task 005.
-tauri-build = { version = "2", features = [] }
-# The native Windows open-file dialog, called from Rust (`blocking_pick_file`) — see task 005.
+tauri-build = "2"
+# The native open and save dialogs (Windows and macOS), called from Rust — see task 005.
 tauri-plugin-dialog = "2"
 # Links in a message body open in the system's default browser / mail client (`open_url`, called
 # from Rust, so no capability entry); task 008 opens attachments with `open_path` — see task 007.
 tauri-plugin-opener = "2"
 
-# The portable exe (task 012): fat LTO and one codegen unit for size and speed, symbols
-# stripped. Panics keep unwinding: a panicking command returns an error instead of taking the
-# window down.
+# The release builds, the Windows exe and the macOS app (tasks 012, 018): fat LTO and one codegen
+# unit for size and speed, symbols stripped. Panics keep unwinding: a panicking command returns an
+# error instead of taking the window down.
 [profile.release]
 opt-level = 3
 lto = "fat"

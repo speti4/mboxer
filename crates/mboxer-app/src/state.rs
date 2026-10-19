@@ -33,7 +33,7 @@ pub struct AppState {
     pub busy: AtomicBool,
     /// Bumped on every open and query change; stamps every page of rows.
     pub generation: AtomicU64,
-    /// Where the last attachment was saved; the next save dialog starts there.
+    /// Where the last attachment or message was saved; the next save dialog starts there.
     pub last_save_dir: Mutex<Option<PathBuf>>,
     /// Files the system asked the app to open before the webview was ready for them.
     pub system_opens: Mutex<SystemOpens>,
@@ -204,7 +204,7 @@ impl OpenFiles {
 }
 
 /// The canonical form for telling two spellings of one path apart; a path
-/// that cannot be canonicalised (gone, no rights) is compared as written.
+/// that cannot be canonicalized (gone, no rights) is compared as written.
 fn canonical(path: &Path) -> PathBuf {
     fs::canonicalize(path).unwrap_or_else(|_| path.to_path_buf())
 }
@@ -389,7 +389,7 @@ mod tests {
             .date
             .expect("the fixture's first message has a date");
 
-        // Body word (accent-folded) + sender word + a one-day window around its date.
+        // Body word (accent-folded) + sender word + a two-hour window around its date.
         let narrow = SearchQuery {
             text: Some("szamla".to_owned()),
             from: Some("anna".to_owned()),
@@ -401,7 +401,7 @@ mod tests {
         assert_eq!(open.listing.len(), 1);
         assert_eq!(open.listing.rows(0, 1).unwrap()[0].hit.offset, 0);
 
-        // The same window with a sender that is not there: nothing.
+        // The same words with a sender that is not there: nothing.
         let wrong_sender = SearchQuery {
             text: Some("szamla".to_owned()),
             from: Some("nobody".to_owned()),

@@ -408,7 +408,7 @@ body:not([data-view="ready"]) .panes {
   white-space: nowrap;
 }
 
-/* Virtualised message list */
+/* Virtualized message list */
 
 #list {
   position: relative;

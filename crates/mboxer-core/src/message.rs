@@ -423,10 +423,10 @@ mod tests {
     #[test]
     fn html_to_plain_text_keeps_words_apart_around_inline_tags() {
         let text = html_to_plain_text(
-            "<p>Kedves P&eacute;ter,</p><p><b>Árajánlat</b> a gépre.</p><style>.x{}</style>",
+            "<p>Kedves G&aacute;bor,</p><p><b>Árajánlat</b> a gépre.</p><style>.x{}</style>",
         );
         let words: Vec<&str> = text.split_whitespace().collect();
-        assert_eq!(words, ["Kedves", "Péter,", "Árajánlat", "a", "gépre."]);
+        assert_eq!(words, ["Kedves", "Gábor,", "Árajánlat", "a", "gépre."]);
     }
 
     #[test]

@@ -175,7 +175,7 @@ fn gmail_crlf_nested_mime_is_fully_decoded() {
     let s2 = summarize(&messages[1], &m2);
     assert_eq!(s2.gmail_thread_id, Some(9876543210987654321));
     assert_eq!(s2.labels, ["Sent", "Opened"]);
-    assert_eq!(s2.from[0].name.as_deref(), Some("Péter"));
+    assert_eq!(s2.from[0].name.as_deref(), Some("Gábor"));
     assert!(!s2.has_attachment);
     assert!(s2.attachment_names.is_empty());
     let texts2 = text_parts(&m2);
@@ -190,7 +190,7 @@ fn hungarian_legacy_charsets_decode() {
     let m = parse(&messages[0]).unwrap();
     let s = summarize(&messages[0], &m);
     assert_eq!(s.subject.as_deref(), Some("Számla árvíztűrő"));
-    assert_eq!(s.from[0].name.as_deref(), Some("Péter Szabó"));
+    assert_eq!(s.from[0].name.as_deref(), Some("Gábor Szabó"));
     assert_eq!(s.to[0].name.as_deref(), Some("Anna Példa"));
     let texts = text_parts(&m);
     assert_eq!(texts[0].text.trim(), "árvíztűrő tükörfúrógép");

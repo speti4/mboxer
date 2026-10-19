@@ -1,6 +1,6 @@
 //! Recognition of mbox envelope lines.
 //!
-//! An envelope line separates messages in an mbox file. It is recognised by shape
+//! An envelope line separates messages in an mbox file. It is recognized by shape
 //! rather than by a producer-specific pattern, so Gmail Takeout
 //! (`From 1234@xxx Tue Jan 13 06:30:04 +0000 2026`), classic Unix mbox
 //! (`From alice@example.com Mon Jan  5 09:00:00 2026`) and Thunderbird

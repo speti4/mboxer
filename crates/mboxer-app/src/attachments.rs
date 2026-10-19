@@ -9,8 +9,8 @@ use std::path::{Path, PathBuf};
 
 use mboxer_core::{Attachment, attachments, parse, part_at, part_bytes, read_at};
 
-/// The longest file name written, in characters (Windows allows 255 bytes of
-/// path; the folder takes its share).
+/// The longest file name written, in characters: Windows allows 255 UTF-16 units per name and, by
+/// default, 260 per path, and the folder takes its share.
 const MAX_NAME_CHARS: usize = 150;
 
 /// Extensions Windows or macOS runs when "opened": those attachments are saved,
@@ -486,7 +486,7 @@ mod tests {
     }
 
     #[test]
-    fn temp_copies_go_under_their_own_folder_and_are_cleaned() {
+    fn temp_copies_go_under_their_own_folder() {
         let attachment = AttachmentBytes {
             file_name: "x.txt".to_owned(),
             content_type: "text/plain".to_owned(),

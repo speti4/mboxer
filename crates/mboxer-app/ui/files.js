@@ -13,7 +13,7 @@
   "use strict";
 
   const KEY = "mboxer.files";
-  // The single last path of the versions before 016; read once and folded in.
+  // The single last path that earlier builds kept; read once and folded in.
   const LEGACY_KEY = "mboxer.lastPath";
 
   // The OS the viewer runs on, from the navigator alone: "windows", "mac" or
@@ -74,7 +74,7 @@
     }
 
     // The remembered files; nothing, garbage or a blocked storage gives an empty
-    // value. A pre-016 `lastPath` becomes the one remembered (and active) file
+    // value. An older `lastPath` becomes the one remembered (and active) file
     // and is removed, so it is folded in exactly once.
     function read(storage = root.localStorage) {
       try {
