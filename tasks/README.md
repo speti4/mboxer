@@ -13,7 +13,7 @@ edit the file, never the issue. Everything here is English.
 <!-- tasks:index:start -->
 _Generated 2026-10-19 — edit the files, not this section._
 
-**State:** 8 backlog (3 ready · 0 blocked · 2 waiting · 3 ideas) · 0 in progress · 56 done · 2 dropped · 13 decisions
+**State:** 7 backlog (2 ready · 0 blocked · 2 waiting · 3 ideas) · 0 in progress · 57 done · 2 dropped · 13 decisions
 
 ### Ready
 
@@ -22,7 +22,6 @@ _Generated 2026-10-19 — edit the files, not this section._
 | # | Task | Size | Created |
 |---|---|---|---|
 | 051 | [set_query takes its generation before the files lock, and the sync commands blo…](backlog/051-query-generation-race-and-sync-commands-on-the-files-lock.md) | M | 2026-10-19 |
-| 055 | [The usage guide says what the viewer does](backlog/055-usage-guide-matches-the-viewer.md) | S | 2026-10-19 |
 | 064 | [Manual round over a large archive after the hardening wave: rebuild under an op…](backlog/064-manual-round-over-a-large-archive-after-the-hardening-wave.md) | S | 2026-10-19 |
 
 ### Needs decision
@@ -74,12 +73,12 @@ _none_
 | 058 | [Task files: dead origin paths, plan slugs, and who closes a milestone](done/058-dead-task-references-plan-slugs-and-milestone-closing.md) | 2026-10-19 |
 | 057 | [CONTRIBUTING's pre-commit list matches CI, and the private-era wording goes](done/057-contributing-checks-match-ci-and-private-era-leftovers.md) | 2026-10-19 |
 | 056 | [The commit hook checks the type prefix, and the required checks hold after a re…](done/056-commit-hook-checks-the-type-and-ci-re-checks-edited-pull-requests.md) | 2026-10-19 |
+| 055 | [The usage guide says what the viewer does](done/055-usage-guide-matches-the-viewer.md) | 2026-10-19 |
 | 054 | [Keep the attachment copies and the index's last-resort home in separate temp fo…](done/054-temp-folder-split-between-attachments-and-the-index-fallback.md) | 2026-10-19 |
 | 053 | [Attachment and reader hardening: blocked extensions, reserved names, referrer, …](done/053-attachment-and-reader-hardening.md) | 2026-10-19 |
 | 052 | [Swap the index atomically, lock the build, and skip a bad message instead of fa…](done/052-atomic-index-swap-build-lock-and-skipped-messages.md) | 2026-10-19 |
-| 050 | [A colon in free text is read as a field name, so Re: számla finds nothing](done/050-colon-in-free-text-reaches-the-query-parser.md) | 2026-10-19 |
 
-_46 more in `done/`._
+_47 more in `done/`._
 
 ### Decisions
 
