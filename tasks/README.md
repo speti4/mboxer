@@ -13,7 +13,7 @@ edit the file, never the issue. Everything here is English.
 <!-- tasks:index:start -->
 _Generated 2026-10-19 — edit the files, not this section._
 
-**State:** 7 backlog (2 ready · 0 blocked · 2 waiting · 3 ideas) · 0 in progress · 57 done · 2 dropped · 13 decisions
+**State:** 7 backlog (1 ready · 0 blocked · 2 waiting · 4 ideas) · 0 in progress · 58 done · 2 dropped · 13 decisions
 
 ### Ready
 
@@ -21,7 +21,6 @@ _Generated 2026-10-19 — edit the files, not this section._
 
 | # | Task | Size | Created |
 |---|---|---|---|
-| 051 | [set_query takes its generation before the files lock, and the sync commands blo…](backlog/051-query-generation-race-and-sync-commands-on-the-files-lock.md) | M | 2026-10-19 |
 | 064 | [Manual round over a large archive after the hardening wave: rebuild under an op…](backlog/064-manual-round-over-a-large-archive-after-the-hardening-wave.md) | S | 2026-10-19 |
 
 ### Needs decision
@@ -51,6 +50,7 @@ _none_
 | 060 | [Index quality follow-ups: token length, completions, nested parts, limits, mult…](backlog/060-index-quality-follow-ups-from-the-review.md) | M | 2026-10-19 |
 | 061 | [Small hygiene follow-ups: toolchain pin, ignores, arguments, cancel, logs, dupl…](backlog/061-small-hygiene-follow-ups-from-the-review.md) | S | 2026-10-19 |
 | 063 | [Free-text follow-ups: the highlight split and the tantivy exclusion assertion](backlog/063-free-text-follow-ups-tantivy-assertion-warnings-and-highlight.md) | S | 2026-10-19 |
+| 067 | [Stop an overtaken search early instead of letting it run to its end](backlog/067-stop-an-overtaken-search-early.md) | S | 2026-10-19 |
 
 ### In progress
 
@@ -78,7 +78,7 @@ _none_
 | 053 | [Attachment and reader hardening: blocked extensions, reserved names, referrer, …](done/053-attachment-and-reader-hardening.md) | 2026-10-19 |
 | 052 | [Swap the index atomically, lock the build, and skip a bad message instead of fa…](done/052-atomic-index-swap-build-lock-and-skipped-messages.md) | 2026-10-19 |
 
-_47 more in `done/`._
+_48 more in `done/`._
 
 ### Decisions
 
