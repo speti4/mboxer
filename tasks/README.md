@@ -13,7 +13,7 @@ edit the file, never the issue. Everything here is English.
 <!-- tasks:index:start -->
 _Generated 2026-10-20 — edit the files, not this section._
 
-**State:** 7 backlog (1 ready · 0 blocked · 2 waiting · 4 ideas) · 0 in progress · 63 done · 2 dropped · 13 decisions
+**State:** 6 backlog (1 ready · 0 blocked · 2 waiting · 3 ideas) · 0 in progress · 64 done · 2 dropped · 13 decisions
 
 ### Ready
 
@@ -48,7 +48,6 @@ _none_
 | # | Task | Size | Created |
 |---|---|---|---|
 | 069 | [The viewer reads a message through the index's limit, and the CLI's paging brea…](backlog/069-viewer-reads-through-the-index-and-cli-ties-by-offset.md) | S | 2026-10-19 |
-| 070 | [A test for the Cancel between two files of a batch](backlog/070-a-test-for-the-batch-cancel.md) | S | 2026-10-20 |
 | 071 | [The highlight folds only what the index folds outside the Latin blocks](backlog/071-highlight-folds-only-what-the-index-folds-outside-latin.md) | S | 2026-10-20 |
 | 072 | [Fold the combining dot of a lower-cased İ in the index](backlog/072-fold-the-dot-of-a-lower-cased-capital-i-with-dot.md) | S | 2026-10-20 |
 
@@ -67,6 +66,7 @@ _none_
 
 | # | Task | Closed |
 |---|---|---|
+| 070 | [A test for the Cancel between two files of a batch](done/070-a-test-for-the-batch-cancel.md) | 2026-10-20 |
 | 068 | [The highlight folds the same letters the index folds](done/068-highlight-folds-the-letters-the-index-folds.md) | 2026-10-20 |
 | 064 | [Manual round over a large archive after the hardening wave: rebuild under an op…](done/064-manual-round-over-a-large-archive-after-the-hardening-wave.md) | 2026-10-20 |
 | 061 | [Small hygiene follow-ups: toolchain pin, ignores, arguments, cancel, logs, dupl…](done/061-small-hygiene-follow-ups-from-the-review.md) | 2026-10-20 |
@@ -76,9 +76,8 @@ _none_
 | 060 | [Index quality follow-ups: token length, completions, nested parts, limits, mult…](done/060-index-quality-follow-ups-from-the-review.md) | 2026-10-19 |
 | 059 | [Refresh the README screenshot and the social preview over the demo mbox](done/059-refresh-the-screenshots-over-the-demo-mbox.md) | 2026-10-19 |
 | 058 | [Task files: dead origin paths, plan slugs, and who closes a milestone](done/058-dead-task-references-plan-slugs-and-milestone-closing.md) | 2026-10-19 |
-| 057 | [CONTRIBUTING's pre-commit list matches CI, and the private-era wording goes](done/057-contributing-checks-match-ci-and-private-era-leftovers.md) | 2026-10-19 |
 
-_53 more in `done/`._
+_54 more in `done/`._
 
 ### Decisions
 
