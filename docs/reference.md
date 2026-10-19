@@ -152,7 +152,8 @@ and two settings beside the text: the *Conversations* view and *Sort* (*Newest f
 applies only while there are words to score). All of it is one query. A badge on the *Filters* button counts the
 active filters (`from:`, `to:`, `subject:`, the dates, `has:`, every `label:` after the first, a sort other
 than *Newest first*). The words you searched for (and the `from:` / `to:` / `subject:` values) are highlighted
-in the list, the reader's subject and the message body (a body over 2 million characters is shown without
+in the list, the reader's subject and the message body (a word with punctuation or a phrase is marked where its
+parts stand in that order, so `re:számla` marks `Re: számla`; a body over 2 million characters is shown without
 highlighting), and the selected message stays selected when it is still in the result.
 
 `Esc` in the field empties the text, label included, and keeps the sort order; in an empty field it moves to the

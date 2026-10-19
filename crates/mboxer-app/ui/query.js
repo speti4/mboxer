@@ -231,20 +231,47 @@
   }
 
   // ---------- highlighting ----------
+  //
+  // The split rule mirrors the index's analyzer (`fold_analyzer` in
+  // `crates/mboxer-core/src/index/schema.rs`): tantivy's `SimpleTokenizer`
+  // cuts the text at every character that is not `char::is_alphanumeric`
+  // (Unicode alphabetic or numeric, `PIECE_BREAK` below), then the pieces are
+  // lower-cased and accent-folded. The core searches a word or a quoted phrase
+  // as its pieces in order, one position apart (`free_text.rs`), so a term
+  // here is the folded pieces joined by one space, and it matches them in
+  // order with any run of other characters between: `re:számla` marks
+  // `Re: számla`, a lone `számla` stays unmarked. Not mirrored: the analyzer
+  // drops pieces of 40 bytes or more, and the edges of a match may fall
+  // inside a word (`re` marks the end of `there`), as a typed prefix does.
 
-  // The folded words of `text` worth highlighting: free words, phrases as one
-  // term, the values of `from:` / `to:` / `subject:` (they show in the list);
-  // other operators, boolean keywords and negated words are left alone.
+  // A run of characters the tokenizer does not keep in a piece.
+  const PIECE_BREAK = /[^\p{Alphabetic}\p{N}]+/u;
+  // The same run inside a term's pattern; its source must stay in sync.
+  const PIECE_BREAK_SOURCE = "[^\\p{Alphabetic}\\p{N}]+";
+
+  // `text` as a term: its folded pieces joined by one space, "" when none.
+  function pieceTerm(text) {
+    return text
+      .split(PIECE_BREAK)
+      .filter(Boolean)
+      .map((piece) => foldText(piece))
+      .join(" ");
+  }
+
+  // The folded terms of `text` worth highlighting: free words and phrases
+  // (each one term, see the rule above), the words of the `from:` / `to:` /
+  // `subject:` values (they show in the list); other operators, boolean
+  // keywords and negated words are left alone. Longest first.
   function highlightTerms(text) {
     const terms = new Set();
-    const add = (word) => {
-      const folded = foldText(word).trim();
-      if (folded) terms.add(folded);
+    const add = (value) => {
+      const term = pieceTerm(value);
+      if (term) terms.add(term);
     };
     const addWords = (value) => {
       for (const word of value.split(/\s+/)) {
         if (!word || word.startsWith("-") || KEYWORDS.has(word)) continue;
-        add(word.replace(/^[+(]+|[)*]+$/g, ""));
+        add(word);
       }
     };
     for (const { raw } of tokenize(text || "")) {
@@ -254,11 +281,46 @@
         continue;
       }
       if (raw.startsWith("-") || KEYWORDS.has(raw)) continue;
-      const bare = raw.replace(/^[+(]+|[)*]+$/g, "");
-      if (bare.startsWith('"')) add(bare.replace(/"/g, "").replace(/\s+/g, " "));
+      const bare = raw.replace(/^[+(]+/, "");
+      if (bare.startsWith('"')) add(bare);
       else addWords(bare);
     }
     return Array.from(terms).sort((a, b) => b.length - a.length);
+  }
+
+  const termPatterns = new Map();
+
+  // The global pattern of a term of several pieces, cached.
+  function termPattern(term) {
+    let pattern = termPatterns.get(term);
+    if (!pattern) {
+      const pieces = term.split(" ").map((piece) => piece.replace(/[\\^$.*+?()[\]{}|/]/g, "\\$&"));
+      pattern = new RegExp(pieces.join(PIECE_BREAK_SOURCE), "gu");
+      termPatterns.set(term, pattern);
+    }
+    return pattern;
+  }
+
+  // The `[start, end)` ranges of `folded` (text folded by `foldWithMap`) where
+  // one of `terms` (from `highlightTerms`) occurs, unsorted and maybe overlapping.
+  function termRanges(folded, terms) {
+    const ranges = [];
+    for (const term of terms) {
+      if (!term.includes(" ")) {
+        let at = folded.indexOf(term);
+        while (at >= 0) {
+          ranges.push([at, at + term.length]);
+          at = folded.indexOf(term, at + term.length);
+        }
+        continue;
+      }
+      const pattern = termPattern(term);
+      pattern.lastIndex = 0;
+      for (let m = pattern.exec(folded); m; m = pattern.exec(folded)) {
+        ranges.push([m.index, m.index + m[0].length]);
+      }
+    }
+    return ranges;
   }
 
   return {
@@ -272,5 +334,6 @@
     parse,
     setOperator,
     highlightTerms,
+    termRanges,
   };
 });
