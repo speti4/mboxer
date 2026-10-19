@@ -40,10 +40,10 @@ An HTML message renders as HTML. The *HTML* / *Text* / *Source* buttons switch b
 plain-text part and the raw source of the message; HTML or Text is remembered. The HTML is sanitized in the
 webview before it is shown (scripts, frames, forms, event handlers and `javascript:` links are removed) and
 rendered in a sandboxed iframe whose own content security policy allows no network request at all. Remote
-images and styles are held back and a yellow bar counts them; *Show* loads them for that one message. Links in
-the body open in the system browser or mail client (`http`, `https`, `mailto` only). *Copy* puts the text of
-the current view on the clipboard. In the Text view the mboxrd quoting of body lines (`>From `) is undone; the
-Source view shows the bytes as they are in the file.
+images and styles are held back and a yellow bar counts them; *Show* loads them for that one message, without
+a referrer. Links in the body open in the system browser or mail client (`http`, `https`, `mailto` only).
+*Copy* puts the text of the current view on the clipboard. In the Text view the mboxrd quoting of body lines
+(`>From `) is undone; the Source view shows the bytes as they are in the file.
 
 *Save .eml…* (`Ctrl+S`) writes the message as it sits in the mbox. *Print…* (`Ctrl+P`) opens the print
 preview with the message laid out as the reader shows it, and a PDF printer turns it into a PDF. On a Mac the
@@ -57,8 +57,12 @@ HTML body. A click on a chip decodes the attachment from the mbox into a tempora
 (on a Mac `$TMPDIR/mboxer/`) and opens it with the default application. *Save…* asks where to put it, and *Save
 all…* writes every attachment of the message into a folder without overwriting (`name (2).ext`). Attachments
 that the system would run instead of open can only be saved: on Windows `.exe`, `.bat`, `.ps1`, `.js`, `.lnk`
-and the like, on a Mac `.app`, `.command`, `.pkg`, `.dmg`, `.sh`, AppleScript, Automator and internet-location
-files; one list covers both systems, since an attachment is as dangerous on the machine it is forwarded to.
+and the like, packages and disk images (`.msix`, `.appinstaller`, `.iso`, `.img`, `.vhd`, `.cab`), help files
+(`.chm`), Excel add-ins (`.xll`) and shell link and search files (`.scf`, `.settingcontent-ms`, `.library-ms`,
+`.search-ms`); on a Mac `.app`, `.command`, `.pkg`, `.dmg`, shell scripts (`.sh`, `.zsh`, `.bash`, `.csh`),
+AppleScript, Automator, internet-location files, configuration profiles (`.mobileconfig`), preference panes and
+Java Web Start files (`.jnlp`). Both lists apply on both systems, since an attachment is as dangerous on the
+machine it is forwarded to.
 Every written file is marked as downloaded from the internet, as a mail client marks it: the Mark of the Web on
 Windows, so Office opens it in Protected View, and the `com.apple.quarantine` attribute on a Mac, so Gatekeeper
 checks it before it opens. The temporary copies are removed at the next start. Inline images referenced by `cid:` are shown inside the HTML body; text attachments

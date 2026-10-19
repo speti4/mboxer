@@ -16,6 +16,7 @@ not the list. The summary under a heading is written by hand and kept by the gen
 ### M6 Hardening
 
 - The label tree panics on a label whose ninth byte is inside a multibyte character ([049](https://github.com/speti4/mboxer/blob/main/tasks/done/049-label-tree-panics-on-a-multibyte-boundary.md))
+- Attachment and reader hardening: blocked extensions, reserved names, referrer, style text ([053](https://github.com/speti4/mboxer/blob/main/tasks/done/053-attachment-and-reader-hardening.md))
 
 ### Project housekeeping
 
