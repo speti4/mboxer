@@ -1,7 +1,8 @@
 # Contributing to mboxer
 
 Thank you for taking the time. mboxer is a small project with a few firm rules: mail stays private, the
-shipped artifact stays one exe, and the task files are the plan. Everything below follows from these.
+shipped artifact stays one portable exe (Windows) or app (macOS), and the task files are the plan.
+Everything below follows from these.
 
 ## Start with an issue
 
@@ -56,22 +57,46 @@ git config core.hooksPath .githooks
 
 ## Checks before a commit
 
+The same checks as CI, job by job ([docs/development.md](docs/development.md#ci-and-releases)). Every change:
+
 ```powershell
 cargo fmt --check
-cargo clippy --all-targets -- -D warnings
-cargo test
+cargo clippy --all-targets --locked -- -D warnings
+cargo test --locked
+# The macOS-only code, compiled for the Apple Silicon target on Windows (rustup target add aarch64-apple-darwin,
+# once); DOCS_RS skips the one build script that needs Apple's compiler (docs/development.md, "The macOS bundle").
+$env:DOCS_RS = "1"
+cargo clippy --target aarch64-apple-darwin --all-targets --locked -- -D warnings
+# The oldest supported Rust, the rust-version of Cargo.toml
+# (rustup toolchain install 1.90 --profile minimal --target aarch64-apple-darwin, once).
+cargo +1.90 check --target aarch64-apple-darwin --all-targets --locked
+Remove-Item Env:DOCS_RS
+python -I scripts/changelog.py --check
 ```
 
-A change to `Cargo.toml`, `Cargo.lock` or `.github/` also runs `cargo deny check` and `uvx zizmor .github`
-(see [docs/development.md](docs/development.md#ci-and-releases)). CI (`.github/workflows/ci.yml`) runs all of
-them on every push and pull request, the macOS tests on a release tag or a manual run. A
-change in behaviour comes with a test: Rust tests sit beside the code or under each crate's `tests/`, and the UI
-modules have Node tests under `crates/mboxer-app/tests/ui/`.
+`--locked` fails when `Cargo.lock` is out of step with the manifests instead of rewriting it. The changelog
+check wants `CHANGELOG.md` to match `tasks/done/` exactly, so a change that closes a task runs `python -I
+scripts/changelog.py` and commits the result with it. The commit messages and the pull request text follow the
+commit rules, which the hook below checks locally and the `commit-rules` job again in CI.
+
+When `Cargo.toml`, `Cargo.lock`, `.github/` or the docs change, also:
+
+```powershell
+cargo deny check                                  # Cargo.toml, Cargo.lock, deny.toml, about.toml
+uvx zizmor .github                                # .github/
+python -I scripts/render-usage-guide.py --check   # docs/usage.md
+```
+
+CI (`.github/workflows/ci.yml` and `commit-rules.yml`) runs all of them on every push to `main` and every pull
+request; the macOS tests run on a release tag or a manual run only, and the macOS-target clippy covers the
+macOS code in between. A change in behaviour comes with a test: Rust tests sit beside the code or under each
+crate's `tests/`, and the UI modules have Node tests under `crates/mboxer-app/tests/ui/`.
 
 ## Dependencies: one exe
 
-The shipped artifact is one portable exe, with nothing for the user to install (decision D-002 in
-`tasks/decisions/`). WebView2 is part of Windows 11, everything else is compiled in. A new crate is fine when
+The shipped artifact is one portable exe on Windows and one app on macOS, with nothing for the user to install
+(decision D-002 in `tasks/decisions/`). WebView2 is part of Windows 11 and WKWebView part of macOS; everything
+else is compiled in. A new crate is fine when
 it earns its place. Add it to `[workspace.dependencies]` in `Cargo.toml` with a one-line comment saying why
 it is needed and why the existing ones do not cover it. Crates that compile C code or pull a runtime
 download need a strong reason.

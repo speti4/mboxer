@@ -1,7 +1,7 @@
 # mboxer
 
 Viewer for large Gmail Takeout mbox archives on Windows 11 and macOS: Rust core (streaming parser + sidecar
-full-text index), Tauri 2 UI (WebView2 / WKWebView), one portable exe or app, nothing to install.
+full-text index), Tauri 2 UI (WebView2 / WKWebView), one portable exe (Windows) or app (macOS), nothing to install.
 
 ## Layout
 - `crates/mboxer-core` (streaming reader, message model, sidecar index), `crates/mboxer-app` (the `mboxer`
@@ -16,7 +16,7 @@ cargo run -p mboxer-app -- [file.mbox]   # the viewer
 cargo test
 ```
 Before a commit: the checks in CONTRIBUTING.md, "Checks before a commit" (more of them when `Cargo.toml`,
-`Cargo.lock` or `.github/` change).
+`Cargo.lock`, `.github/` or the docs change); a change that closes a task regenerates `CHANGELOG.md`.
 
 ## Data outside the repo (never commit)
 - Index sidecars written next to any mbox (`.mboxer/`); test fixtures are small synthetic samples only
@@ -25,7 +25,7 @@ Before a commit: the checks in CONTRIBUTING.md, "Checks before a commit" (more o
 
 ## Conventions
 - Project conventions (language, names, docs to update) are in CONTRIBUTING.md; a new crate follows its
-  "Dependencies: one exe" section (D-002): the one-line reason is a comment in `Cargo.toml`
+  "Dependencies: one exe" section (D-002, one exe or app): the one-line reason is a comment in `Cargo.toml`
 - Git: branches, pull requests and commit rules follow @docs/git-workflow.md
 
 ## Tasks

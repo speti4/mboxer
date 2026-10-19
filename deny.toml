@@ -1,5 +1,6 @@
 # cargo-deny policy (task 024, D-011): advisories, licences, bans and sources of the crates that end up in
-# the exe. CI runs `cargo deny check` on every push and pull request; locally the same command.
+# the exe and the macOS app. CI runs `cargo deny check` on every push to main, every pull request and every
+# release tag; locally the same command.
 
 [graph]
 # The shipped targets: the Windows exe and the two halves of the universal macOS binary (task 018).
