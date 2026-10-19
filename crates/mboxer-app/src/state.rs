@@ -467,6 +467,40 @@ mod tests {
     }
 
     #[test]
+    fn accented_labels_on_the_category_prefix_boundary_open() {
+        // Task 049: a two-byte character on byte 9 of a label panicked the
+        // label tree after the index was built.
+        let dir = tempfile::tempdir().unwrap();
+        let mbox = dir.path().join("accented-labels.mbox");
+        let message = |n: u32, labels: &str| {
+            format!(
+                "From {n}@xxx Tue Jan 13 06:30:04 +0000 2026\n\
+                 X-Gmail-Labels: {labels}\n\
+                 From: Anna <anna@example.com>\n\
+                 Subject: Label {n}\n\
+                 Date: Tue, 13 Jan 2026 07:30:04 +0100\n\
+                 Message-ID: <label{n}@mail.example.com>\n\
+                 \n\
+                 Body {n}.\n\n"
+            )
+        };
+        let text = message(1, "Különböző,Inbox")
+            + &message(2, "Beérkező levelek,Category Promotions")
+            + &message(3, "=?UTF-8?Q?K=C3=BCl=C3=B6nb=C3=B6z=C5=91?=");
+        fs::write(&mbox, text).unwrap();
+
+        let open = load(&mbox, 1);
+        assert_eq!(open.listing.len(), 3);
+        let names: Vec<&str> = open.labels.iter().map(|node| node.name.as_str()).collect();
+        assert_eq!(
+            names,
+            ["Inbox", "Categories", "Beérkező levelek", "Különböző"]
+        );
+        assert_eq!(open.labels[3].count, 2);
+        assert_eq!(open.labels[1].children[0].name, "Promotions");
+    }
+
+    #[test]
     fn a_cancelled_build_leaves_no_index() {
         let (_dir, mbox) = fixture_copy("gmail-crlf.mbox");
         let cancel = AtomicBool::new(true);

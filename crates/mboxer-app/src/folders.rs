@@ -90,13 +90,22 @@ fn rank(name: &str) -> usize {
         })
 }
 
+/// The rest of `label` after a case-insensitive `category ` prefix. `get`
+/// returns `None` when the prefix length ends inside a multibyte character,
+/// so a label such as `Különböző` is no category rather than a panic.
+fn strip_category_prefix(label: &str) -> Option<&str> {
+    let n = CATEGORY_PREFIX.len();
+    label
+        .get(..n)
+        .filter(|head| head.eq_ignore_ascii_case(CATEGORY_PREFIX))
+        .and_then(|_| label.get(n..))
+}
+
 /// The path of a label in the tree: `Work/Invoices` → `[Work, Invoices]`,
 /// `Category updates` → `[Categories, Updates]`, anything else one segment.
 fn segments(label: &str) -> Vec<String> {
-    if label.len() > CATEGORY_PREFIX.len()
-        && label[..CATEGORY_PREFIX.len()].eq_ignore_ascii_case(CATEGORY_PREFIX)
-    {
-        let rest = label[CATEGORY_PREFIX.len()..].trim();
+    if let Some(rest) = strip_category_prefix(label) {
+        let rest = rest.trim();
         if !rest.is_empty() {
             let mut chars = rest.chars();
             let name = match chars.next() {
@@ -237,6 +246,40 @@ mod tests {
             categories.children[1].label.as_deref(),
             Some("Category personal")
         );
+    }
+
+    #[test]
+    fn a_multibyte_char_on_the_prefix_boundary_is_no_category() {
+        // `Különböző` and `Beérkező levelek` have a two-byte character on
+        // bytes 8 and 9, where the `category ` prefix ends.
+        assert_eq!(segments("Különböző"), ["Különböző"]);
+        assert_eq!(segments("Beérkező levelek"), ["Beérkező levelek"]);
+        assert_eq!(
+            segments("Beérkező levelek/Fontos"),
+            ["Beérkező levelek", "Fontos"]
+        );
+        assert_eq!(
+            segments("Category Promotions"),
+            ["Categories", "Promotions"]
+        );
+        assert_eq!(segments("category updates"), ["Categories", "Updates"]);
+        assert_eq!(segments("category ének"), ["Categories", "Ének"]);
+        assert_eq!(segments("Céh"), ["Céh"]);
+        assert_eq!(segments("Category "), ["Category"]);
+        assert_eq!(segments("Kategória"), ["Kategória"]);
+
+        let nodes = tree(&[
+            ("Különböző", 2),
+            ("Beérkező levelek", 3),
+            ("Category Promotions", 1),
+            ("Céh", 1),
+        ]);
+        assert_eq!(
+            names(&nodes),
+            ["Categories", "Beérkező levelek", "Céh", "Különböző"]
+        );
+        assert_eq!(nodes[3].label.as_deref(), Some("Különböző"));
+        assert_eq!(nodes[3].count, 2);
     }
 
     #[test]
