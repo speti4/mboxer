@@ -13,7 +13,7 @@ file, never the issue.
 <!-- tasks:index:start -->
 _Generated 2026-10-19 — edit the files, not this section._
 
-**State:** 8 backlog (4 ready · 0 blocked · 2 waiting · 2 ideas) · 0 in progress · 33 done · 0 dropped · 12 decisions
+**State:** 8 backlog (4 ready · 0 blocked · 2 waiting · 2 ideas) · 1 in progress · 33 done · 0 dropped · 12 decisions
 
 ### Ready
 
@@ -65,7 +65,11 @@ _none_
 
 ### In progress
 
-_none_
+#### M4 macOS
+
+| # | Task | Started | Plan |
+|---|---|---|---|
+| 042 | [Cut the CI minutes: macOS tests on tags and manual runs](wip/042-cut-ci-minutes.md) | 2026-10-19 | `peaceful-jumping-adleman.md` |
 
 ### Closed – do not reopen
 
