@@ -33,7 +33,8 @@ Since task 060 the index format is 3, so the first open rebuilds the archive's s
 3. [ ] the label tree shows the accented user labels of the archive with their letters intact (049)
 4. [ ] the search field: `Re: számla`, a URL from a message and a time such as `10:30` each return hits, and
    the hits are highlighted in the reader (050)
-5. [ ] a message with an attachment whose extension is on the blocked list offers only *Save*, no open (053)
+5. [ ] a message with an attachment whose extension task 053 added to the blocked list (`chm`, `msix`, `iso`,
+   `img`, `vhd`, `xll`, `cab`, `wsc`, `sct`, …) offers only *Save*, no open (053)
 6. [ ] every failure filed as a backlog item; the Log says what passed with the numbers seen
 
 ## Log
