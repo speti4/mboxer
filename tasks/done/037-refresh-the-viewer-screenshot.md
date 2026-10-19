@@ -16,8 +16,8 @@ What: regenerate `docs/images/viewer.png` over the demo mbox, which still shows 
 fixed; the throwaway WebView2 profile, subst drive and `--lang` setup of 026 keep the real archive out of it.
 Why: the screenshot is the README's first picture and goes public with 028.
 Done when: the committed screenshot shows the dates in one column and nothing but demo mail.
-User decision 2026-10-19: part of the backlog wave (039 + 041 + 020 in task sessions); 037 runs in the main
-session because the viewer and the manual round belong to one session at a time.
+Decided 2026-10-19: done alongside 039, 041 and 020; 037 drives the viewer, which one piece of work
+uses at a time.
 
 ## Steps
 
@@ -31,13 +31,13 @@ session because the viewer and the manual round belong to one session at a time.
 ## Log
 
 - 2026-10-19 — promoted on `task/037-refresh-the-viewer-screenshot`.
-- 2026-10-19 — `cargo build -p mboxer-app` a main checkoutban (`5dbff23`, ugyanaz a kód, mint ezen az ágon);
-  `make-demo-mbox.py`: 50 üzenet, 42 862 bájt, SHA-256 `069f772c…` (azonos a 026-ossal).
-- 2026-10-19 — a 026-os scratchpad capture scriptje újrafelhasználva, egy kiegészítéssel: a kép előtt a kurzor
-  az ablakon kívülre kerül (az első futáson a kijelölt sor alatti sorban tooltip maradt). Lépések: kattintás az
-  üres readerbe (aktiválás), a téma gomb *Auto* → *Light* (az eldobható profil *Auto*-val indul, a Windows
-  dark), a splitter 708 → 880, a Go-live conversation kinyitva, a második (csatolmányos) üzenet kijelölve, a
-  címsor levágva → 1426×822, 108 KB (előtte 105 KB).
+- 2026-10-19 — `cargo build -p mboxer-app` in the main checkout (`5dbff23`, the same code as this branch);
+  `make-demo-mbox.py`: 50 messages, 42 862 bytes, SHA-256 `069f772c…` (identical to 026's).
+- 2026-10-19 — the 026 scratchpad capture script reused, with one addition: before the shot the cursor moves
+  outside the window (in the first run a tooltip stayed on the row below the selected one). Steps: a click into the
+  empty reader (activation), the theme button *Auto* → *Light* (the throwaway profile starts with *Auto*, Windows
+  is dark), the splitter 708 → 880, the Go-live conversation expanded, the second message (with the attachment)
+  selected, the title bar cropped → 1426×822, 108 KB (105 KB before).
 
 ## Deviations from the plan
 
@@ -45,10 +45,10 @@ session because the viewer and the manual round belong to one session at a time.
 
 ## Verification
 
-- 2026-10-19 — a kép szemmel ellenőrizve: a dátumok a conversation és a sima sorokban egy oszlopban
-  (2025-10-11 … 2024-11-13), csak demo levél (`example.*` címek), a status bar `M:\Takeout\Mail\…` utat mutat,
-  lokálisat nem. A valódi WebView2 profil (`%LOCALAPPDATA%\io.github.speti4.mboxer\`) legfrissebb fájlja előtte
-  és utána is 2026-10-18 04:20:55; `subst M: /d` után nincs subst meghajtó, viewer nem fut.
+- 2026-10-19 — the picture checked by eye: the dates of conversation and plain rows in one column
+  (2025-10-11 … 2024-11-13), only demo mail (`example.*` addresses), the status bar shows the `M:\Takeout\Mail\…`
+  path, no local one. The newest file of the real WebView2 profile (`%LOCALAPPDATA%\io.github.speti4.mboxer\`) is
+  2026-10-18 04:20:55 before and after; after `subst M: /d` there is no subst drive and no viewer running.
 
 ## Closing checklist
 

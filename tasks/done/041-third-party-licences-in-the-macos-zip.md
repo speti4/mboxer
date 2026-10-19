@@ -18,7 +18,7 @@ macOS dependency graph adds objc2 and friends) and put the page into the zip nex
 Why: the licence page is part of what a release ships (D-012); the macOS zip must not be the exception.
 Done when: the macOS zip holds a licence page that lists the darwin-only crates, and `cargo deny check` still
 passes with the macOS targets.
-User decision 2026-10-19: part of the backlog wave 039 + 041 + 020 in parallel task sessions; 041 lands before
+Decided 2026-10-19: done in parallel with 039 and 020; 041 lands before
 the first release tag (028), which builds the macOS zip too.
 
 ## Steps
@@ -36,70 +36,70 @@ the first release tag (028), which builds the macOS zip too.
 ## Log
 
 - 2026-10-19 — promoted on `task/041-third-party-licences-in-the-macos-zip`.
-- 2026-10-19 — Felmérés: a `release.ps1` `cargo about generate --frozen --fail` hívással, az `about.toml`-lal
-  (`targets = ["x86_64-pc-windows-msvc"]`) és a `scripts/third-party-licenses.hbs` sablonnal rendereli a
-  lapot; a `release` job a 0.9.2-es cargo-about-ot `cargo install --locked`-kal építi. A cargo-about 0.9.2
-  `generate --target` kapcsolója több targetet is elfogad és felülírja a config `targets` értékét, így a
-  macOS-lap ugyanazzal az `about.toml`-lal készül, második config nélkül. A `deny.toml` `[graph] targets`
-  már a 018 óta mindhárom targetet tartalmazza, ott nincs teendő.
-- 2026-10-19 — Helyi próba Windowson: `cargo about generate --frozen --fail --target aarch64-apple-darwin
-  --target x86_64-apple-darwin …` hibátlanul lefut, 272 crate (Windows: 278); csak a macOS-lapon: objc2,
+- 2026-10-19 — Survey: `release.ps1` renders the page with `cargo about generate --frozen --fail`, `about.toml`
+  (`targets = ["x86_64-pc-windows-msvc"]`) and the `scripts/third-party-licenses.hbs` template; the `release` job
+  builds cargo-about 0.9.2 with `cargo install --locked`. The `generate --target` switch of cargo-about 0.9.2
+  accepts several targets and overrides the config's `targets`, so the macOS page is made with the same
+  `about.toml`, without a second config. The `deny.toml` `[graph] targets` has held all three targets since 018,
+  nothing to do there.
+- 2026-10-19 — Local test on Windows: `cargo about generate --frozen --fail --target aarch64-apple-darwin
+  --target x86_64-apple-darwin …` runs without errors, 272 crates (Windows: 278); only on the macOS page: objc2,
   objc2-app-kit, objc2-foundation, objc2-web-kit, objc2-core-foundation, objc2-quartz-core,
   objc2-exception-helper, objc2-encode, block2, dispatch2, core-foundation(-sys), core-graphics(-types),
-  foreign-types*, swift-rs, embed_plist, rustix, errno, base64 0.21; csak a Windows-lapon a `windows-*`,
-  `webview2-com*`, `winapi*`, softbuffer, tracing*. A gráf tehát hosztfüggetlen.
-- 2026-10-19 — Döntés: hol fut a cargo-about. A macOS runneren a `cargo install cargo-about` pár perces
-  fordítás 10× áron (042), minden tagen és kézi futáson; a lap viszont csak a lock fájltól és a crate-forrásoktól
-  függ, nem a hoszttól. Ezért egy új `licences-macos` job ubuntu-latest-en rendereli (`cargo fetch --locked`
-  a két darwin targetre, majd `--frozen` offline generálás), egynapos artifactként adja át, a `bundle-macos`
-  letölti és becsomagolja. A job a checkekkel párhuzamosan indul (nem `needs`), így a `bundle-macos` nem vár rá
-  külön. A parancs egy helyen él: `scripts/bundle-macos.sh --licences-only <fájl>` (bármely OS-en, cargo és
-  cargo-about kell hozzá), a csomagolás `--licences <fájl>`-lal veszi át; kapcsoló nélkül egy Macen a script maga
-  rendereli. A `CARGO_ABOUT_VERSION` pin a workflow szintű `env`-be került, a `release` és a `licences-macos`
-  job ugyanazt használja.
-- 2026-10-19 — A sablon bevezetője eddig Windows-specifikus volt (`mboxer.exe`, „WebView2, part of Windows
-  11”); platformsemleges lett (exe vagy app, WebView2 vagy WKWebView). A release notes „Verify the download”
-  szövege (`scripts/changelog.py`) is mindkét zipre utal már.
-- 2026-10-19 — Első kézi futás (run 39260328239): a `licences-macos` elbukott: `cargo metadata` exited with an
-  error: failed to download `android_system_properties v0.1.6` … `--frozen was specified`. Ok: a cargo-about
-  szűretlen `cargo metadata`-val olvassa a gráfot, ami minden platform crate-jeinek forrását kéri, a
-  `cargo fetch --target …` (és egy build) viszont csak a saját targetjéét tölti le. Helyben azért ment, mert a
-  `~/.cargo/registry` már mindent tartalmazott. Friss `CARGO_HOME`-mal reprodukálva: `cargo fetch --locked
-  --target x86_64-pc-windows-msvc` után a Windows-lap ugyanígy bukik — vagyis a `release` job (025) is elbukott
-  volna az első tagen tiszta Windows runneren (tagen még sosem futott, a 025 csak helyi dry runnal ellenőrzött).
-  Javítás mindkét scriptben: `cargo fetch --locked` (minden target) közvetlenül a `--frozen` generálás előtt;
-  friss `CARGO_HOME`-mal utána a macOS- és a Windows-lap is hibátlanul elkészül.
+  foreign-types*, swift-rs, embed_plist, rustix, errno, base64 0.21; only on the Windows page the `windows-*`,
+  `webview2-com*`, `winapi*`, softbuffer, tracing* crates. So the graph does not depend on the host.
+- 2026-10-19 — Decision: where cargo-about runs. On the macOS runner `cargo install cargo-about` is a
+  few-minute build at 10× the price (042), on every tag and manual run; the page, however, depends only on the
+  lock file and the crate sources, not on the host. So a new `licences-macos` job renders it on ubuntu-latest
+  (`cargo fetch --locked` for the two darwin targets, then an offline `--frozen` generation) and hands it over as a
+  one-day artifact, which `bundle-macos` downloads and packs. The job starts in parallel with the checks (no
+  `needs`), so `bundle-macos` does not wait for it separately. The command lives in one place:
+  `scripts/bundle-macos.sh --licences-only <file>` (on any OS, needs cargo and cargo-about); packing takes it with
+  `--licences <file>`; without a switch, on a Mac, the script renders the page itself. The `CARGO_ABOUT_VERSION`
+  pin moved into the workflow-level `env`, the `release` and `licences-macos` jobs use the same one.
+- 2026-10-19 — The template's introduction was Windows-specific (`mboxer.exe`, "WebView2, part of Windows 11");
+  it is now platform-neutral (exe or app, WebView2 or WKWebView). The release notes' "Verify the download" text
+  (`scripts/changelog.py`) now refers to both zips as well.
+- 2026-10-19 — First manual run (run 39260328239): `licences-macos` failed: `cargo metadata` exited with an
+  error: failed to download `android_system_properties v0.1.6` … `--frozen was specified`. Cause: cargo-about
+  reads the graph with an unfiltered `cargo metadata`, which wants the sources of every platform's crates, while
+  `cargo fetch --target …` (and a build) downloads only its own target's. Locally it worked because
+  `~/.cargo/registry` already held everything. Reproduced with a fresh `CARGO_HOME`: after `cargo fetch --locked
+  --target x86_64-pc-windows-msvc` the Windows page fails the same way — so the `release` job (025) would also
+  have failed on the first tag on a clean Windows runner (it never ran on a tag; 025 was checked only with a local
+  dry run). Fix in both scripts: `cargo fetch --locked` (all targets) right before the `--frozen` generation; with
+  a fresh `CARGO_HOME` both the macOS and the Windows page are then produced without errors.
 
 ## Deviations from the plan
 
-- 2. lépés: a cargo-about nem a `bundle-macos` jobban (macOS runner) fut, hanem egy Linux jobban, és a
-  `bundle-macos` csak becsomagolja a lapot — ugyanaz az eredmény a macOS-percek nélkül (indoklás a Logban).
-- A sablon és a release notes szövege is változott (a lap már nem csak az exe-ről szól).
-- `scripts/release.ps1` is kapott egy `cargo fetch --locked`-ot a cargo-about elé: ugyanaz a hiba a Windows
-  release jobot is eltörte volna az első tagen (Log), a 041 a 028 első release-e előtt landol.
+- Step 2: cargo-about does not run in the `bundle-macos` job (macOS runner) but in a Linux job, and
+  `bundle-macos` only packs the page — the same result without the macOS minutes (reasons in the Log).
+- The template and the release notes text changed too (the page is no longer about the exe only).
+- `scripts/release.ps1` also got a `cargo fetch --locked` before cargo-about: the same error would have broken the
+  Windows release job on the first tag as well (Log); 041 lands before 028's first release.
 
 ## Verification
 
-- 2026-10-19 — helyben: `cargo fmt --check`, `cargo clippy --all-targets -- -D warnings`, `cargo test` zöld;
-  `cargo deny check`: advisories, bans, licenses, sources ok (a `deny.toml` mindhárom targettel);
-  `uvx zizmor .github`: No findings; `actionlint` (actionlint-py, shellcheck-py-jal) hibátlan;
-  `bash -n` és shellcheck a `scripts/bundle-macos.sh`-ra tiszta; a `release.ps1` parse-hibamentes.
-- 2026-10-19 — friss `CARGO_HOME`-mal: host-only fetch után a Windows-lap `--frozen`-nel bukik (a régi
-  `release.ps1` útja), `scripts/bundle-macos.sh --licences-only` és utána a Windows-lap hibátlan.
-- 2026-10-19 — kézi CI-futás a branchen (run 39262031629): minden job zöld; `licences-macos` 3m32s
-  (ubuntu, a checkekkel párhuzamosan), `bundle-macos` 12m. A letöltött `macos-zip` artifact:
-  `mboxer-0.1.0-macos.zip` gyökerében `usage.md`, `THIRD-PARTY-LICENSES.html` (273 KB) és `mboxer.app`; a zip
-  SHA-256-ja egyezik a `SHA256SUMS.txt` sorával. A lap 272 crate-et listáz, köztük objc2, objc2-app-kit,
-  objc2-foundation, objc2-web-kit, objc2-core-foundation, objc2-quartz-core, objc2-exception-helper,
-  objc2-encode, block2, dispatch2, core-foundation(-sys), core-graphics(-types), swift-rs, embed_plist;
-  `windows*` / `webview2*` / `winapi*` egy sincs; a bevezető az új, platformsemleges szöveg. Sorvégektől
-  eltekintve bájtra azonos a helyben renderelt lappal.
-- A Windows `release` job `cargo fetch`-es útja csak tagen fut; az első tag (028) bizonyítja élesben.
+- 2026-10-19 — locally: `cargo fmt --check`, `cargo clippy --all-targets -- -D warnings`, `cargo test` green;
+  `cargo deny check`: advisories, bans, licenses, sources ok (`deny.toml` with all three targets);
+  `uvx zizmor .github`: No findings; `actionlint` (actionlint-py, with shellcheck-py) clean; `bash -n` and
+  shellcheck clean on `scripts/bundle-macos.sh`; `release.ps1` parses without errors.
+- 2026-10-19 — with a fresh `CARGO_HOME`: after a host-only fetch the Windows page fails with `--frozen` (the old
+  `release.ps1` path); `scripts/bundle-macos.sh --licences-only` and then the Windows page succeed.
+- 2026-10-19 — manual CI run on the branch (run 39262031629): every job green; `licences-macos` 3m32s (ubuntu, in
+  parallel with the checks), `bundle-macos` 12m. The downloaded `macos-zip` artifact: `mboxer-0.1.0-macos.zip`
+  holds `usage.md`, `THIRD-PARTY-LICENSES.html` (273 KB) and `mboxer.app` at its root; the zip's SHA-256 matches
+  the `SHA256SUMS.txt` line. The page lists 272 crates, among them objc2, objc2-app-kit, objc2-foundation,
+  objc2-web-kit, objc2-core-foundation, objc2-quartz-core, objc2-exception-helper, objc2-encode, block2,
+  dispatch2, core-foundation(-sys), core-graphics(-types), swift-rs, embed_plist; no `windows*` / `webview2*` /
+  `winapi*`; the introduction is the new platform-neutral text. Apart from line endings it is byte-identical to the
+  locally rendered page.
+- The Windows `release` job's `cargo fetch` path runs only on a tag; the first tag (028) proves it live.
 
 ## Closing checklist
 
-- [x] every follow-up is a `backlog/` file (`/tasks add`) or deleted with a reason in the Log — nincs follow-up
+- [x] every follow-up is a `backlog/` file (`/tasks add`) or deleted with a reason in the Log — no follow-up
 - [x] Verification written, dated
-- [x] `tasks_check` green, README index regenerated — task sessionben `tasks_check` `write` nélkül; az indexet a
-  main session regenerálja a pull request előkészítésekor
+- [x] `tasks_check` green, README index regenerated — in the task session `tasks_check` without `write`; the main
+  session regenerates the index when it prepares the pull request
 - [x] moved to `done/` with `closed: 2026-10-19`

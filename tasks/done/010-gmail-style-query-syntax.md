@@ -12,14 +12,14 @@ plan: j-backlog-tletek-expressive-breeze.md
 
 ## Context
 
-Today the search field's text goes unchanged into tantivy's lenient parser: `"frázis"`, `OR` and
-`-szó` work because of that, and `from:anna` only because `from` is a schema field name. `label:`,
+Today the search field's text goes unchanged into tantivy's lenient parser: `"phrase"`, `OR` and
+`-word` work because of that, and `from:anna` only because `from` is a schema field name. `label:`,
 `has:attachment`, `subject:`, `after:` / `before:` do nothing, and an operator typed into the field does
 not show up on the filter panel or in the label tree. 010 makes the field a real query language for
 keyboard users, the panel stays for everyone else. Why: power-user speed. Done when: every operator has a
 test; a typed operator shows up on the panel and vice versa.
 
-User decisions 2026-10-17 (planning round): **the field's text is the single source of truth** — the panel and
+Decided 2026-10-17 (planning round): **the field's text is the single source of truth** — the panel and
 a label click rewrite the text (`from:anna`, `after:2026-01-01`, `label:Inbox`), typing updates the panel
 and the label selection; it follows that Esc and Clear empty the whole query, the label too.
 **`before:` is an inclusive** day, the same the panel's "to" field shows (differs from Gmail,
@@ -33,64 +33,64 @@ alone.
 
 ## Steps
 
-1. [x] Core `SearchQuery.subject` + Must-klauzula (`search.rs`), end-to-end teszt (`tests/index.rs`); app
-   `QueryInput.subject` + mapping teszt (`types.rs`); CLI `--subject` + `describe_filters` + teszt
-2. [x] `ui/query.js`: fold helperek átköltöztetve, `tokenize`, `parse`, `setOperator`, `highlightTerms`;
+1. [x] Core `SearchQuery.subject` + Must clause (`search.rs`), end-to-end test (`tests/index.rs`); app
+   `QueryInput.subject` + mapping test (`types.rs`); CLI `--subject` + `describe_filters` + test
+2. [x] `ui/query.js`: fold helpers moved over, `tokenize`, `parse`, `setOperator`, `highlightTerms`;
    `index.html` script tag
-3. [x] `crates/mboxer-app/tests/ui/query.test.js` zöld `node --test` alatt; `tests/ui_query.rs` wrapper
-   (node nélkül skip)
-4. [x] `main.js`: `state.parsed` + `syncFromText` + `renderQueryViews`, `queryInput`, panel-handlerek és
-   `selectLabel` a `setOperator`-on át, badge / narrowing / warnings, reset
-5. [x] README (operátor-táblázat, `before:` inkluzív, címkekattintás → `label:`, Esc / Clear, CLI `--subject`);
+3. [x] `crates/mboxer-app/tests/ui/query.test.js` green under `node --test`; `tests/ui_query.rs` wrapper
+   (skipped without node)
+4. [x] `main.js`: `state.parsed` + `syncFromText` + `renderQueryViews`, `queryInput`, the panel handlers and
+   `selectLabel` through `setOperator`, badge / narrowing / warnings, reset
+5. [x] README (operator table, `before:` inclusive, label click → `label:`, Esc / Clear, CLI `--subject`);
    `cargo fmt`, `cargo clippy --all-targets -- -D warnings`, `cargo test`, `node --check`
-6. [x] Chrome-ellenőrzés a DOM-szinkronra (stubbed `invoke`), majd debug exe a 14 GB-on: user kézi kör →
+6. [x] Chrome check of the DOM sync (stubbed `invoke`), then the debug exe on the 14 GB file: manual round →
    Verification; `tasks_check`; commit
 
 ## Log
 
 - 2026-10-17 — plan approved; 010 promoted to wip
-- 2026-10-17 — core: `SearchQuery.subject` + Must-klauzula a meglévő `text_clause`-on (prefix is megy rá),
-  end-to-end teszt (`szamla` 1, `köszönöm` csak body-ban → 0, `janu` prefix 1); app `QueryInput.subject` +
-  shape-teszt; CLI `--subject` + `describe_filters`. `cargo test` első futásra zöld
-- 2026-10-17 — UI: új `ui/query.js` (UMD: `window.MboxerQuery` / CommonJS): `tokenize` (idézőjel-csoportosítás,
-  `from:"a b"`), `classify`, `normalizeDate`, `parse` (az utolsó, szóköz nélküli token "gépelés alatt": az
-  értéke nem számít, nincs warning), `setOperator` (helyben csere, duplikátumok törlése, hiányzó a végére,
-  üres érték = törlés egy whitespace-futammal), `highlightTerms` (frázis egy term, `from:`/`to:`/`subject:`
-  értékei is), a fold helperek átköltöztek ide. `tests/ui/query.test.js` 16 eset `node --test` alatt, első
-  futásra zöld; `tests/ui_query.rs` futtatja cargo alól (node nélkül skip)
-- 2026-10-17 — `main.js`: `state.query` = `{text, groupThreads, sort}`, `state.parsed` a `syncFromText`-ből;
-  `rewrite(name, value)` a panel-handlerek és a `selectLabel` mögött; `indexLabelTree` (teljes fa, összecsukott
-  csomópontok is → `labelsUnder` már nem esik vissza exact termre egy összecsukott gyereknél), `findLabelKey`,
-  `labelName` (`Work#/Clients#` → `Work/Clients`); `showWarnings` a szintaxis-warningokat a backendé elé teszi.
-  `node --check` tiszta, `cargo fmt` (egy assert reflow), clippy `-D warnings` tiszta, 96 teszt zöld
-- 2026-10-17 — Chrome-ellenőrzés: a valódi `index.html` + `query.js` + `main.js` 127.0.0.1:8766-ról, a stub
-  `__TAURI__.core.invoke` 4 címkés fát ad vissza (`Work` és `Categories` konténer); 36 ellenőrzés
-  `javascript_tool`-ból mind zöld: gépelt operátor → panel + címkekijelölés, panel From/Attachments/dátum →
-  szöveg helyben átírva, címkekattintás → `label:` (szóközös név idézőjelben, konténer név `#` nélkül), All
-  mail töröl, rossz dátum warning a státuszsorban, félkész dátum nem, két `label:` → anyLabels + labels,
-  `subject:` eljut a backendig, Esc mindent ürít, badge 3. Debug exe buildelve a kézi körhöz
-- 2026-10-17 — user kézi kör a 14 GB-on: "fasza minden". Follow-up sweep: nincs nyitott lépés, a `to:` és a
-  `subject:` panel-mező nélkül marad a terv szerint (szintaxis-only, README-ben dokumentálva) — nincs új
-  backlog tétel. Closed
+- 2026-10-17 — core: `SearchQuery.subject` + a Must clause on the existing `text_clause` (the prefix applies to it
+  too), end-to-end test (`szamla` 1, `köszönöm` only in a body → 0, `janu` prefix 1); app `QueryInput.subject` +
+  shape test; CLI `--subject` + `describe_filters`. `cargo test` green on the first run
+- 2026-10-17 — UI: new `ui/query.js` (UMD: `window.MboxerQuery` / CommonJS): `tokenize` (quote grouping,
+  `from:"a b"`), `classify`, `normalizeDate`, `parse` (the last token without a trailing space is "being typed":
+  its value does not count, no warning), `setOperator` (replaces in place, removes duplicates, appends a missing
+  one, an empty value deletes it along with one whitespace run), `highlightTerms` (a phrase is one term, the
+  values of `from:`/`to:`/`subject:` too), the fold helpers moved here. `tests/ui/query.test.js` 16 cases under
+  `node --test`, green on the first run; `tests/ui_query.rs` runs it under cargo (skipped without node)
+- 2026-10-17 — `main.js`: `state.query` = `{text, groupThreads, sort}`, `state.parsed` from `syncFromText`;
+  `rewrite(name, value)` behind the panel handlers and `selectLabel`; `indexLabelTree` (the whole tree, collapsed
+  nodes too → `labelsUnder` no longer falls back to the exact term for a collapsed child), `findLabelKey`,
+  `labelName` (`Work#/Clients#` → `Work/Clients`); `showWarnings` puts the syntax warnings before the backend's.
+  `node --check` clean, `cargo fmt` (one assert reflowed), clippy `-D warnings` clean, 96 tests green
+- 2026-10-17 — Chrome check: the real `index.html` + `query.js` + `main.js` from 127.0.0.1:8766, the stub
+  `__TAURI__.core.invoke` returns a tree of 4 labels (`Work` and `Categories` containers); 36 checks from
+  `javascript_tool`, all green: a typed operator → panel + label selection, panel From/Attachments/date → the
+  text rewritten in place, label click → `label:` (a name with a space in quotes, a container name without `#`),
+  All mail clears it, a bad date warns in the status bar, a half-typed date does not, two `label:` → anyLabels +
+  labels, `subject:` reaches the backend, Esc clears everything, badge 3. Debug exe built for the manual round
+- 2026-10-17 — manual round on the 14 GB file passed. Follow-up sweep: no open step; `to:` and `subject:` stay
+  without a panel field as planned (syntax only, documented in the README) — no new backlog item. Closed
 
 ## Deviations from the plan
 
-- none: a terv szerinti fájlok és viselkedés; egy apró plusz a `labelsUnder` javítása (teljes fa indexe,
-  összecsukott csomópontok is), mert a gépelt `label:` egy összecsukott konténert is elérhet
+- none: the planned files and behaviour; one small extra is the `labelsUnder` fix (index of the whole tree,
+  collapsed nodes too), because a typed `label:` can reach a collapsed container
 
 ## Verification
 
-- 2026-10-17 — `cargo fmt --check` tiszta, `cargo clippy --all-targets -- -D warnings` tiszta, `cargo test`
-  96 zöld: 30 app unit (a `QueryInput` shape `subject`-tel) + 1 `ui_query` wrapper + 4 + 5 CLI (`--subject`
-  2 eset) + 29 + 8 + 19 core (`subject` szűrő + prefix). `node --test` 16 eset (minden operátor, tokenizer,
-  `setOperator`, round-trip, `highlightTerms`, `normalizeDate`) zöld; `node --check` mindkét UI fájlra tiszta.
-- 2026-10-17 — Chrome (127.0.0.1:8766, stub backend, valódi `index.html` + `query.js` + `main.js`): 36
-  DOM-szinkron ellenőrzés mind zöld (lásd a Log bejegyzést).
-- 2026-10-17 — `target\debug\mboxer.exe` a 14 GB-os archívumon (86 085 üzenet, index újrahasznosítva, open
-  183 ms), stderr-rel: 47 `query:` sor, medián 1 ms, max 843 ms (12 099 találatos lista, debug build) — a
-  "< 1 s billentyűleütésenként" cél tartja. User kézi kör: gépelt operátor → panel és címkefa követi, panel
-  → mező helyben átírva, címkekattintás → `label:`, Esc / Clear mindent ürít, betűnkénti prefix-frissítés
-  marad. Done-when teljesül: minden operátornak van tesztje, a mező és a panel mindkét irányban szinkronban.
+- 2026-10-17 — `cargo fmt --check` clean, `cargo clippy --all-targets -- -D warnings` clean, `cargo test`
+  96 green: 30 app unit (the `QueryInput` shape with `subject`) + 1 `ui_query` wrapper + 4 + 5 CLI (`--subject`
+  2 cases) + 29 + 8 + 19 core (`subject` filter + prefix). `node --test` 16 cases (every operator, tokenizer,
+  `setOperator`, round trip, `highlightTerms`, `normalizeDate`) green; `node --check` clean on both UI files.
+- 2026-10-17 — Chrome (127.0.0.1:8766, stub backend, the real `index.html` + `query.js` + `main.js`): 36
+  DOM sync checks, all green (see the Log entry).
+- 2026-10-17 — `target\debug\mboxer.exe` on the 14 GB archive (86 085 messages, index reused, open
+  183 ms), with stderr: 47 `query:` lines, median 1 ms, max 843 ms (a list of 12 099 hits, debug build) — the
+  "< 1 s per keystroke" target holds. Manual round: a typed operator → the panel and the label tree follow, panel
+  → the field rewritten in place, label click → `label:`, Esc / Clear empty everything, the letter-by-letter
+  prefix refresh still works. Done-when met: every operator has a test, the field and the panel stay in sync in
+  both directions.
 
 ## Closing checklist
 

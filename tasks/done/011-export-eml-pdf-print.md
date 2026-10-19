@@ -17,8 +17,8 @@ PDF through the WebView2 (Chromium) print path. Why: handing a found message on 
 common step after the search. Done when: the saved .eml opens in Outlook / Thunderbird;
 the print preview (and the PDF saved from it) shows the same as the reader.
 
-Planning decisions 2026-10-18 (approved plan; user decision: one `Print…` button, the PDF via the print
-preview's "Save as PDF" target, no separate native PDF save, no new crate — D-002): printing goes from a hidden,
+Planning decisions 2026-10-18 (one `Print…` button, the PDF via the print preview's "Save as PDF"
+target, no separate native PDF save, no new crate — D-002): printing goes from a hidden,
 script-free `sandbox="allow-same-origin allow-modals"` iframe (`contentWindow.print()`;
 WebView2's native print APIs would all print the top-level document, which is the three-pane app); the print
 document is built from the reader's finished DOM (headers + the body of the current view, the cid images'
@@ -28,15 +28,15 @@ with the mboxrd `>From ` quoting undone at byte level, with Mark-of-the-Web, wit
 
 ## Steps
 
-1. [x] core `reader.rs`: `eml_bytes`, unit teszt; `lib.rs` export; fixture teszt `tests/fixtures.rs`
-2. [x] app `attachments.rs` `eml_file_name` + teszt; `commands.rs` `save_message_eml`; `lib.rs` handler
-3. [x] `index.html` + `style.css`: `Save .eml…`, `Print…` a reader-barban, rejtett `#print-frame`
+1. [x] core `reader.rs`: `eml_bytes`, unit test; `lib.rs` export; fixture test in `tests/fixtures.rs`
+2. [x] app `attachments.rs` `eml_file_name` + test; `commands.rs` `save_message_eml`; `lib.rs` handler
+3. [x] `index.html` + `style.css`: `Save .eml…`, `Print…` in the reader bar, a hidden `#print-frame`
 4. [x] `main.js`: `PRINT_STYLE`, `printDocument`, `printMessage`, `saveEml`, `Ctrl+P` / `Ctrl+S`
-5. [x] Chrome stub-check a print dokumentumra és a két billentyűre
-6. [x] `docs/usage.md` bekezdés; `cargo fmt`, `cargo clippy --all-targets -- -D warnings`, `cargo test`,
+5. [x] Chrome stub check of the print document and the two keys
+6. [x] `docs/usage.md` paragraph; `cargo fmt`, `cargo clippy --all-targets -- -D warnings`, `cargo test`,
    `node --check`; `tasks_check`; commit
-7. [x] User kézi kör a 14 GB archívumon (.eml Outlook/Thunderbird, Print preview → Save as PDF, cid képes
-   HTML levél, Text nézet, hosszú levél lapozása)
+7. [x] Manual round on the 14 GB archive (.eml in Outlook/Thunderbird, print preview → Save as PDF, an HTML
+   message with cid images, the Text view, page breaks of a long message)
 
 ## Log
 
@@ -62,13 +62,13 @@ with the mboxrd `>From ` quoting undone at byte level, with Mark-of-the-Web, wit
   frame → printed, `defaultPrevented`. Then the real `print()` on the frame: the page's JS blocked (the extension's
   script injection timed out) — the Chromium print preview opened and stayed open, i.e. the call was not ignored
   (an ignored sandboxed `print()` returns at once with a console warning; none logged); the extension cannot
-  dismiss a browser dialog, so the tab was closed. The visual check of the preview is the user's manual round
+  dismiss a browser dialog, so the tab was closed. The visual check of the preview is the manual round
 - 2026-10-18 — `docs/usage.md`: "Handing a message on" section, `Ctrl+S` / `Ctrl+P` in the keyboard line
 - 2026-10-18 — commit `1777d13` (feat, task 011); `target\debug\mboxer.exe` started on the 14 GB archive for the
-  user's manual round
-- 2026-10-18 — a user kézi köre a Tauri ablakban, a 14 GB archívumon: "minden működik". Follow-up: none filed;
-  a tervben feltételesen említett 1×1 px-es print-frame nem kellett, a 0×0 rejtett frame nyomtat; a natív
-  "Save as PDF…" (`PrintToPdf` második ablakból) a user döntése szerint nem kell, nem kerül backlogra. Closed
+  manual round
+- 2026-10-18 — manual round in the Tauri window on the 14 GB archive passed. Follow-up: none filed; the 1×1 px
+  print frame the plan mentioned as a fallback was not needed, the hidden 0×0 frame prints; a native "Save as
+  PDF…" (`PrintToPdf` from a second window) is not wanted, so it does not go into the backlog. Closed
 
 ## Deviations from the plan
 
@@ -82,9 +82,8 @@ with the mboxrd `>From ` quoting undone at byte level, with Mark-of-the-Web, wit
 - 2026-10-18 — `cargo fmt --check` clean, `cargo clippy --all-targets -- -D warnings` clean, `cargo test` pass
   (new: `eml_bytes_undo_the_mboxrd_quoting_only`, `eml_export_keeps_the_bytes_and_unquotes_from_lines`,
   `eml_file_names_come_from_the_subject`), `node --check ui/main.js` clean; Chrome stub-check as in the Log.
-- 2026-10-18 — user's manual round in the Tauri window on the 14 GB archive: the .eml opens in the mail client,
-  the print preview shows the message as the reader does and Save as PDF writes it, reported as "minden működik".
-  Done-when met.
+- 2026-10-18 — manual round in the Tauri window on the 14 GB archive: the .eml opens in the mail client,
+  the print preview shows the message as the reader does and Save as PDF writes it. Done-when met.
 
 ## Closing checklist
 

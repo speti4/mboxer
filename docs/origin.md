@@ -4,26 +4,25 @@ mboxer started as a greenfield project with one concrete problem behind it.
 
 ## Starting point
 
-A former work mailbox lived in Gmail and was archived with Google Takeout: one mbox file of about 13 GB
-(`All mail Including Spam and Trash.mbox`, with Takeout's settings files next to it). Until now that archive
-was opened with the open-source [eneam/mboxviewer](https://github.com/eneam/mboxviewer).
+A Gmail mailbox archived with Google Takeout arrives as one large mbox file: about 13 GB in the reference case
+(`All mail Including Spam and Trash.mbox`, with Takeout's settings files next to it). Years of mail in one file
+are hard to use without a viewer built for that size.
 
 ## Problem
 
-That viewer:
+A viewer for such an archive has to:
 
-1. has a poor UI and UX,
-2. is unstable and slow, and often freezes,
-3. hides search behind an awkward "Advanced Find" dialog with no hotkey, which makes the most common task the
-   least comfortable one.
+1. open a file of tens of gigabytes without freezing, and re-open it fast,
+2. search the message bodies in well under a second, which needs an index rather than a scan of the file,
+3. put search first: one field with a hotkey, since finding a message is the most common task.
 
 ## Need
 
 First, look for a free alternative (see `docs/research/`); the expectation was that none would fit. Second,
-build an own mbox viewer for Windows 11 that solves the problems above, with as few dependencies as possible,
-ideally none for the person running it.
+build an mbox viewer of its own for Windows 11 that meets the points above, with as few dependencies as
+possible, ideally none for the person running it.
 
 ## Usage profile
 
-Occasional lookups in an old mailbox, once or twice a week at most, no heavy use: opening a large archive has
-to be cheap, and finding a message has to be fast and keyboard-friendly.
+Occasional lookups in an archived mailbox: opening a large archive has to be cheap, and finding a message has
+to be fast and keyboard-friendly.

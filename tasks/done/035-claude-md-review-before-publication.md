@@ -12,15 +12,15 @@ milestone: M5 Public release
 
 ## Context
 
-What: drop the "User communication: Hungarian" line (it belongs in the author's global file; a contributor's session
-would answer in Hungarian); one rule for the dependency justification (task file vs `Cargo.toml` comment, today both,
+What: drop the line that set the assistant's chat language (a personal preference, not a repo rule; a contributor's AI
+assistant would follow it); one rule for the dependency justification (task file vs `Cargo.toml` comment, today both,
 CONTRIBUTING says the comment); point to CONTRIBUTING's checks instead of a stale list (cargo deny and zizmor since
 024); cut what the repo already says (edition, the doubled English / kebab-case line); a short Commands block out of
 the Scope paragraph; the Tasks section as one pointer line.
-Why: review 2026-10-18 against the current memory / best-practices docs (keep it lean, no contradictions, no
+Why: review 2026-10-18 against Claude Code's CLAUDE.md guidance (keep it lean, no contradictions, no
 frequently changing facts); the file is public from 028 on.
-Done when: CLAUDE.md has no personal or contradicting line and a fresh session finds build, test and checks in it.
-Run as a task session under docs/git-workflow.md, in parallel with 025 and 032.
+Done when: CLAUDE.md has no personal or contradicting line and a new AI assistant session finds build, test and checks in it.
+Done in parallel with 025 and 032.
 
 ## Steps
 
@@ -33,10 +33,11 @@ Run as a task session under docs/git-workflow.md, in parallel with 025 and 032.
 
 - 2026-10-18 — promoted by the main session; worked in `.claude/worktrees/035-claude-md-review` on branch
   `task/035-claude-md-review`
-- 2026-10-18 — CLAUDE.md átírva (Layout, Commands, Data, Conventions, Tasks), PR #52, CI zöld; lezárva a branchen
-- 2026-10-18 — main session a merge előtt: a záró commit csak a `git mv`-t vitte, a fájl szerkesztései (Steps,
-  Log, Verification, `closed`) commitolatlanul maradtak a worktree-ben — most commitolva; a két follow-up
-  (D-010 hivatkozás, `deps:` a CONTRIBUTING-ban, plusz a várt index-hiba) → `backlog/036`; index újragenerálva.
+- 2026-10-18 — CLAUDE.md rewritten (Layout, Commands, Data, Conventions, Tasks), PR #52, CI green; closed on the
+  branch
+- 2026-10-18 — main session before the merge: the closing commit carried only the `git mv`, the file's edits
+  (Steps, Log, Verification, `closed`) stayed uncommitted in the worktree — committed now; the two follow-ups
+  (the D-010 reference, `deps:` in CONTRIBUTING, plus the expected index error) → `backlog/036`; index regenerated.
 
 ## Deviations from the plan
 
@@ -44,23 +45,24 @@ Run as a task session under docs/git-workflow.md, in parallel with 025 and 032.
 
 ## Verification
 
-- 2026-10-18 — CLAUDE.md előtte: Scope (crate-ok + build/run/test + docs-leltár), Data, Conventions (7 sor),
-  Tasks (1 hosszú sor); utána: Layout, Commands, Data (változatlan szabályok), Conventions (2 sor), Tasks (1 sor).
-  Hová kerültek az elhagyott szabályok (mind megvolt már, új helyre nem kellett költöztetni):
-  - "User communication: Hungarian" — a szerző globális CLAUDE.md-je fedi; a repóba nem kell
-  - Rust edition 2024 — `Cargo.toml` (`edition = "2024"`) és CONTRIBUTING.md Conventions
-  - fmt + clippy lista — CONTRIBUTING.md "Checks before a commit" (cargo deny, zizmor is); CLAUDE.md oda mutat
+- 2026-10-18 — CLAUDE.md before: Scope (crates + build/run/test + docs inventory), Data, Conventions (7 lines),
+  Tasks (1 long line); after: Layout, Commands, Data (rules unchanged), Conventions (2 lines), Tasks (1 line).
+  Where the dropped rules live (all were already stated elsewhere, nothing had to move):
+  - the chat-language line — a personal setting, not a repo rule; it does not belong in the repo
+  - Rust edition 2024 — `Cargo.toml` (`edition = "2024"`) and CONTRIBUTING.md Conventions
+  - the fmt + clippy list — CONTRIBUTING.md "Checks before a commit" (cargo deny, zizmor too); CLAUDE.md points
+    there
   - English / kebab-case — CONTRIBUTING.md Conventions
-  - függőség-indoklás — egy szabály: `Cargo.toml` komment (CONTRIBUTING.md "Dependencies: one exe", PR template);
-    a "task fájlban" változat törölve, CLAUDE.md a CONTRIBUTING szakaszra mutat
-  - docs/ leltár — docs/development.md Layout
-  - "closing files every follow-up with /tasks add", "/tasks check before a task commit" — ellentmondott a
-    docs/git-workflow.md-nek (id-t és follow-upot a main session ad); a standard a `tasks/README.md`-ben, a
-    tasks_check tool leírásában
-  - megtartva: `@docs/git-workflow.md` import, Data outside the repo, D-008 (H1 + Context angol), decision
-    `proposed` amíg a user meg nem erősíti (máshol nem áll kimondva, ezért CLAUDE.md-ben maradt)
-- 2026-10-18 — PR #52: CI run 39153999869 zöld (test, deny, workflow-lint, commit-rules); `scripts/check-commit.sh`
-  a commit üzenetre és a PR body-ra exit 0; `tasks_check` (write nélkül) 0 hiba
+  - dependency justification — one rule: the `Cargo.toml` comment (CONTRIBUTING.md "Dependencies: one exe", PR
+    template); the "in the task file" variant removed, CLAUDE.md points to the CONTRIBUTING section
+  - the docs/ inventory — docs/development.md Layout
+  - "closing files every follow-up with /tasks add", "/tasks check before a task commit" — contradicted
+    docs/git-workflow.md (ids and follow-ups come from the main session); the standard is in `tasks/README.md` and
+    the tasks_check tool's description
+  - kept: the `@docs/git-workflow.md` import, Data outside the repo, D-008 (H1 + Context in English), a decision
+    stays `proposed` until it is confirmed (not stated anywhere else, so it stays in CLAUDE.md)
+- 2026-10-18 — PR #52: CI run 39153999869 green (test, deny, workflow-lint, commit-rules); `scripts/check-commit.sh`
+  exit 0 on the commit message and the PR body; `tasks_check` (without write) 0 errors
 
 ## Closing checklist
 

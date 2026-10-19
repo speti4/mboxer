@@ -22,9 +22,8 @@ Windows" becomes "follows the system"; `files.test.js` takes the OS as a paramet
 Why: the Windows assumptions the 2026-10-18 sweep found outside printing (020) and packaging (018).
 Done when: `cargo test` and the node tests pass on both CI runners; on a Mac an opened attachment carries the
 quarantine xattr, a read-only mbox folder indexes under `~/Library`, and Finder "Open with" opens the file.
-Run as a task session under docs/git-workflow.md, in parallel with 036, 038 and 018 (plan 2026-10-19); the
-`macos-latest` runner arrives with 018, so this branch rebases onto `main` after 018 merges. The author has no
-Mac: the on-Mac checks of the done-when are a follow-up. Docs: this task writes `docs/usage.md`; 018 writes
+Done in parallel with 036, 038 and 018; the `macos-latest` runner arrives with 018, so this work lands after
+018. The on-Mac checks of the done-when are a follow-up (040). Docs: this task writes `docs/usage.md`; 018 writes
 `docs/development.md`.
 
 ## Steps
@@ -42,35 +41,37 @@ Mac: the on-Mac checks of the done-when are a follow-up. Docs: this task writes 
 ## Log
 
 - 2026-10-19 — promoted in the main session, branch `task/019-macos-runtime-differences`
-- 2026-10-19 — Index home: `default_index_home` a platform per-user adatmappáját használja (`user_data_dir`,
-  tiszta függvény, unit teszt mindhárom OS-re): `%LOCALAPPDATA%` Windowson, `~/Library/Application Support`
-  macOS-en, `$XDG_DATA_HOME` / `~/.local/share` máshol (Linux eddig egyből a temp alá ment; az XDG út egy sor,
-  ezért bekerült), utána marad a temp. D-005 egy `Amended 2026-10-19:` sorral bővült, a státusz `decided`. A CLI
-  `index` after-help szövege `cfg`-vel a platform saját írásmódját mutatja (`index_help()`).
-- 2026-10-19 — Quarantine: `mark_of_the_web` macOS ágon a rendszer `xattr -w com.apple.quarantine
-  "0081;<hex idő>;mboxer;"` parancsát futtatja, a kimenet és a hiba eldobva (mint a Windows ADS ág); nincs új
-  crate. A tiltott kiterjesztések listája a 14 macOS típussal bővült (`MACOS_BLOCKED_EXTENSIONS` tesztkonstans:
-  mind blokkolt kis- és nagybetűvel, és mind benne van a fő listában). A MotW teszt macOS-en `xattr -p`-vel
-  ellenőrzi az attribútumot (a mac runneren fut majd).
-- 2026-10-19 — Finder open: `tauri::Builder::build(...).run(callback)`; a `RunEvent::Opened { urls }` ág
-  `cfg(target_os = "macos")`, a többi platformon a callback üres. `commands::open_from_system` a `file://`
-  URL-eket útvonallá alakítja; amíg a webview nem kérte le az induló útvonalakat, `AppState::system_opens`-ben
-  várnak (az esemény a webview betöltése előtt is jöhet), utána `open-files` Tauri eseményként mennek ki. Az
-  `initial_path` parancs `initial_paths` lett (`Vec<String>`: argv[1] + a várakozó rendszer-megnyitások); a
-  `core:default` jogosultság lefedi az esemény-figyelést, a capability fájl nem változott.
-- 2026-10-19 — UI: `files.js` `create(os)` gyárral épül, az alapértelmezett példány `detectOs(navigator)`-ral
-  (`userAgentData.platform`, különben `navigator.platform`; szinkron, nincs IPC, Node alatt is megy). Windowson
-  a kulcs kisbetűs és `/`→`\`, máshol csak a záró `/` esik le (a kis-nagybetű marad: egy bejegyzés két fájlra
-  rosszabb hiba, mint két bejegyzés egyre). `main.js queryKey` = `Files.pathKey`. `nameShortcutsForMac()` a
-  `title` / `placeholder` / üres-képernyő gomb `Ctrl+` szövegét `⌘`-re (`Ctrl+Shift+` → `⇧⌘`) írja át Macen.
-  Monospace stack három helyen (`style.css` ×2, a nyomtatási CSS a `main.js`-ben). Theme: "follows the system".
-  `files.test.js` a két OS-paraméterrel fut (40 node-teszt a korábbi 30 helyett), `docs/usage.md` és
-  `docs/reference.md` a mac útvonalakkal és a `⌘` megjegyzéssel.
-- 2026-10-19 — A `cargo check --target aarch64-apple-darwin -p mboxer-app` két akadálya Windowson:
-  `objc2-exception-helper` C-fájlt fordít (`cc` nincs a gépen) → a crate saját `DOCS_RS=1` kapcsolója kihagyja
-  (a check nem linkel); `tauri::generate_context!()` nem-Windows célra `icons/icon.png`-t kér → a 018 PR-jének
-  (#61) bájtra azonos `icon.png`-je és ugyanaz a `tauri.conf.json` sor került be, hogy a rebase konfliktus
-  nélkül menjen.
+- 2026-10-19 — Index home: `default_index_home` uses the platform's per-user data folder (`user_data_dir`, a pure
+  function, unit tested for all three OSes): `%LOCALAPPDATA%` on Windows, `~/Library/Application Support` on
+  macOS, `$XDG_DATA_HOME` / `~/.local/share` elsewhere (Linux used to go straight to the temp folder; the XDG path
+  is one line, so it went in), then the temp folder as before. D-005 gained an `Amended 2026-10-19:` line, the
+  status stays `decided`. The CLI `index` after-help text shows the platform's own spelling through `cfg`
+  (`index_help()`).
+- 2026-10-19 — Quarantine: on macOS `mark_of_the_web` runs the system's `xattr -w com.apple.quarantine
+  "0081;<hex time>;mboxer;"`, output and errors discarded (like the Windows ADS arm); no new crate. The blocked
+  extensions list gained the 14 macOS types (test constant `MACOS_BLOCKED_EXTENSIONS`: all blocked in lower and
+  upper case, and all present in the main list). On macOS the MotW test checks the attribute with `xattr -p`
+  (it runs on the mac runner).
+- 2026-10-19 — Finder open: `tauri::Builder::build(...).run(callback)`; the `RunEvent::Opened { urls }` arm is
+  `cfg(target_os = "macos")`, on the other platforms the callback is empty. `commands::open_from_system` turns the
+  `file://` URLs into paths; until the webview has asked for the start-up paths they wait in
+  `AppState::system_opens` (the event can come before the webview loads), afterwards they go out as an
+  `open-files` Tauri event. The `initial_path` command became `initial_paths` (`Vec<String>`: argv[1] + the
+  waiting system opens); the `core:default` permission covers listening to the event, the capability file did not
+  change.
+- 2026-10-19 — UI: `files.js` is built by a `create(os)` factory, the default instance with `detectOs(navigator)`
+  (`userAgentData.platform`, else `navigator.platform`; synchronous, no IPC, works under Node too). On Windows the
+  key is lower case and `/`→`\`, elsewhere only the trailing `/` goes (case stays: one entry for two files is a
+  worse bug than two entries for one). `main.js queryKey` = `Files.pathKey`. `nameShortcutsForMac()` rewrites the
+  `Ctrl+` text of `title` / `placeholder` / the empty-screen button to `⌘` (`Ctrl+Shift+` → `⇧⌘`) on a Mac.
+  The monospace stack in three places (`style.css` ×2, the print CSS in `main.js`). Theme: "follows the system".
+  `files.test.js` runs with both OS parameters (40 node tests instead of 30), `docs/usage.md` and
+  `docs/reference.md` with the mac paths and the `⌘` note.
+- 2026-10-19 — The two obstacles of `cargo check --target aarch64-apple-darwin -p mboxer-app` on Windows:
+  `objc2-exception-helper` compiles a C file (no `cc` on the machine) → the crate's own `DOCS_RS=1` switch skips
+  it (a check does not link); `tauri::generate_context!()` asks for `icons/icon.png` on a non-Windows target → the
+  byte-identical `icon.png` of 018's PR (#61) and the same `tauri.conf.json` line went in, so the rebase goes
+  without a conflict.
 
 ## Deviations from the plan
 
@@ -96,9 +97,9 @@ Mac: the on-Mac checks of the done-when are a follow-up. Docs: this task writes 
 
 ## Closing checklist
 
-- [x] every follow-up is a `backlog/` file (`/tasks add`) or deleted with a reason in the Log — task session:
-  the follow-ups are in the pull request description, the main session files them
+- [x] every follow-up is a `backlog/` file (`/tasks add`) or deleted with a reason in the Log — the follow-ups are
+  in the pull request description and are filed before the merge
 - [x] Verification written, dated
-- [x] `tasks_check` green, README index regenerated — task session: `tasks_check` without `write`, the index is
-  regenerated by the main session before the merge
+- [x] `tasks_check` green, README index regenerated — `tasks_check` without `write` here; the index is regenerated
+  before the merge
 - [x] moved to `done/` with `closed: YYYY-MM-DD`

@@ -17,55 +17,55 @@ Release profile, a single portable exe (no installer), version stamp in one plac
 nothing to install (D-002). Done when: a user on a clean Windows 11 opens their own mbox with the bare
 exe. From 005: the exe is `crates/mboxer-app` (`cargo build --release` → `target\release\mboxer.exe`,
 release = windowed), the WebView2 profile is under `%LOCALAPPDATA%\io.github.speti4.mboxer` (the `tauri.conf.json`
-`identifier`), the usage doc mentions this. User decision 2026-10-17 (planning round): GitHub Actions too,
-with tests ("a gh action with tests"); the package `mboxer-<verzió>.zip` = `mboxer.exe` + `usage.md`
+`identifier`), the usage doc mentions this. Decided 2026-10-17 (planning round): GitHub Actions too,
+with tests; the package `mboxer-<version>.zip` = `mboxer.exe` + `usage.md`
 (the CLI exe is a developer tool, left out). No new crate (D-002).
 
 ## Steps
 
-1. [x] `Cargo.toml` `[profile.release]`: `lto = "fat"`, `opt-level = 3`, `strip = true` (`panic` marad unwind)
-2. [x] `tauri.conf.json`: `version` törlése → a workspace `Cargo.toml` az egyetlen forrás; `app_version` command
-3. [x] UI: `#status-version` a státuszsor jobb szélén (`v0.1.0`, tooltip), induláskor töltve
-4. [x] `docs/usage.md` a felhasználóknak
-5. [x] `scripts/release.ps1`: release build, verzió a Cargo.toml-ból, `dist\mboxer-<verzió>.zip`
-6. [x] `.github/workflows/ci.yml`: `test` job (fmt, clippy, test) minden pushra/PR-ra; `release` job `v*` tagre
-7. [x] README: release script, workflow, tag-konvenció, `docs/usage.md` link
-8. [x] Ellenőrzés: release build mérete (előtte 14,3 MB), `VersionInfo.ProductVersion`, release exe a fixture-másolaton,
-   zip tartalma, `node --check`, `cargo test`, clippy
+1. [x] `Cargo.toml` `[profile.release]`: `lto = "fat"`, `opt-level = 3`, `strip = true` (`panic` stays unwind)
+2. [x] `tauri.conf.json`: `version` removed → the workspace `Cargo.toml` is the only source; `app_version` command
+3. [x] UI: `#status-version` at the right end of the status bar (`v0.1.0`, tooltip), filled at start-up
+4. [x] `docs/usage.md` for the users
+5. [x] `scripts/release.ps1`: release build, version from Cargo.toml, `dist\mboxer-<version>.zip`
+6. [x] `.github/workflows/ci.yml`: `test` job (fmt, clippy, test) on every push/PR; `release` job on a `v*` tag
+7. [x] README: release script, workflow, tag convention, `docs/usage.md` link
+8. [x] Check: release build size (14.3 MB before), `VersionInfo.ProductVersion`, the release exe on the fixture
+   copy, the zip's content, `node --check`, `cargo test`, clippy
 9. [x] `tasks_check`; commit
 
 ## Log
 
 - 2026-10-17 — plan approved; 012 promoted to wip
-- 2026-10-17 — profil (`opt-level 3`, `lto fat`, `codegen-units 1`, `strip`), `tauri.conf.json` `version` törölve
-  (Tauri 2: elhagyva a Cargo.toml verziója, tauri-utils 2.10.2 `config.rs:4108`), `app_version` command
-  (`app.package_info().version`), `#status-version` negyedik oszlop a státuszsorban (`:empty` → rejtett),
-  `docs/usage.md`, `scripts/release.ps1` (verzió a `[workspace.package]`-ből, `-Tag` egyezés, a stampelt
-  `ProductVersion` ellenőrzése, staging mappa → `Compress-Archive`), `.github/workflows/ci.yml` (`test`:
-  fmt/clippy/test windows-latest-en, `Swatinem/rust-cache@v2`; `release`: `needs: test`, `v*` tagre a script +
-  `softprops/action-gh-release@v2`), README. `cargo test`: 30 app + 1 + 4 + 6 CLI + 30 + 9 + 22 core zöld,
-  clippy és fmt tiszta, `node --check` tiszta
-- 2026-10-17 — `scripts\release.ps1`: release build 2 m 53 s; exe 14 958 080 byte (előtte, thin LTO: 14 984 704 —
-  a fat LTO + strip 26 KB-ot hozott, a méret az embedded UI + tantivy + Tauri); `ProductVersion` = `FileVersion`
-  = 0.1.0; `dist\mboxer-0.1.0.zip` 5,27 MB, benne `mboxer.exe` + `usage.md`. A release exe a `threads.mbox`
-  másolatán: `opened threads.mbox: 6 messages, Built, 71 ms`. A workflow a következő push-nál fut először; a
-  "tiszta gépen, csak az exe" done-when a user körében dől el; closed
+- 2026-10-17 — profile (`opt-level 3`, `lto fat`, `codegen-units 1`, `strip`), `tauri.conf.json` `version` removed
+  (Tauri 2: when it is left out, the Cargo.toml version is used, tauri-utils 2.10.2 `config.rs:4108`), `app_version`
+  command (`app.package_info().version`), `#status-version` as the fourth column of the status bar (`:empty` →
+  hidden), `docs/usage.md`, `scripts/release.ps1` (version from `[workspace.package]`, `-Tag` match, the stamped
+  `ProductVersion` checked, staging folder → `Compress-Archive`), `.github/workflows/ci.yml` (`test`:
+  fmt/clippy/test on windows-latest, `Swatinem/rust-cache@v2`; `release`: `needs: test`, on a `v*` tag the script +
+  `softprops/action-gh-release@v2`), README. `cargo test`: 30 app + 1 + 4 + 6 CLI + 30 + 9 + 22 core green,
+  clippy and fmt clean, `node --check` clean
+- 2026-10-17 — `scripts\release.ps1`: release build 2 m 53 s; exe 14 958 080 bytes (before, thin LTO: 14 984 704 —
+  fat LTO + strip saved 26 KB, the size is the embedded UI + tantivy + Tauri); `ProductVersion` = `FileVersion`
+  = 0.1.0; `dist\mboxer-0.1.0.zip` 5.27 MB, holding `mboxer.exe` + `usage.md`. The release exe on the `threads.mbox`
+  copy: `opened threads.mbox: 6 messages, Built, 71 ms`. The workflow runs first on the next push; the
+  "clean machine, only the exe" done-when is settled by the manual round; closed
 
 ## Deviations from the plan
 
-- none: the plan landed as written. A méretnyereség a profilból elhanyagolható (26 KB), a profil marad, mert a
-  fat LTO-nak futásidő-haszna is van és a strip a D-002 "egy exe" szellemében tisztább.
+- none: the plan landed as written. The size gain from the profile is negligible (26 KB); the profile stays,
+  because fat LTO also helps at run time and strip is cleaner in the spirit of D-002's "one exe".
 
 ## Verification
 
 - 2026-10-17 — `cargo fmt --check` clean, `cargo clippy --all-targets -- -D warnings` clean, `cargo test`: 30 app
   + 1 ui_query + 4 + 6 CLI + 30 + 9 + 22 core pass; `node --check ui/main.js` clean.
-- 2026-10-17 — `scripts\release.ps1`: build 2 m 53 s, `target\release\mboxer.exe` 14,3 MB (14 958 080 byte; a 005
-  thin-LTO buildje 14 984 704), `(Get-Item mboxer.exe).VersionInfo` ProductVersion 0.1.0, FileVersion 0.1.0,
-  ProductName mboxer; `dist\mboxer-0.1.0.zip` 5 273 947 byte, két fájl (`mboxer.exe`, `usage.md`).
-- 2026-10-17 — a release exe egy fixture-másolaton: 6 üzenet, index épült, 71 ms (stderr). A státuszsor `v0.1.0`
-  chipje és a done-when (tiszta Windows 11, csak az exe) a user kézi körére vár; a CI első futása a
-  következő push.
+- 2026-10-17 — `scripts\release.ps1`: build 2 m 53 s, `target\release\mboxer.exe` 14.3 MB (14 958 080 bytes; the 005
+  thin-LTO build was 14 984 704), `(Get-Item mboxer.exe).VersionInfo` ProductVersion 0.1.0, FileVersion 0.1.0,
+  ProductName mboxer; `dist\mboxer-0.1.0.zip` 5 273 947 bytes, two files (`mboxer.exe`, `usage.md`).
+- 2026-10-17 — the release exe on a fixture copy: 6 messages, index built, 71 ms (stderr). The status bar's
+  `v0.1.0` chip and the done-when (clean Windows 11, only the exe) wait for the manual round; the first CI run is
+  the next push.
 
 ## Closing checklist
 

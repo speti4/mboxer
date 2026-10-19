@@ -42,9 +42,9 @@ the helper scripts are described in [docs/development.md](docs/development.md).
 ## Branches, pull requests and commits
 
 Work on a branch and open a pull request; it is squash-merged once CI is green, so its title and description
-become the commit message. The commit rules (no `Claude-Session:` trailer, no Claude Code session link) and how
-the maintainer's parallel sessions work are in [docs/git-workflow.md](docs/git-workflow.md). Enable the hook
-that checks them once per clone:
+become the commit message. Commit subjects and pull request titles are imperative and start with a type
+(`feat:`, `fix:`, `docs:` …); the hook below checks this. The full rules are in
+[docs/git-workflow.md](docs/git-workflow.md). Enable the hook once per clone:
 
 ```powershell
 git config core.hooksPath .githooks
@@ -60,7 +60,7 @@ cargo test
 
 A change to `Cargo.toml`, `Cargo.lock` or `.github/` also runs `cargo deny check` and `uvx zizmor .github`
 (see [docs/development.md](docs/development.md#ci-and-releases)). CI (`.github/workflows/ci.yml`) runs all of
-them on every push and pull request that changes code, the macOS tests on a release tag or a manual run. A
+them on every push and pull request, the macOS tests on a release tag or a manual run. A
 change in behaviour comes with a test: Rust tests sit beside the code or under each crate's `tests/`, and the UI
 modules have Node tests under `crates/mboxer-app/tests/ui/`.
 

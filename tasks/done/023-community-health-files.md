@@ -21,49 +21,49 @@ issues off; `pull_request_template.md`; `CODEOWNERS`. Why: these are the first t
 community profile look for, and the people who use an mbox viewer hold private mail, so the templates must keep
 it out of public issues. Done when: GitHub's Community Standards page is complete except for the items that need
 a public repo. Planning decisions 2026-10-18 (approved plan): reports go through GitHub private vulnerability
-reporting only, with no e-mail fallback, because no real mailbox is published (D-009); the copyright line names
+reporting only, with no e-mail fallback, because no real mailbox is published (D-009/D-010); the copyright line names
 the git author; CONTRIBUTING takes over the README's build prerequisites and checks (026).
 
 ## Steps
 
 1. [x] `LICENSE` (MIT, `Copyright (c) 2026 Szőke Péter`)
-2. [x] `SECURITY.md`: supported versions, támadási felület, bejelentés private vulnerability reportinggal
-3. [x] `CONTRIBUTING.md`: issue first, prerequisites, checks, synthetic fixtures, D-002, task standard + mirrored issues (D-008), konvenciók, licenc
+2. [x] `SECURITY.md`: supported versions, attack surface, reporting through private vulnerability reporting
+3. [x] `CONTRIBUTING.md`: issue first, prerequisites, checks, synthetic fixtures, D-002, task standard + mirrored issues (D-008), conventions, licence
 4. [x] `.github/ISSUE_TEMPLATE/bug-report.yml`, `feature-request.yml`, `config.yml`
 5. [x] `.github/pull_request_template.md`, `.github/CODEOWNERS`
-6. [x] `tasks/backlog/028-…`: a Community Standards oldal ellenőrzése a checklistre
-7. [x] Ellenőrzés: YAML parse, linkek, `gh api …/community/profile` push után; `tasks_check`; commit
+6. [x] `tasks/backlog/028-…`: the Community Standards page check added to its checklist
+7. [x] Check: YAML parse, links, `gh api …/community/profile` after the push; `tasks_check`; commit
 
 ## Log
 
-- 2026-10-18 — plan approved; 023 promoted to wip (026-tal együtt)
-- 2026-10-18 — `gh api repos/speti4/mboxer/community/profile` privát repón is válaszol: push előtt
-  `health_percentage: 28`, csak a README van meg; a `code_of_conduct` is a listán szerepel, ezért került be
-- 2026-10-18 — 8 fájl megírva; a három issue form `yaml.safe_load`-dal parse-ol (name / description / labels /
-  body, illetve blank_issues_enabled / contact_links). A CONTRIBUTING és a PR template a `docs/reference.md` és
-  `docs/development.md` fájlokra hivatkozik, ezek a 026-ban születnek, ugyanabban a pushban
+- 2026-10-18 — plan approved; 023 promoted to wip (together with 026)
+- 2026-10-18 — `gh api repos/speti4/mboxer/community/profile` answers on a private repo too: before the push
+  `health_percentage: 28`, only the README present; `code_of_conduct` is on the list as well, which is why it was added
+- 2026-10-18 — 8 files written; the three issue forms parse with `yaml.safe_load` (name / description / labels /
+  body, and blank_issues_enabled / contact_links). CONTRIBUTING and the PR template refer to `docs/reference.md` and
+  `docs/development.md`, which 026 creates in the same push
 
 ## Deviations from the plan
 
-- `CODE_OF_CONDUCT.md` hozzáadva (nem volt a task szövegében): a community profile számon kéri. A Contributor
-  Covenant 2.1-et linkkel veszi át, plusz egy szabály (más levelét / adatait nem posztoljuk); a bejelentés a
-  private reportinggal vagy a GitHub *Report content* menüjével megy, e-mail nélkül
-- `SECURITY.md`: nincs e-mailes tartalék (a terv szerint, D-009: nincs publikált valódi postafiók)
+- `CODE_OF_CONDUCT.md` added (not in the task text): the community profile asks for it. It adopts the Contributor
+  Covenant 2.1 by link, plus one rule (no posting of other people's mail or data); reports go through private
+  reporting or GitHub's *Report content* menu, without e-mail
+- `SECURITY.md`: no e-mail fallback (as planned, D-009: no real mailbox is published)
 
-- 2026-10-18 — commit `bc9dc2b`, a user jóváhagyásával pusholva (`3c9ccb8..f640447`)
-- 2026-10-18 — follow-up sweep: nincs nyitott tétel. A private vulnerability reporting bekapcsolása és a Community
-  Standards oldal végső ellenőrzése a 028 checklistjén van
+- 2026-10-18 — commit `bc9dc2b`, pushed (`3c9ccb8..f640447`)
+- 2026-10-18 — follow-up sweep: no open item. Turning on private vulnerability reporting and the final check of the
+  Community Standards page are on 028's checklist
 
 ## Verification
 
-- 2026-10-18 — push után `gh api repos/speti4/mboxer/community/profile`: `health_percentage` 28 → **100**;
-  code_of_conduct, contributing, license, pull_request_template, readme mind megvan. Az `issue_template` mező `null`
-  marad, mert az API csak a régi markdown template-eket nézi, a YAML formokat nem; a GraphQL `issueTemplates` is
-  üres, a `contactLinks` viszont visszaadja a security linket (a `config.yml` tehát parse-olt)
-- 2026-10-18 — Chrome, `issues/new/choose`: Bug report és Feature request form; Blank issue „Maintainers only”;
-  „Report a security vulnerability” contact link. A `?template=bug-report.yml` oldal hiba nélkül renderel: minden
-  mező, a mbox méret dropdown, a kötelező Privacy checkbox, a `bug` label előre beállítva, alul a contributing
-  guidelines / security policy / code of conduct linkek
+- 2026-10-18 — after the push `gh api repos/speti4/mboxer/community/profile`: `health_percentage` 28 → **100**;
+  code_of_conduct, contributing, license, pull_request_template, readme all present. The `issue_template` field
+  stays `null`, because the API looks only at the old markdown templates, not the YAML forms; GraphQL
+  `issueTemplates` is empty too, but `contactLinks` returns the security link (so `config.yml` parsed)
+- 2026-10-18 — Chrome, `issues/new/choose`: Bug report and Feature request forms; Blank issue "Maintainers only";
+  the "Report a security vulnerability" contact link. The `?template=bug-report.yml` page renders without errors:
+  every field, the mbox size dropdown, the required Privacy checkbox, the `bug` label preset, and the contributing
+  guidelines / security policy / code of conduct links at the bottom
 
 ## Closing checklist
 

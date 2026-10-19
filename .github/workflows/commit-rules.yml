@@ -1,7 +1,7 @@
 # The commit rules of docs/git-workflow.md (scripts/check-commit.sh, task 034) for every pushed or proposed
 # commit and the pull request text, which a squash merge turns into the commit message; the local hook can be
-# skipped. Its own workflow without a path filter, so a docs- or tasks-only change, which skips ci.yml, is
-# still checked (task 042). A tag or a manual run has no commit range, so neither triggers it.
+# skipped. Its own workflow, required by the ruleset on `main` next to the ci.yml jobs (task 028). A tag or a
+# manual run has no commit range, so neither triggers it.
 # Actions are pinned by commit SHA and bumped by dependabot (task 024).
 name: commit-rules
 

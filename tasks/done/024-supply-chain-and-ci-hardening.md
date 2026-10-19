@@ -20,7 +20,7 @@ its D-002 justification line.
 Why: a public repo that ships an exe needs a visible, automatic answer to "are the dependencies and the
 pipeline trustworthy", and the licence check is a precondition for the third-party notices (025).
 Done when: CI is green with `cargo deny check` and the workflow lint, and the first dependabot PR has arrived.
-User decision 2026-10-18: MPL-2.0 is allowed globally in the licence allowlist (D-011, confirmed by the user 2026-10-18).
+Decided 2026-10-18: MPL-2.0 is allowed globally in the licence allowlist (D-011).
 
 D-002 lines (no new crate enters the exe or the build):
 - `cargo-deny` — CI job (`EmbarkStudios/cargo-deny-action`) and an optional `cargo install` on a dev machine; it
@@ -41,7 +41,7 @@ D-002 lines (no new crate enters the exe or the build):
 6. [x] `docs/development.md` (layout, CI and releases), `CONTRIBUTING.md` (checks, dependency rule)
 7. [x] D-011 recorded, decided 2026-10-18
 8. [x] fmt, clippy, test locally
-9. [x] commit, push (after the user's go), CI run green with `test`, `deny`, `workflow-lint`; `sync-issues` green
+9. [x] commit, push, CI run green with `test`, `deny`, `workflow-lint`; `sync-issues` green
 10. [x] first dependabot PR(s) arrive and their CI is green
 
 ## Log
@@ -64,9 +64,9 @@ D-002 lines (no new crate enters the exe or the build):
   release skipped), sync-issues green with `$GITHUB_REPOSITORY`. The first two "Dependabot Updates" runs
   (cargo, github-actions) succeeded with no PR: every action is on its latest release and `Cargo.lock` is
   current ("No update needed"); the first PR comes with the next release past the 7-day cooldown
-- 2026-10-18 — Dependabot alerts were off ("Dependabot alerts are disabled for this repository", 403); user
-  go: `gh api -X PUT …/vulnerability-alerts` + `…/automated-security-fixes` → enabled, not paused; 0 open alerts
-- 2026-10-18 — to see the first dependabot PR today (user go): rust-cache pin set back to v2.9.1 `c193711`
+- 2026-10-18 — Dependabot alerts were off ("Dependabot alerts are disabled for this repository", 403):
+  `gh api -X PUT …/vulnerability-alerts` + `…/automated-security-fixes` → enabled, not paused; 0 open alerts
+- 2026-10-18 — to see the first dependabot PR the same day: rust-cache pin set back to v2.9.1 `c193711`
   (2026-03-12, past the cooldown) and a comment line in `dependabot.yml`, which triggers an immediate run
 - 2026-10-18 — PR #44 "deps: Bump Swatinem/rust-cache from 2.9.1 to 2.9.2 in the actions group" arrived in
   minutes; its diff changed the SHA but kept `# v2.9.1`, because the inline zizmor ignore sat after the version
@@ -75,7 +75,7 @@ D-002 lines (no new crate enters the exe or the build):
   (medium, `VariantStrIter` unsoundness, fixed in 0.20) on glib 0.18.5, which gtk pins under Tauri's Linux
   backend; `cargo tree -i glib --target x86_64-pc-windows-msvc` prints nothing, so the exe does not contain it
 - 2026-10-18 — PR #44 rebased by dependabot after `80cba01`: `c193711 # v2.9.1` → `6323deb # v2.9.2`, checks
-  test/deny/workflow-lint pass (release skipped), squash-merged as `95c8ffe`. Alert #1 dismissed (user go) as
+  test/deny/workflow-lint pass (release skipped), squash-merged as `95c8ffe`. Alert #1 dismissed as
   `not_used` with the `cargo tree` reason
 - 2026-10-18 — closing sweep: the dtolnay master pin, which dependabot cannot follow → backlog/033; the macOS
   targets for `deny.toml` → a line in backlog/018

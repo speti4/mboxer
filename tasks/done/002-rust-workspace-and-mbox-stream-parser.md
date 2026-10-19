@@ -20,12 +20,12 @@ Done when: `mboxer scan <mbox>` walks the 14 GB with flat memory, prints the mes
 headers of a sample; unit tests cover the Gmail Takeout format with nested MIME, quoted-printable and
 base64 parts.
 
-User decisions 2026-10-17: the session installs the toolchain (VS C++ build tools + Windows SDK, rustup)
+Decided 2026-10-17: the toolchain (VS C++ build tools + Windows SDK, rustup) is installed
 with winget / the VS installer; the seek contract is a separate decision (D-003, proposed).
 
 Survey 2026-10-17 (64 MB sample, header names only): CRLF line endings; envelope `From <digits>@xxx
-<ctime-dátum>`; `>From ` escape in the body; average ~105 KB, max in the sample 5.6 MB; every message
-carries `X-Gmail-Labels` and `X-GM-THRID`; the D: drive is a SATA HDD (the scan is disk-bound).
+<ctime-date>`; `>From ` escape in the body; average ~105 KB, max in the sample 5.6 MB; every message
+carries `X-Gmail-Labels` and `X-GM-THRID`; the test disk is a SATA HDD (the scan is disk-bound).
 
 Build-time crates (D-002 justification, runtime dependencies stay at zero):
 - `mail-parser 0.11` — RFC 5322 + MIME, 41 charsets (ISO-8859-2, windows-1250), RFC 2047/2231,
@@ -36,14 +36,14 @@ Build-time crates (D-002 justification, runtime dependencies stay at zero):
 ## Steps
 
 1. [x] Toolchain: VS 2022 Community + `VC.Tools.x86.x64` + `Windows11SDK.22621`; `winget install Rustlang.Rustup`; `rustup default stable-x86_64-pc-windows-msvc`
-2. [x] Workspace: `Cargo.toml`, `rust-toolchain.toml`, `crates/mboxer-core`, `crates/mboxer-cli`, `.gitignore` fixture-kivétel, `.gitattributes` (fixture sorvégek)
-3. [x] `mboxer-core/src/reader.rs`: `MboxReader` (4 MiB buffer, alak-alapú envelope-felismerés, `max_message_bytes`), `RawMessage`, `read_at`
+2. [x] Workspace: `Cargo.toml`, `rust-toolchain.toml`, `crates/mboxer-core`, `crates/mboxer-cli`, `.gitignore` fixture exception, `.gitattributes` (fixture line endings)
+3. [x] `mboxer-core/src/reader.rs`: `MboxReader` (4 MiB buffer, shape-based envelope detection, `max_message_bytes`), `RawMessage`, `read_at`
 4. [x] `mboxer-core/src/message.rs`: `parse`, `MessageSummary` (labels, thread id, has_attachment…), `text_parts`, `part_tree`
-5. [x] `mboxer-cli`: `mboxer scan <mbox> [--sample N] [--limit N] [--quiet]` progress + összegzés
-6. [x] Tesztek: szintetikus fixture-ök (LF, Gmail CRLF nested MIME, magyar charsetek, edge case-ek), roundtrip `read_at`, `max_message_bytes` guard
-7. [x] D-003 proposed: üzenetazonosság = envelope byte offset
-8. [x] Futtatás a 14 GB-on: `cargo run --release -- scan …`, `scripts/peak-memory.ps1` → peak < 200 MB; számok a Verification-be
-9. [x] `cargo fmt`, `cargo clippy --all-targets -- -D warnings`, `cargo test` zöld; `tasks_check`; commit
+5. [x] `mboxer-cli`: `mboxer scan <mbox> [--sample N] [--limit N] [--quiet]` progress + summary
+6. [x] Tests: synthetic fixtures (LF, Gmail CRLF nested MIME, Hungarian charsets, edge cases), roundtrip `read_at`, `max_message_bytes` guard
+7. [x] D-003 proposed: message identity = envelope byte offset
+8. [x] Run on the 14 GB file: `cargo run --release -- scan …`, `scripts/peak-memory.ps1` → peak < 200 MB; numbers into Verification
+9. [x] `cargo fmt`, `cargo clippy --all-targets -- -D warnings`, `cargo test` green; `tasks_check`; commit
 
 ## Log
 

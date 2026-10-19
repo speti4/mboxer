@@ -13,7 +13,7 @@ plan: peppy-imagining-pony.md
 ## Context
 
 The README rewritten as a front page: a one-line pitch, badges (CI, latest release, licence), a screenshot of
-the viewer over a synthetic mbox (never the author's archive), a feature list, download and quick start, and
+the viewer over a synthetic mbox (never a real archive), a feature list, download and quick start, and
 links to usage, build and decisions. The current long reference moves to `docs/reference.md`, or into
 `docs/usage.md` where it addresses the user. Why: today the README is a dense reference with no picture, and a
 visitor decides within one screen. Done when: the README fits on two screens and every moved paragraph has a home
@@ -24,48 +24,49 @@ to `CONTRIBUTING.md` (023). The screenshot is taken over a demo mbox that `scrip
 
 ## Steps
 
-1. [x] `scripts/make-demo-mbox.py` → `target/demo/demo.mbox`; `mboxer-cli scan` / `index` / `search` rajta
-2. [x] Képernyőkép a demo mboxon → `docs/images/viewer.png`
-3. [x] `docs/reference.md` (viewer + CLI referencia) és `docs/development.md` (layout, CI, release, scriptek)
-4. [x] Új `README.md` front page (pitch, badge-ek, kép, features, download, build, docs, status, licenc)
-5. [x] `docs/usage.md`: link a referenciára; `CLAUDE.md` Scope: az új docs fájlok
-6. [x] Ellenőrzés: sorszám, minden régi bekezdésnek megvan az új helye, relatív linkek; `tasks_check`; commit
+1. [x] `scripts/make-demo-mbox.py` → `target/demo/demo.mbox`; `mboxer-cli scan` / `index` / `search` over it
+2. [x] Screenshot over the demo mbox → `docs/images/viewer.png`
+3. [x] `docs/reference.md` (viewer + CLI reference) and `docs/development.md` (layout, CI, release, scripts)
+4. [x] New `README.md` front page (pitch, badges, picture, features, download, build, docs, status, licence)
+5. [x] `docs/usage.md`: link to the reference; `CLAUDE.md` Scope: the new docs files
+6. [x] Check: line count, every old paragraph has its new home, relative links; `tasks_check`; commit
 
 ## Log
 
-- 2026-10-18 — plan approved; 026 promoted to wip (023-mal együtt)
-- 2026-10-18 — `make-demo-mbox.py`: 50 üzenet, 42 862 bájt, két futás SHA-256-ja azonos (`069f772c…`);
-  `mboxer-cli scan`: 50 üzenet, 11 csatolmányos, 10 label, 0 parse failure; `index` 0.1 s; `search kave` → 1 találat
-  (a „kávé” a v2.0.0 release levélben), `--label Work/Invoices --count` → 4
-- 2026-10-18 — képernyőkép: scratchpad `capture-viewer.ps1` (debug exe, `cargo build` előtte; a crate-ek
-  utolsó commitja óta friss). Védelem a valódi adatok ellen: eldobható WebView2 profil
-  (`WEBVIEW2_USER_DATA_FOLDER`, minden futás előtt törölve), így a megjegyzett fájllista (a 14 GB archívum) nem
-  nyílik meg; a valódi profil legfrissebb fájlja előtte-utána ugyanaz (04:20:55). `--lang=en-US`
-  (`WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS`) az angol dátumokhoz; az mbox `subst M:` alatt Takeout-szerű úton
-  (`M:\Takeout\Mail\All mail Including Spam and Trash.mbox`), hogy a status bar ne mutasson lokális utat; a subst
-  utána törölve. 1440×860, a list/reader splitter húzva, *Light* téma, a Go-live conversation nyitva, a
-  csatolmányos üzenet kijelölve, a címsor levágva (31 px) → 1426×822, 105 KB
-- 2026-10-18 — a képkészítés közben látott két UI apróság backlogra került: 031 (a natív címsor sötét marad a
-  Light override alatt dark Windows-on), 032 (a dátum oszlop elcsúszik a conversation és a sima sorok között)
-- 2026-10-18 — `README.md` 146 → 71 sor; scratchpad `check-docs.py`: 0 törött relatív link 8 fájlban, a régi README
-  50 jellegzetes kifejezéséből 49 szó szerint megvan az új helyén, az 50. („one-way into”) átfogalmazva
-  („mirrored one way into”)
+- 2026-10-18 — plan approved; 026 promoted to wip (together with 023)
+- 2026-10-18 — `make-demo-mbox.py`: 50 messages, 42 862 bytes, the SHA-256 of two runs identical (`069f772c…`);
+  `mboxer-cli scan`: 50 messages, 11 with attachments, 10 labels, 0 parse failures; `index` 0.1 s; `search kave` →
+  1 hit ("kávé" in the v2.0.0 release mail), `--label Work/Invoices --count` → 4
+- 2026-10-18 — screenshot: scratchpad `capture-viewer.ps1` (debug exe, `cargo build` first; fresh since the
+  crates' last commit). Protection against real data: a throwaway WebView2 profile (`WEBVIEW2_USER_DATA_FOLDER`,
+  deleted before every run), so the remembered file list (the 14 GB archive) does not open; the newest file of
+  the real profile is the same before and after (04:20:55). `--lang=en-US` (`WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS`)
+  for English dates; the mbox under `subst M:` on a Takeout-like path
+  (`M:\Takeout\Mail\All mail Including Spam and Trash.mbox`), so the status bar shows no local path; the subst
+  removed afterwards. 1440×860, the list/reader splitter dragged, *Light* theme, the Go-live conversation open,
+  the message with the attachment selected, the title bar cropped (31 px) → 1426×822, 105 KB
+- 2026-10-18 — two small UI issues seen while taking the picture went to the backlog: 031 (the native title bar
+  stays dark under the Light override on a dark Windows), 032 (the date column shifts between conversation rows
+  and plain rows)
+- 2026-10-18 — `README.md` 146 → 71 lines; scratchpad `check-docs.py`: 0 broken relative links in 8 files; of 50
+  characteristic phrases of the old README, 49 are verbatim in their new home, the 50th ("one-way into") reworded
+  ("mirrored one way into")
 
 ## Deviations from the plan
 
-- A képernyőkép a debug exe-ből készült, nem a release-ből: a `target\release` exe a 016/017 előtti; a UI ugyanaz,
-  a status bar verziója is (v0.1.0)
-- A címsort levágtam a képről (a 031-es hiba miatt, és a front page-en a natív keret amúgy is zaj)
-- `docs/development.md` egy „The demo mbox” szakaszt is kapott (a script és a képkészítés szabálya)
+- The screenshot comes from the debug exe, not the release one: the `target\release` exe predates 016/017; the UI
+  is the same, so is the version in the status bar (v0.1.0)
+- The title bar is cropped from the picture (because of the 031 bug, and on a front page the native frame is
+  noise anyway)
+- `docs/development.md` also got a "The demo mbox" section (the script and the screenshot rule)
 
 ## Verification
 
-- 2026-10-18 — `README.md` 71 sor (a „két képernyő” határon belül); 0 törött relatív link a 8 érintett fájlban;
-  a régi README minden bekezdésének van otthona (`docs/reference.md`, `docs/development.md`, `CONTRIBUTING.md`),
-  50 kifejezéses greppel ellenőrizve
-- 2026-10-18 — a user megnézte a README-t és a képernyőképet, rendben („szuper, mehet a push”); commit `f640447`,
-  pusholva, a `sync-issues` futás zöld
-- A badge-ek a privát repón nem renderelnek; ez a 028 checklistjére került (README badges a switch után)
+- 2026-10-18 — `README.md` 71 lines (within the "two screens" limit); 0 broken relative links in the 8 files
+  touched; every paragraph of the old README has a home (`docs/reference.md`, `docs/development.md`,
+  `CONTRIBUTING.md`), checked by a 50-phrase grep
+- 2026-10-18 — README and screenshot reviewed and approved; commit `f640447`, pushed, the `sync-issues` run green
+- The badges do not render on the private repo; this went onto the 028 checklist (README badges after the switch)
 
 ## Closing checklist
 

@@ -17,11 +17,11 @@ sanitizer stripped the `cid:` images and left the content id in `data-mboxer-cid
 008 adds the attachment strip under the headers (name, size, type), a click on the chip opens
 with the default application (temp file), Save… and Save all…, and fills in the cid images in the
 sandboxed iframe. Decoding is on demand from the message offset (D-003), the index does not change.
-Why: the archive is often opened for one file (user decision 2026-10-17, MVP must-have).
+Why: the archive is often opened for one file (decided 2026-10-17: an MVP must-have).
 Done when: base64 and quoted-printable attachments open and can be saved byte for byte, the
 cid-referenced inline images show in the HTML view.
 
-Planning decisions 2026-10-17 (made in the plan, the user approved the plan): the strip under the
+Planning decisions 2026-10-17: the strip under the
 headers; named inline images in the strip too with an `inline` marker, nameless ones only serve the
 cid; executable extensions are Save only (Open disabled); Mark-of-the-Web on the temp and the
 saved files; temp `%TEMP%\mboxer\<offset>-<part>\`, emptied at start-up; text attachments
@@ -31,19 +31,19 @@ transfer-decoded from the raw bytes (byte-exact csv); no new crate.
 
 1. [x] core `message.rs`: `walk_parts`, `PartInfo.index/content_id/disposition`, `Attachment` +
    `attachments`, `is_inline`, `part_at`, `part_bytes`; `lib.rs` export; fixture
-   `attachments.mbox`; tesztek `tests/fixtures.rs`
+   `attachments.mbox`; tests in `tests/fixtures.rs`
 2. [x] app `attachments.rs`: `read_attachment`, `safe_file_name`, `open_blocked`, `unique_path`,
-   `write_with_motw`, temp dir + `clean_temp`; unit tesztek
-3. [x] `types.rs` `AttachmentView`, `PartView.index`; `view.rs` `attachments` + teszt;
+   `write_with_motw`, temp dir + `clean_temp`; unit tests
+3. [x] `types.rs` `AttachmentView`, `PartView.index`; `view.rs` `attachments` + test;
    `commands.rs` `read_part`, `open_attachment`, `save_attachment`, `save_all_attachments`;
    `state.rs` `last_save_dir`; `lib.rs` handler + `clean_temp`
-4. [x] `index.html` + `style.css`: melléklet-sáv, chipek, Save all
-5. [x] `main.js`: `renderAttachments`, open / save / save all, `fillCidImages` blob URL-lel,
-   revoke message-váltáskor, height sync
-6. [x] Node stub-DOM check a pure helperekre; Chrome check: blob kép a srcdoc frame-ben
-7. [x] README reader bekezdés; Log, Deviations, Verification
-8. [x] `cargo fmt`, `cargo clippy --all-targets -- -D warnings`, `cargo test`; kézi kör a
-   fixture-ön és a 14 GB-on (user); `tasks_check`; commit
+4. [x] `index.html` + `style.css`: attachment strip, chips, Save all
+5. [x] `main.js`: `renderAttachments`, open / save / save all, `fillCidImages` with blob URLs,
+   revoked on a message change, height sync
+6. [x] Node stub-DOM check of the pure helpers; Chrome check: a blob image in the srcdoc frame
+7. [x] README reader paragraph; Log, Deviations, Verification
+8. [x] `cargo fmt`, `cargo clippy --all-targets -- -D warnings`, `cargo test`; manual round on the
+   fixture and the 14 GB file; `tasks_check`; commit
 
 ## Log
 
@@ -71,9 +71,9 @@ transfer-decoded from the raw bytes (byte-exact csv); no new crate.
   a duration. Node check 25 cases green; Chrome: both cid images load from blob under the frame
   CSP (`naturalWidth` 1), the unknown cid keeps its placeholder, no resource-timing entry
 - 2026-10-17 — `target\debug\mboxer.exe` on a scratchpad copy of `attachments.mbox`: index built in
-  75 ms, 2 messages, window left open for the user's manual round
+  75 ms, 2 messages, window left open for the manual round
 - 2026-10-17 — implementation committed as `508ddef`
-- 2026-10-17 — user's manual round on the fixture and the 14 GB archive: "minden ok". Follow-ups:
+- 2026-10-17 — manual round on the fixture and the 14 GB archive passed. Follow-ups:
   none filed; the `img`-only cid filling stays an accepted limit under Deviations. Closed
 
 ## Deviations from the plan
@@ -108,12 +108,12 @@ transfer-decoded from the raw bytes (byte-exact csv); no new crate.
   CSP is `default-src 'none'; img-src data: blob:; style-src 'unsafe-inline'`; the frame's resource
   timing is empty (blob is no fetch); no console errors.
 - 2026-10-17 — the viewer on the fixture copy: `opened attachments.mbox: 2 messages, Built { build_secs:
-  0, parse_failures: 0 }, 75 ms`, no panic. User's manual round (PDF open, csv save compared with
+  0, parse_failures: 0 }, 75 ms`, no panic. Manual round (PDF open, csv save compared with
   `fc /b`, `report.exe` chip disabled, Save all with ` (2)`, inline image in HTML, Zone.Identifier
   on a saved file, `%TEMP%\mboxer` empty after a restart).
-- 2026-10-17 — user's manual round on the fixture copy and on the 14 GB archive: attachments open with
+- 2026-10-17 — manual round on the fixture copy and on the 14 GB archive: attachments open with
   the default application, Save and Save all write the files, inline images show in the HTML view.
-  Reported as "minden ok". Done-when met: base64 and quoted-printable attachments open and save
+  Done-when met: base64 and quoted-printable attachments open and save
   correctly, cid-referenced inline images render.
 
 ## Closing checklist

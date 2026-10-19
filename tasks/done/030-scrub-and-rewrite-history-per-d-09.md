@@ -1,6 +1,6 @@
 ---
 size: M
-origin: wip/027-pre-publish-history-and-content-audit.md
+origin: done/027-pre-publish-history-and-content-audit.md
 created: 2026-10-18
 started: 2026-10-18
 closed: 2026-10-18
@@ -8,7 +8,7 @@ plan: folytassuk-a-030-task-replicated-fairy.md
 milestone: M5 Public release
 ---
 
-# 030 — Scrub the repo and rewrite the history per D-009
+# 030 — Scrub the repo and rewrite the history per D-009 / D-010
 
 ## Context
 
@@ -24,7 +24,7 @@ SHA on GitHub, hence D-010. 028 waits for this task.
 Done when: `git log -p --all` on a fresh clone finds none of the four strings, every commit carries the noreply
 address and no `Claude-Session:` line, `gh release view v0.1.0` shows the asset and the restored notes, issue #N
 is task N for 001–030, M1–M3 are closed, `tasks_check`, CI and the sync are green.
-User decisions 2026-10-18: D-009 (scrub in place, rewrite once, `Claude-Session:` out, `Co-Authored-By` stays,
+Decided 2026-10-18: D-009 (scrub in place, rewrite once, `Claude-Session:` out, `Co-Authored-By` stays,
 noreply address past and future, the 011 status line reworded on the safe side); in the planning round of this
 task: back up, delete and recreate the GitHub repo instead of force-pushing (D-010).
 
@@ -54,19 +54,19 @@ Phase B — rewrite in a fresh clone
 
 Phase C — recreate the remote
 
-12. [x] `delete_repo` scope (user), last confirmation, `gh repo delete`, `gh repo create` (private, same description)
+12. [x] `delete_repo` scope (maintainer's token), last confirmation, `gh repo delete`, `gh repo create` (private, same description)
 13. [x] push `main` → CI and sync green, 40 issues; M1–M3 closed
 14. [x] push `v0.1.0` → release job green; title and notes restored
 
 Phase D — working copy and close
 
 15. [x] working copy: fetch, hard reset, reflog expire, gc; the step-10 greps → 0 here too
-16. [x] Verification on a fresh clone from GitHub; close (follow-ups, memory note), commit, push
+16. [x] Verification on a fresh clone from GitHub; close (follow-ups), commit, push
 
 ## Log
 
 - 2026-10-18 — promoted from backlog/ to wip/
-- 2026-10-18 — plan approved (`folytassuk-a-030-task-replicated-fairy.md`); the user replaced the force push by a
+- 2026-10-18 — plan approved (`folytassuk-a-030-task-replicated-fairy.md`); the force push was replaced by a
   recreated GitHub repo (D-010). Planning facts: `git filter-repo a40bce548d2c` installed; 34 commits, one branch,
   annotated `v0.1.0`, 0 forks, 0 PRs, no secrets; 39 issues with 0 comments; 15 Actions runs. The 011 status
   line's file name is the synthetic fixture subject (asserted in `crates/mboxer-core/tests/fixtures.rs`), so the
@@ -74,7 +74,7 @@ Phase D — working copy and close
 - 2026-10-18 — Phase A: `origin.md` rewritten; `strip_plan_paths.py` (scratchpad) reduced 27 fields in 27 files;
   the framing sweep found 6 more lines than the 027 inventory (D-001, D-005, D-007 Context, done 014, 021, roadmap
   M3), all reworded; D-006's "the others" means other files and stays.
-- 2026-10-18 — Phase B: backup in `E:\projects\mboxer-pre-rewrite-2026-10-18\` (outside the repo, never pushed):
+- 2026-10-18 — Phase B: backup in a folder outside the repo (never pushed):
   `history.bundle` (370 KB, `main`, `origin/main`, `v0.1.0`), the release notes and JSON exports of the 39
   issues, milestones, labels, repo settings and 15 runs. `git filter-repo --replace-text` (10 rules: the two
   local paths, the plan-path prefix, the user folder, the 011 status line in its two quoted forms plus a
@@ -85,7 +85,7 @@ Phase D — working copy and close
   messages (16 hits of the bare word are the rule's own text in D-009, D-010, CLAUDE.md, 027, 030); one identity,
   the noreply address, tagger included; `Co-Authored-By` 35/35; `HEAD^{tree}` `7fd061e` equal to the scrubbed
   working copy. `remap_shas.py` (scratchpad): 11 cited SHAs in 9 files remapped, none ambiguous.
-- 2026-10-18 — Phase C: the user added the `delete_repo` scope and confirmed the delete; `gh repo delete` +
+- 2026-10-18 — Phase C: the `delete_repo` scope added and the delete confirmed by the maintainer; `gh repo delete` +
   `gh repo create --private --disable-wiki` with the saved description (new repo: size 0, 0 issues). Push of
   `main` (`7ae3275`): `ci` 39133653751 and `sync-issues` 39133653556 green; the sync created the labels, M1–M5 and
   40 issues, #1–#30 = tasks 001–030 (0 mismatches), #31–#40 = D-001–D-010; M1–M3 closed by `gh api -X PATCH`. Push
@@ -101,7 +101,7 @@ Phase D — working copy and close
 
 ## Deviations from the plan
 
-- The remote was recreated instead of force-pushed: decided by the user in the planning round (D-010), so the plan
+- The remote was recreated instead of force-pushed: decided in the planning round (D-010), so the plan
   already carried it; against the backlog item and D-009 this is the deviation, recorded in D-010.
 - The working copy was reset and pruned in place instead of re-cloned: same object set as a clone (0 unreachable),
   keeps the 6 GB `target/` cache and the repo-local noreply `user.email`.

@@ -67,8 +67,7 @@ item, with milestones in [`tasks/roadmap.md`](tasks/roadmap.md). The files are m
 [issues](https://github.com/speti4/mboxer/issues) and [milestones](https://github.com/speti4/mboxer/milestones),
 so the task files stay the only place to edit (D-008). Windows comes first; a macOS build is on the roadmap.
 
-mboxer started as a faster, steadier alternative to [eneam/mboxviewer](https://github.com/eneam/mboxviewer) for
-anyone who keeps an old mailbox as a Takeout export.
+mboxer is for anyone who keeps an old mailbox as a Takeout export and wants to search it fast.
 
 ## Licence
 

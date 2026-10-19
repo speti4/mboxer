@@ -24,7 +24,7 @@ was clarified on 2026-10-17 to mean the runtime: build-time crates are fine when
   Gmail-style query syntax is a later milestone.
 - Each user has their own mbox; the index lives beside it; no sharing or server component.
 
-Confirmed by the user on 2026-10-17 in the planning conversation.
+Decided on 2026-10-17.
 
 ## Not chosen
 
@@ -33,4 +33,4 @@ Confirmed by the user on 2026-10-17 in the planning conversation.
 - egui: pure Rust, but HTML mail would show as plain text only.
 - Native Win32 (windows-rs): most code for the least gain; HTML would still need WebView2.
 - Header-only index with on-demand body scan: fast start, but body search stays slow on 50 GB.
-- No index, streaming scan (mboxviewer's model): every search takes minutes on 14 GB.
+- No index, streaming scan of the whole file: every search takes minutes on 14 GB.

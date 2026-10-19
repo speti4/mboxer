@@ -11,7 +11,8 @@ messages, addresses or personal details. A post that does will be edited or remo
 
 ## Reporting
 
-Report unacceptable behaviour to the maintainer (@speti4) through a
-[private report](https://github.com/speti4/mboxer/security/advisories/new), or with GitHub's *Report
-content* menu on the comment. Reports are handled confidentially. The maintainer decides on the consequences,
+Report unacceptable behaviour with GitHub's *Report content* menu on the comment, issue or pull request. For
+anything that needs a private channel to the maintainer (@speti4), the form for a
+[private security advisory](https://github.com/speti4/mboxer/security/advisories/new) serves as one: title it
+"Conduct report". Reports are handled confidentially. The maintainer decides on the consequences,
 following the Covenant's enforcement guidelines, from a warning up to a permanent ban from the project.

@@ -7,6 +7,8 @@ not the list. The summary under a heading is written by hand and kept by the gen
 
 ## Unreleased
 
+The first public release, and the first with a macOS build: `mboxer-<version>-macos.zip` holds a universal `mboxer.app`, ad-hoc signed and not notarized, so macOS asks once under *System Settings → Privacy & Security → Open Anyway*. The macOS build is a preview that has not yet been tested on a Mac. Both zips come with a build provenance attestation (`gh attestation verify <zip> --repo speti4/mboxer`).
+
 <!-- The summary above is written by hand; the list below is generated from tasks/done/ by scripts/changelog.py. -->
 
 ### M4 macOS
@@ -19,26 +21,23 @@ not the list. The summary under a heading is written by hand and kept by the gen
 
 ### M5 Public release
 
+- GitHub milestones from the roadmap and the first release v0.1.0 ([021](https://github.com/speti4/mboxer/blob/main/tasks/done/021-github-milestones-and-first-release.md))
+- One-way sync of tasks/ to GitHub issues and milestones ([022](https://github.com/speti4/mboxer/blob/main/tasks/done/022-sync-tasks-to-github-issues.md))
 - Community health files: licence, security policy, contributing guide, issue and PR templates ([023](https://github.com/speti4/mboxer/blob/main/tasks/done/023-community-health-files.md))
 - Supply chain and CI hardening: dependabot, cargo-deny, pinned actions ([024](https://github.com/speti4/mboxer/blob/main/tasks/done/024-supply-chain-and-ci-hardening.md))
 - Release notes and changelog from the task files, checksums and third-party licences ([025](https://github.com/speti4/mboxer/blob/main/tasks/done/025-release-notes-changelog-and-checksums.md))
 - README as a front page, the reference moved into docs ([026](https://github.com/speti4/mboxer/blob/main/tasks/done/026-readme-front-page.md))
 - Pre-publish audit of the history and the content ([027](https://github.com/speti4/mboxer/blob/main/tasks/done/027-pre-publish-history-and-content-audit.md))
-- Scrub the repo and rewrite the history per D-009 ([030](https://github.com/speti4/mboxer/blob/main/tasks/done/030-scrub-and-rewrite-history-per-d-09.md))
+- Scrub the repo and rewrite the history per D-009 / D-010 ([030](https://github.com/speti4/mboxer/blob/main/tasks/done/030-scrub-and-rewrite-history-per-d-09.md))
+- Date column misaligned between conversation rows and plain rows in the list ([032](https://github.com/speti4/mboxer/blob/main/tasks/done/032-list-date-column-alignment-in-conversation-view.md))
 - Install the Rust toolchain in CI without a third-party action ([033](https://github.com/speti4/mboxer/blob/main/tasks/done/033-install-the-toolchain-without-a-third-party-action.md))
-- Git workflow policy for contributors and parallel sessions, with the commit rules enforced ([034](https://github.com/speti4/mboxer/blob/main/tasks/done/034-git-workflow-policy-and-commit-hooks.md))
+- Git workflow policy for contributors and parallel work, with the commit rules enforced ([034](https://github.com/speti4/mboxer/blob/main/tasks/done/034-git-workflow-policy-and-commit-hooks.md))
 - CLAUDE.md fit for a public repo: no personal settings, no contradictions, a commands block ([035](https://github.com/speti4/mboxer/blob/main/tasks/done/035-claude-md-review-before-publication.md))
 - Git workflow doc: current decision reference, the deps type, the expected index failure ([036](https://github.com/speti4/mboxer/blob/main/tasks/done/036-git-workflow-references-and-commit-types.md))
 - Refresh the README screenshot after the date column fix ([037](https://github.com/speti4/mboxer/blob/main/tasks/done/037-refresh-the-viewer-screenshot.md))
 - README links the changelog next to the releases ([038](https://github.com/speti4/mboxer/blob/main/tasks/done/038-readme-links-the-changelog.md))
 - The commit hook's error messages cite D-010, not D-009 ([039](https://github.com/speti4/mboxer/blob/main/tasks/done/039-check-commit-messages-cite-d-10.md))
 - Pad the decision ids to three digits before the repo goes public ([043](https://github.com/speti4/mboxer/blob/main/tasks/done/043-pad-decision-ids-to-three-digits.md))
-
-### Other
-
-- GitHub milestones from the roadmap and the first release v0.1.0 ([021](https://github.com/speti4/mboxer/blob/main/tasks/done/021-github-milestones-and-first-release.md))
-- One-way sync of tasks/ to GitHub issues and milestones ([022](https://github.com/speti4/mboxer/blob/main/tasks/done/022-sync-tasks-to-github-issues.md))
-- Date column misaligned between conversation rows and plain rows in the list ([032](https://github.com/speti4/mboxer/blob/main/tasks/done/032-list-date-column-alignment-in-conversation-view.md))
 
 ## 0.1.0 — 2026-10-18
 
@@ -88,4 +87,4 @@ First release: a Windows 11 viewer for large Gmail Takeout mbox archives (tested
 
 ### Other
 
-- Project scaffolding: hub card, repo structure, task standard ([001](https://github.com/speti4/mboxer/blob/main/tasks/done/001-project-scaffolding.md))
+- Project scaffolding: repo structure and task standard ([001](https://github.com/speti4/mboxer/blob/main/tasks/done/001-project-scaffolding.md))

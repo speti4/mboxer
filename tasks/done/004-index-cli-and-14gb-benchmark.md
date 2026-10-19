@@ -14,7 +14,7 @@ plan: folytassuk-a-004-task-scalable-trinket.md
 
 003 brought in the `mboxer index` / `mboxer search` commands with progress and open/search timings; the
 numbers of the 14 GB run are in the 003 Verification (122 s build, 314 MB peak, 129 MB index,
-search < 1 ms). What is left of 004 (user decision 2026-10-17 during the 003 planning): the `search`
+search < 1 ms). What is left of 004 (decided 2026-10-17 during the 003 planning): the `search`
 filter flags (`--from --to --after --before --label --has-attachment`, onto the already existing fields
 of the core `SearchQuery`), a repeatable benchmark (build time, index size, peak RAM, query latency in
 one table) and the dated benchmark table in `docs/benchmarks/`, which closes M1.
@@ -26,12 +26,12 @@ PowerShell script follows the pattern of `scripts/peak-memory.ps1` (the exe stay
 
 ## Steps
 
-1. [x] CLI szűrők `crates/mboxer-cli/src/main.rs`: `query` opcionális; `--from --to --after --before --label --has-attachment/--no-attachment --offset --count`; `filters:` sor a kimenetben
-2. [x] Tesztek: `parse_date` unit; `crates/mboxer-cli/tests/cli.rs` (`CARGO_BIN_EXE_mboxer`, fixture másolat temp mappába, szűrők, index nélküli hiba)
-3. [x] `scripts/benchmark.ps1`: környezet, `index --force` peak WS alatt, újranyitás, lekérdezés-készlet mediánja → markdown
-4. [x] Futtatás a 14 GB-on → `docs/benchmarks/2026-10-17-14gb-takeout.md` (kézi fejléc: M1 célok vs mért)
-5. [x] `README.md`: `index`/`search` használat, benchmark script, Layout
-6. [x] `cargo fmt`, `cargo clippy --all-targets -- -D warnings`, `cargo test` zöld; `tasks_check`; commit
+1. [x] CLI filters in `crates/mboxer-cli/src/main.rs`: `query` optional; `--from --to --after --before --label --has-attachment/--no-attachment --offset --count`; a `filters:` line in the output
+2. [x] Tests: `parse_date` unit; `crates/mboxer-cli/tests/cli.rs` (`CARGO_BIN_EXE_mboxer`, fixture copied into a temp folder, filters, error without an index)
+3. [x] `scripts/benchmark.ps1`: environment, `index --force` under the peak WS sampler, re-open, median of a query set → markdown
+4. [x] Run on the 14 GB file → `docs/benchmarks/2026-10-17-14gb-takeout.md` (hand-written header: M1 targets vs measured)
+5. [x] `README.md`: `index`/`search` usage, benchmark script, Layout
+6. [x] `cargo fmt`, `cargo clippy --all-targets -- -D warnings`, `cargo test` green; `tasks_check`; commit
 
 ## Log
 

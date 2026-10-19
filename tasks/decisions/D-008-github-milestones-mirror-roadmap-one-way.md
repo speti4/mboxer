@@ -11,10 +11,11 @@ sources: [done/021-github-milestones-and-first-release.md, done/022-sync-tasks-t
 
 The repo's task standard (`tasks/`, the `/tasks` skill, the generated README index) is the source of truth for
 what is open, in flight and done, and every task carries `milestone:` naming a `## ` heading of
-`tasks/roadmap.md`. The user asked on 2026-10-18 whether the roadmap milestones should also appear on GitHub
+`tasks/roadmap.md`. The question on 2026-10-18 was whether the roadmap milestones should also appear on GitHub
 (`speti4/mboxer/milestones`). A GitHub milestone measures progress over its issues, so milestones alone (task
 021) were an empty progress bar, and a hand-maintained set of issues next to the task files would be a second
-source of truth that drifts within days. The repo is private; the issues are for the author and collaborators.
+source of truth that drifts within days. While the repo was private (until 2026-10), the issues served the
+maintainer; since the switch they are public.
 
 ## Decision
 
@@ -27,10 +28,11 @@ source of truth that drifts within days. The repo is private; the issues are for
   `dropped/` and superseded decisions not planned). The mirror is **one-way and idempotent**: GitHub is never
   edited by hand; comments on an issue are welcome but do not flow back.
 - A **release tag closes the milestones it ships**: `v0.1.0` closed M1–M3; M4 stays open until its release.
+  M5 closes with the first public release (`v0.2.0`, task 028) once 029 is done; until then it stays open.
   The script never changes a milestone's state.
 
-Proposed by the session on 2026-10-18 from the user's choices "milestone-ok + v0.1.0 release" and then
-"one-way sync from CI, decisions too, English bodies"; confirmed by the user on 2026-10-18 ("Megerősítem").
+Proposed on 2026-10-18 during task 022 planning: milestones with a v0.1.0 release and a one-way sync from CI,
+decisions included, with English bodies; decided on 2026-10-18.
 
 ## Not chosen
 

@@ -31,15 +31,14 @@ index tells one file from another.
   in the webview's storage; at start-up only files whose index is fresh are reopened, the others
   wait in the pane until clicked.
 
-Proposed by the session on 2026-10-18 from the user's choice of the stacked reading
-("egymás alatt/felett jelenjen meg, egyszerre csak egyiknek legyen kinyitva a struktúrája");
-confirmed by the user on 2026-10-18 with the plan approval and the manual round of task 016.
+Proposed on 2026-10-18 during task 016 planning, with the stacked layout (files one below the other, only one
+expanded at a time); decided on 2026-10-18 and checked in the manual round of task 016.
 
 ## Not chosen
 
 - A merged view across files: a cross-index listing in the core, a file id in every row and command,
   summed label counts and a batch-progress overlay — size L for a benefit (one search over the
-  parts) the user did not ask for; can still come later as a new decision.
+  parts) that the scope did not call for; can still come later as a new decision.
 - Replacing the open file on every *Open…* plus a recent-files list: the switch costs an index
   open each time and forgets the per-file query; the stacked pane gives the recent list for free.
 - A persistent file id (path hash) in the message key: nothing survives the process that would

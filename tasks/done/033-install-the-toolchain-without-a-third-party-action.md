@@ -1,6 +1,6 @@
 ---
 size: S
-origin: wip/024-supply-chain-and-ci-hardening.md
+origin: done/024-supply-chain-and-ci-hardening.md
 created: 2026-10-18
 started: 2026-10-18
 closed: 2026-10-18
@@ -18,7 +18,7 @@ Why: the repo has no release tags, so the action is pinned to a `master` commit 
 run reports "Latest version is 1, no update needed") and the pin would go stale silently; zizmor's pedantic
 persona flags it as `ref-version-mismatch`. One third-party action fewer in the release job.
 Done when: CI is green without the action and the test log shows the toolchain from `rust-toolchain.toml`.
-Run as the first task session under docs/git-workflow.md (task 034): its own worktree, a pull request, no new id.
+The first task done under the parallel-work rules of docs/git-workflow.md (034), through a pull request.
 
 ## Steps
 
@@ -32,47 +32,47 @@ Run as the first task session under docs/git-workflow.md (task 034): its own wor
 
 - 2026-10-18 — promoted by the main session; worked in `.claude/worktrees/033-toolchain-without-action` on
   branch `task/033-toolchain-without-action`
-- 2026-10-18 — `ci.yml`: a „Install the Rust toolchain from rust-toolchain.toml" bash lépés a test és a release
-  jobban (`rustup toolchain install` argumentum nélkül, majd név szerint, `rustup show`, a test jobban
-  `rustup component list --installed` is); workflow-szintű `env`: `CARGO_INCREMENTAL=0`, `CARGO_TERM_COLOR=always`;
-  a fejléc-komment és `docs/development.md` mondja, honnan jön a toolchain. PR #50.
+- 2026-10-18 — `ci.yml`: an "Install the Rust toolchain from rust-toolchain.toml" bash step in the test and the
+  release job (`rustup toolchain install` without an argument, then by name, `rustup show`, in the test job also
+  `rustup component list --installed`); workflow-level `env`: `CARGO_INCREMENTAL=0`, `CARGO_TERM_COLOR=always`;
+  the header comment and `docs/development.md` say where the toolchain comes from. PR #50.
 
 ## Deviations from the plan
 
-- Két rustup hívás kell, nem egy: az argumentum nélküli `rustup toolchain install` (rustup 1.29.1 helyben is)
-  meglévő toolchainnél csak „using existing install"-t ír, a csatornát nem frissíti. A runner image stable-je
-  régebbi lehet (az első futásban 1.99.0 volt, a legfrissebb 1.99.1), a dtolnay action mindig a legfrissebbet
-  tette fel, ezért egy második `rustup toolchain install <név>` (a név a `rustup show active-toolchain`-ből) hozza
-  naprakészre. Rögzített verziónál (`channel = "1.x.y"`) ez no-op.
-- Az action a későbbi lépéseknek `CARGO_INCREMENTAL=0`-t, `CARGO_TERM_COLOR=always`-t és `CARGO_HOME`-ot is
-  exportált. Az első futás nélkülük inkrementálisan fordított, és a rust-cache kulcsa (env-hash) is megváltozott;
-  a kettőt most a workflow állítja be. A `CARGO_HOME` (a default útvonal) nem került vissza, egy runner-útvonal
-  beégetése nem éri meg: a cache-kulcs egyszer változik, a merge utáni első `main` futás cache nélkül fordít.
+- Two rustup calls are needed, not one: the argumentless `rustup toolchain install` (rustup 1.29.1 locally too)
+  only prints "using existing install" for an existing toolchain and does not update the channel. The runner
+  image's stable can be older (1.99.0 in the first run, the latest was 1.99.1), and the dtolnay action always
+  installed the latest, so a second `rustup toolchain install <name>` (the name from `rustup show
+  active-toolchain`) brings it up to date. With a pinned version (`channel = "1.x.y"`) it is a no-op.
+- The action also exported `CARGO_INCREMENTAL=0`, `CARGO_TERM_COLOR=always` and `CARGO_HOME` to the later steps.
+  Without them the first run compiled incrementally and the rust-cache key (env hash) changed; the workflow now
+  sets the first two. `CARGO_HOME` (the default path) was not restored; hard-coding a runner path is not worth it:
+  the cache key changes once, the first `main` run after the merge compiles without a cache.
 
 ## Verification
 
-- 2026-10-18 — `uvx zizmor .github`: „No findings" (1 ignored, 6 suppressed); `--persona pedantic`: a dtolnay
-  lépések két `superfluous-actions` találata eltűnt, csak `anonymous-definition` infók maradtak.
-- 2026-10-18 — helyben a lépés szkriptje Git Bashben (rustup 1.29.1): az argumentum nélküli install
-  „using existing install … overridden by '…\rust-toolchain.toml'", a név szerinti „syncing channel updates …
-  unchanged - rustc 1.99.1"; a telepített komponensek közt `rustfmt` és `clippy`.
-- 2026-10-18 — CI run 39148822817 (commit d5e2643), mind a négy job zöld. A test job logja (job 117738086624):
-  nincs `dtolnay` sor; az új lépés: „it's active because: overridden by 'D:\a\mboxer\mboxer\rust-toolchain.toml'",
-  „stable-x86_64-pc-windows-msvc updated - rustc 1.99.1 (from rustc 1.99.0)", `rustup show` active toolchain
-  ugyanazzal az indokkal, `component list --installed`: `clippy-…`, `rustfmt-…`; fmt, clippy, test zöld. A cache
-  kulcsa eltért a `main`-étől (nincs `CARGO_HOME`, `CARGO_INCREMENTAL`, `CARGO_TERM_COLOR` az env-ben) → cache miss,
-  ~11 perc clippy + test.
-- 2026-10-18 — CI run 39150020746 (commit 7cb471c, a visszaállított env): mind a négy job zöld, a test job env-jében
-  `CARGO_INCREMENTAL: 0`, `CARGO_TERM_COLOR: always`; a cache kulcsa már csak a `CARGO_HOME` miatt tér el a
-  `main`-étől (`bc559819` vs `e70cdc14`), a futás elmentette a sajátját.
-- Release job: csak `v*` tagre fut, itt nem futott. A YAML-ból: ugyanaz a két `rustup toolchain install` + `rustup
-  show` a checkout után, a workflow-szintű env ott is él; a `scripts/release.ps1` a `rust-toolchain.toml` által
-  aktív toolchainnel fordít, a rustfmt/clippy komponens ott is felkerül (ártalmatlan).
+- 2026-10-18 — `uvx zizmor .github`: "No findings" (1 ignored, 6 suppressed); `--persona pedantic`: the two
+  `superfluous-actions` findings of the dtolnay steps are gone, only `anonymous-definition` infos remain.
+- 2026-10-18 — the step's script locally in Git Bash (rustup 1.29.1): the argumentless install says
+  "using existing install … overridden by '…\rust-toolchain.toml'", the named one "syncing channel updates …
+  unchanged - rustc 1.99.1"; the installed components include `rustfmt` and `clippy`.
+- 2026-10-18 — CI run 39148822817 (commit d5e2643), all four jobs green. The test job log (job 117738086624):
+  no `dtolnay` line; the new step: "it's active because: overridden by 'D:\a\mboxer\mboxer\rust-toolchain.toml'",
+  "stable-x86_64-pc-windows-msvc updated - rustc 1.99.1 (from rustc 1.99.0)", `rustup show` gives the active
+  toolchain with the same reason, `component list --installed`: `clippy-…`, `rustfmt-…`; fmt, clippy, test green.
+  The cache key differed from `main`'s (no `CARGO_HOME`, `CARGO_INCREMENTAL`, `CARGO_TERM_COLOR` in the env) →
+  cache miss, ~11 minutes of clippy + test.
+- 2026-10-18 — CI run 39150020746 (commit 7cb471c, the restored env): all four jobs green, the test job's env has
+  `CARGO_INCREMENTAL: 0`, `CARGO_TERM_COLOR: always`; the cache key differs from `main`'s only because of
+  `CARGO_HOME` (`bc559819` vs `e70cdc14`), and the run saved its own.
+- Release job: runs only on a `v*` tag, did not run here. From the YAML: the same two `rustup toolchain install` +
+  `rustup show` after the checkout, the workflow-level env applies there too; `scripts/release.ps1` builds with the
+  toolchain `rust-toolchain.toml` makes active, the rustfmt/clippy components are installed there too (harmless).
 
 ## Closing checklist
 
 - [x] every follow-up is listed in the pull request under `## Follow-ups` (the main session files it)
 - [x] Verification written, dated
-- [ ] `tasks_check` green, README index regenerated — a worktree-ből a check csak a régi README-indexre hibázik
-  (a tool a session repóján kívül nem írja); a main session generálja újra a merge-nél
+- [ ] `tasks_check` green, README index regenerated — from the worktree the check fails only on the stale README
+  index (the tool does not write outside the session's repo); the main session regenerates it at the merge
 - [x] moved to `done/` with `closed: 2026-10-18`
