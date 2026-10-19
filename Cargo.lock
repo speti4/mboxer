@@ -2269,7 +2269,7 @@ dependencies = [
 
 [[package]]
 name = "mboxer-app"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "mboxer-core",
  "serde",
@@ -2283,7 +2283,7 @@ dependencies = [
 
 [[package]]
 name = "mboxer-cli"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "clap",
  "mboxer-core",
@@ -2292,7 +2292,7 @@ dependencies = [
 
 [[package]]
 name = "mboxer-core"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "mail-parser",
  "serde",
