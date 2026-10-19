@@ -13,7 +13,7 @@ edit the file, never the issue. Everything here is English.
 <!-- tasks:index:start -->
 _Generated 2026-10-19 — edit the files, not this section._
 
-**State:** 7 backlog (1 ready · 0 blocked · 2 waiting · 4 ideas) · 0 in progress · 59 done · 2 dropped · 13 decisions
+**State:** 7 backlog (1 ready · 0 blocked · 2 waiting · 4 ideas) · 0 in progress · 60 done · 2 dropped · 13 decisions
 
 ### Ready
 
@@ -47,10 +47,10 @@ _none_
 
 | # | Task | Size | Created |
 |---|---|---|---|
-| 060 | [Index quality follow-ups: token length, completions, nested parts, limits, mult…](backlog/060-index-quality-follow-ups-from-the-review.md) | M | 2026-10-19 |
 | 061 | [Small hygiene follow-ups: toolchain pin, ignores, arguments, cancel, logs, dupl…](backlog/061-small-hygiene-follow-ups-from-the-review.md) | S | 2026-10-19 |
 | 067 | [Stop an overtaken search early instead of letting it run to its end](backlog/067-stop-an-overtaken-search-early.md) | S | 2026-10-19 |
 | 068 | [The highlight folds the same letters the index folds](backlog/068-highlight-folds-the-letters-the-index-folds.md) | S | 2026-10-19 |
+| 069 | [The viewer reads a message through the index's limit, and the CLI's paging brea…](backlog/069-viewer-reads-through-the-index-and-cli-ties-by-offset.md) | S | 2026-10-19 |
 
 ### In progress
 
@@ -70,15 +70,15 @@ _none_
 | 066 | [The plan: field is none in every task file, the rule is written down](done/066-plan-field-policy-for-prompt-derived-names.md) | 2026-10-19 |
 | 063 | [Free-text follow-ups: the highlight split and the tantivy exclusion assertion](done/063-free-text-follow-ups-tantivy-assertion-warnings-and-highlight.md) | 2026-10-19 |
 | 062 | [The commit-rule wording names the scope form, the CI header gives the runner-ti…](done/062-commit-rule-wording-ci-header-and-lint-entry.md) | 2026-10-19 |
+| 060 | [Index quality follow-ups: token length, completions, nested parts, limits, mult…](done/060-index-quality-follow-ups-from-the-review.md) | 2026-10-19 |
 | 059 | [Refresh the README screenshot and the social preview over the demo mbox](done/059-refresh-the-screenshots-over-the-demo-mbox.md) | 2026-10-19 |
 | 058 | [Task files: dead origin paths, plan slugs, and who closes a milestone](done/058-dead-task-references-plan-slugs-and-milestone-closing.md) | 2026-10-19 |
 | 057 | [CONTRIBUTING's pre-commit list matches CI, and the private-era wording goes](done/057-contributing-checks-match-ci-and-private-era-leftovers.md) | 2026-10-19 |
 | 056 | [The commit hook checks the type prefix, and the required checks hold after a re…](done/056-commit-hook-checks-the-type-and-ci-re-checks-edited-pull-requests.md) | 2026-10-19 |
 | 055 | [The usage guide says what the viewer does](done/055-usage-guide-matches-the-viewer.md) | 2026-10-19 |
 | 054 | [Keep the attachment copies and the index's last-resort home in separate temp fo…](done/054-temp-folder-split-between-attachments-and-the-index-fallback.md) | 2026-10-19 |
-| 053 | [Attachment and reader hardening: blocked extensions, reserved names, referrer, …](done/053-attachment-and-reader-hardening.md) | 2026-10-19 |
 
-_49 more in `done/`._
+_50 more in `done/`._
 
 ### Decisions
 
