@@ -13,15 +13,11 @@ edit the file, never the issue. Everything here is English.
 <!-- tasks:index:start -->
 _Generated 2026-10-19 — edit the files, not this section._
 
-**State:** 7 backlog (1 ready · 0 blocked · 2 waiting · 4 ideas) · 1 in progress · 39 done · 1 dropped · 12 decisions
+**State:** 6 backlog (0 ready · 0 blocked · 2 waiting · 4 ideas) · 2 in progress · 39 done · 1 dropped · 12 decisions
 
 ### Ready
 
-#### M5 Public release
-
-| # | Task | Size | Created |
-|---|---|---|---|
-| 044 | [macOS in the user docs, the security policy and the bug report form](backlog/044-macos-in-the-user-docs.md) | M | 2026-10-19 |
+_none_
 
 ### Needs decision
 
@@ -59,6 +55,7 @@ _none_
 | # | Task | Started | Plan |
 |---|---|---|---|
 | 028 | [Publication day: visibility switch and the public-only repo settings](wip/028-publication-day-repo-settings.md) | 2026-10-19 | `iterative-gliding-bentley.md` |
+| 044 | [macOS in the user docs, the security policy and the bug report form](wip/044-macos-in-the-user-docs.md) | 2026-10-19 | `none` |
 
 ### Closed – do not reopen
 
