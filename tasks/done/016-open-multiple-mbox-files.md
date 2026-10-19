@@ -21,9 +21,9 @@ a click on the other one switches the list, search, label tree; a file can be cl
 with a fresh index are reloaded. User decision 2026-10-18: no merged view (reading (a) of the backlog
 dropped), the files appear one under the other, one active at a time. Planning decisions (approved
 plan): backend `OpenFiles` set + active, UI key `(file id, offset, len)`, the file id an in-process
-counter (D-06, proposed); Open… multi-select and adds; the search text is kept per file; `mboxer.files`
+counter (D-006, proposed); Open… multi-select and adds; the search text is kept per file; `mboxer.files`
 + `mboxer.activePath` in localStorage, at start-up only the files with a fresh index are reloaded, the ones with a
-stale index wait as a faded root; no new crate (D-02).
+stale index wait as a faded root; no new crate (D-002).
 
 ## Steps
 
@@ -36,13 +36,13 @@ stale index wait as a faded root; no new crate (D-02).
 7. [x] `ui/main.js`: `state.files/remembered/fileQueries`, batch open események, `activateFile`, root sorok a `renderFolders`-ben, `×` bezárás, `file` minden invoke-ban, `start()` visszatöltés
 8. [x] `ui/style.css`: `.folder.root`, `.root.unloaded`, `.close-file`
 9. [x] `docs/usage.md` "Several files" bekezdés, `README.md` egy sor
-10. [x] `/tasks decide` → D-06 (proposed)
+10. [x] `/tasks decide` → D-006 (proposed)
 11. [x] `cargo fmt`, `cargo clippy --all-targets -- -D warnings`, `cargo test`, `node --test`; Chrome stub-check; `tasks_check`; commit
 12. [x] User kézi kör: a 14 GB archívum + egy második mbox az igazi Tauri ablakban
 
 ## Log
 
-- 2026-10-18 — plan approved; 016 promoted to wip; D-06 (proposed) felvéve
+- 2026-10-18 — plan approved; 016 promoted to wip; D-006 (proposed) felvéve
 - 2026-10-18 — implementálva: backend `OpenFiles` set (per-process `file` id), batch `open_mbox` (`Opening{position,count}`,
   `Failed{path}`, `Done`), `activate_file` / `close_file` / `index_status`; UI: root sorok a folder panelen, egyszerre egy
   kinyitva, keresőszöveg fájlonként megjegyezve, `files.js` (`mboxer.files` + `lastPath` migráció), indulási visszatöltés
@@ -60,7 +60,7 @@ stale index wait as a faded root; no new crate (D-02).
   `sample-attachments.mbox`, a core fixture-ökből) állt a második és harmadik fájl szerepébe; a debug exe a 14 GB
   archívummal indult. A user kézi köre (multi-select Open…, váltás és keresés fájlonként, melléklet mindkét fájlból,
   bezárás nem aktív és aktív soron, újraindítás utáni visszatöltés, stale index halvány rootként): "minden ok". Nincs
-  follow-up; D-06 `decided`; closed
+  follow-up; D-006 `decided`; closed
 
 ## Deviations from the plan
 

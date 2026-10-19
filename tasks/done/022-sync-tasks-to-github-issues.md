@@ -31,7 +31,7 @@ the workflow is green, and closing this task closes its own issue through CI.
 2. [x] Dry run: 22 tasks + 8 decisions parsed (this file included), 30 creates planned, 0 errors
 3. [x] Translate the `## Context` of the 16 Hungarian `done/` files (one-time exception to "done is never rewritten")
 4. [x] Backfill from the dev machine; second run `unchanged 30`; milestone counters 0/3, 0/5, 0/8, 3/0
-5. [x] `.github/workflows/sync-issues.yml`; docs (CLAUDE.md convention, README, tasks/README preamble, roadmap, D-08)
+5. [x] `.github/workflows/sync-issues.yml`; docs (CLAUDE.md convention, README, tasks/README preamble, roadmap, D-008)
 6. [x] `tasks_check`, commit, push; the workflow run is green with `unchanged 30`
 7. [x] Close: move to done, push, the workflow closes this issue
 
@@ -48,7 +48,7 @@ the workflow is green, and closing this task closes its own issue through CI.
   inside the Context range (checked mechanically against the hunk headers); Log / Verification untouched.
 - 2026-10-18 — backfill from the dev machine: `applied: created 30, updated 0, unchanged 0`, the 4 milestone descriptions
   rewritten from the roadmap paragraphs; second run `created 0, updated 0, unchanged 30`; `--check` exits 0.
-  Issue numbers happen to equal the task ids (#1–#22) and D-01–D-08 are #23–#30 (the repo had no issues or PRs).
+  Issue numbers happen to equal the task ids (#1–#22) and D-001–D-008 are #23–#30 (the repo had no issues or PRs).
 - 2026-10-18 — follow-up not filed here: lifting the script into project-pal as a `/tasks init` template is a project-pal
   task, to be opened in that repo when this has run for a while (user decision 2026-10-18: script lives here first).
 - 2026-10-18 — commit `17c3275` pushed; `sync-issues.yml` run 39127643289 green in 15 s, log line
@@ -65,11 +65,11 @@ the workflow is green, and closing this task closes its own issue through CI.
 
 - 2026-10-18 — `python -I scripts/sync-issues.py --dry-run --repo speti4/mboxer`: 30 items (22 tasks, 8 decisions),
   30 creates + 4 milestone description updates planned, 0 errors; `python -m pyflakes` clean.
-- 2026-10-18 — generated bodies of 018 (backlog), 013 (done, backlog shape) and D-08 (decision) inspected: marker line,
+- 2026-10-18 — generated bodies of 018 (backlog), 013 (done, backlog shape) and D-008 (decision) inspected: marker line,
   link to the file on `main`, metadata line, English prose, labels and milestone as designed.
 - 2026-10-18 — backfill: `applied: created 30, updated 0, unchanged 0`; second run `unchanged 30`; `--check` exit 0.
   `gh api repos/speti4/mboxer/milestones?state=all`: M1 closed 0/3, M2 closed 0/5, M3 closed 0/8, M4 open 3/0.
-  `gh issue list --label mirrored --state all`: 30 rows, #1–#22 the tasks, #23–#30 D-01–D-08; #18 open with
+  `gh issue list --label mirrored --state all`: 30 rows, #1–#22 the tasks, #23–#30 D-001–D-008; #18 open with
   `stage:backlog`, `status:ready`, `size:M`, milestone M4 macOS; #12 closed `COMPLETED` under M3 Comfort; #30 open
   with `decision`.
 - 2026-10-18 — workflow run 39127643289 on the feature commit: success, `unchanged 30`.

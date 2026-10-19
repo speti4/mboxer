@@ -29,6 +29,6 @@ failed. The user chose the global MPL-2.0 allowance and confirmed the record on 
 ## Not chosen
 
 - MPL-2.0 only as per-crate exceptions: every new MPL crate under Tauri would break CI for no legal difference.
-- No MPL-2.0: replacing the crates means leaving Tauri's HTML tooling, which D-02 rules out.
+- No MPL-2.0: replacing the crates means leaving Tauri's HTML tooling, which D-002 rules out.
 - Failing on duplicate versions: Tauri and windows-rs pin several versions themselves, so the check would stay red.
 - Advisories only on a weekly schedule: a pull request that pulls a vulnerable crate has to fail at review time.

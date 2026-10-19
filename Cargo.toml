@@ -14,11 +14,11 @@ publish = false
 
 [workspace.dependencies]
 mboxer-core = { path = "crates/mboxer-core" }
-# RFC 5322 + MIME parsing, 41 charsets (ISO-8859-2, windows-1250), RFC 2047/2231 — see task 002 / D-02.
+# RFC 5322 + MIME parsing, 41 charsets (ISO-8859-2, windows-1250), RFC 2047/2231 — see task 002 / D-002.
 mail-parser = "0.11"
-# Subcommands and flags grow in task 004 (index, search) — see task 002 / D-02.
+# Subcommands and flags grow in task 004 (index, search) — see task 002 / D-002.
 clap = { version = "4.5", features = ["derive"] }
-# Inverted index, tokenizer chain (accent folding), fast fields, mmap reopen — see task 003 / D-02, D-04.
+# Inverted index, tokenizer chain (accent folding), fast fields, mmap reopen — see task 003 / D-002, D-004.
 # zstd left out: it compiles C; lz4_flex is pure Rust.
 tantivy = { version = "0.27", default-features = false, features = ["mmap", "lz4-compression"] }
 # The sidecar's `mboxer.json` (fingerprint, format version); both already in the build through tantivy.
@@ -26,7 +26,7 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 # Test indexes in a temporary directory; already in the build through tantivy's `mmap` feature.
 tempfile = "3"
-# The WebView2 window, IPC, async runtime and asset embedding of the D-02 shell: one portable exe,
+# The WebView2 window, IPC, async runtime and asset embedding of the D-002 shell: one portable exe,
 # nothing to install (WebView2 ships with Windows 11) — see task 005.
 tauri = { version = "2", features = [] }
 # Build script: Windows icon/version resource, app manifest (Common Controls v6 for the native

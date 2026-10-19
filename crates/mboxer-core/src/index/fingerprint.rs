@@ -5,7 +5,7 @@
 //! folder) the index lives under the index home instead —
 //! `<data folder>/mboxer/index/<name>.mbox-<path hash>/`, the data folder being
 //! `%LOCALAPPDATA%` on Windows and `~/Library/Application Support` on macOS —
-//! and [`status`] looks in both places (task 014, D-05). Its `mboxer.json` records the index
+//! and [`status`] looks in both places (task 014, D-005). Its `mboxer.json` records the index
 //! format version and a fingerprint of the mbox: size, modification time and a
 //! hash over a few sampled regions. Any mismatch makes the index stale; the
 //! caller rebuilds it from scratch.
@@ -47,7 +47,7 @@ pub fn index_dir(mbox: &Path) -> PathBuf {
 /// The root of the fallback indexes: `$MBOXER_INDEX_HOME`, else
 /// `mboxer/index` under the user's data folder (`%LOCALAPPDATA%` on Windows,
 /// `~/Library/Application Support` on macOS, `$XDG_DATA_HOME` or
-/// `~/.local/share` elsewhere; D-05), else `<temp>/mboxer/index`.
+/// `~/.local/share` elsewhere; D-005), else `<temp>/mboxer/index`.
 pub fn default_index_home() -> PathBuf {
     let env = |name: &str| std::env::var_os(name).filter(|value| !value.is_empty());
     if let Some(home) = env(INDEX_HOME_ENV) {

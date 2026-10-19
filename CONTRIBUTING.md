@@ -66,7 +66,7 @@ modules have Node tests under `crates/mboxer-app/tests/ui/`.
 
 ## Dependencies: one exe
 
-The shipped artifact is one portable exe, with nothing for the user to install (decision D-02 in
+The shipped artifact is one portable exe, with nothing for the user to install (decision D-002 in
 `tasks/decisions/`). WebView2 is part of Windows 11, everything else is compiled in. A new crate is fine when
 it earns its place. Add it to `[workspace.dependencies]` in `Cargo.toml` with a one-line comment saying why
 it is needed and why the existing ones do not cover it. Crates that compile C code or pull a runtime
@@ -78,7 +78,7 @@ The crate's licence has to be on the allowlist in `deny.toml` and its source has
 
 The plan lives in `tasks/`: one file per item under `backlog/`, `wip/`, `done/` and `dropped/`, decisions
 under `decisions/`, milestones in `tasks/roadmap.md`, and a generated index in `tasks/README.md`. These
-files are mirrored one way into GitHub issues and milestones by `scripts/sync-issues.py` (decision D-08).
+files are mirrored one way into GitHub issues and milestones by `scripts/sync-issues.py` (decision D-008).
 The issues labelled `mirrored` are generated: comment on them, but do not edit them, because the next sync
 overwrites the change. The maintainer turns an accepted issue into a task file.
 

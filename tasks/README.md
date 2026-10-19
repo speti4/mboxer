@@ -13,15 +13,11 @@ file, never the issue.
 <!-- tasks:index:start -->
 _Generated 2026-10-19 — edit the files, not this section._
 
-**State:** 4 backlog (1 ready · 0 blocked · 3 waiting · 0 ideas) · 0 in progress · 38 done · 1 dropped · 12 decisions
+**State:** 3 backlog (0 ready · 0 blocked · 3 waiting · 0 ideas) · 0 in progress · 39 done · 1 dropped · 12 decisions
 
 ### Ready
 
-#### M5 Public release
-
-| # | Task | Size | Created |
-|---|---|---|---|
-| 043 | [Pad the decision ids to three digits before the repo goes public](backlog/043-pad-decision-ids-to-three-digits.md) | M | 2026-10-19 |
+_none_
 
 ### Needs decision
 
@@ -60,33 +56,33 @@ _none_
 
 | # | Task | Closed |
 |---|---|---|
+| 043 | [Pad the decision ids to three digits before the repo goes public](done/043-pad-decision-ids-to-three-digits.md) | 2026-10-19 |
 | 042 | [Cut the CI minutes: macOS tests on tags and manual runs](done/042-cut-ci-minutes.md) | 2026-10-19 |
 | 041 | [THIRD-PARTY-LICENSES.html in the macOS zip](done/041-third-party-licences-in-the-macos-zip.md) | 2026-10-19 |
-| 039 | [The commit hook's error messages cite D-10, not D-09](done/039-check-commit-messages-cite-d-10.md) | 2026-10-19 |
+| 039 | [The commit hook's error messages cite D-010, not D-009](done/039-check-commit-messages-cite-d-10.md) | 2026-10-19 |
 | 038 | [README links the changelog next to the releases](done/038-readme-links-the-changelog.md) | 2026-10-19 |
 | 037 | [Refresh the README screenshot after the date column fix](done/037-refresh-the-viewer-screenshot.md) | 2026-10-19 |
 | 036 | [Git workflow doc: current decision reference, the deps type, the expected index…](done/036-git-workflow-references-and-commit-types.md) | 2026-10-19 |
 | 020 | [Print on macOS through a second webview window](done/020-macos-print-second-webview-window.md) | 2026-10-19 |
 | 019 | [macOS runtime differences: index home, quarantine, Finder open, UI keys and fon…](done/019-macos-runtime-differences.md) | 2026-10-19 |
 | 018 | [macOS build, .app bundle and CI](done/018-macos-build-bundle-and-ci.md) | 2026-10-19 |
-| 035 | [CLAUDE.md fit for a public repo: no personal settings, no contradictions, a com…](done/035-claude-md-review-before-publication.md) | 2026-10-18 |
 
-_28 more in `done/`._
+_29 more in `done/`._
 
 ### Decisions
 
 | # | Decision | Status | Date |
 |---|---|---|---|
-| D-10 | [The repo goes public scrubbed, with the history rewritten once and pushed into a recreated GitHub repo](decisions/D-10-publish-scrubbed-rewritten-history-in-a-recreated-repo.md) | decided | 2026-10-18 |
-| D-09 | [The repo goes public with tasks/ and docs/ scrubbed in place and the history rewritten once before the switch](decisions/D-09-publish-scrubbed-rewrite-history-before-switch.md) | superseded | 2026-10-18 |
-| D-08 | [GitHub issues and milestones mirror tasks/ one-way through a script; nothing is edited on GitHub by hand; a release tag closes the milestones it ships](decisions/D-08-github-milestones-mirror-roadmap-one-way.md) | decided | 2026-10-18 |
-| D-07 | [macOS builds ship as an ad-hoc signed universal .app in a zip, without notarization](decisions/D-07-macos-distribution-adhoc-signed-app-zip.md) | decided | 2026-10-18 |
-| D-06 | [Several mbox files are open side by side, one active at a time; there is no merged view](decisions/D-06-several-files-open-one-active-no-merged-view.md) | decided | 2026-10-18 |
 | D-012 | [Release notes and the changelog come from the done task files, the licence page from cargo-about](decisions/D-012-release-notes-from-task-files-licences-by-cargo-about.md) | decided | 2026-10-18 |
 | D-011 | [Crates come from crates.io only, under a fixed licence allowlist that includes MPL-2.0, and an advisory fails CI](decisions/D-011-dependency-licence-and-source-policy.md) | decided | 2026-10-18 |
-| D-05 | [When .mboxer/ beside the mbox cannot be created, the index lives under %LOCALAPPDATA%\mboxer\index\<name>-<path hash>\](decisions/D-05-index-fallback-under-localappdata.md) | decided | 2026-10-17 |
-| D-04 | [The sidecar index lives in .mboxer/<mbox name>/ beside the mbox and is rebuilt whole when stale](decisions/D-04-sidecar-index-location-and-freshness.md) | decided | 2026-10-17 |
-| D-03 | [A message is identified by the byte offset of its From  envelope line](decisions/D-03-message-identity-is-envelope-byte-offset.md) | decided | 2026-10-17 |
-| D-02 | [Rust + Tauri 2 (WebView2) with a one-time sidecar full-text index](decisions/D-02-rust-tauri2-sidecar-fulltext-index.md) | decided | 2026-10-17 |
-| D-01 | [Build our own mbox viewer instead of adopting an existing one](decisions/D-01-build-own-viewer-instead-of-buying.md) | decided | 2026-10-17 |
+| D-010 | [The repo goes public scrubbed, with the history rewritten once and pushed into a recreated GitHub repo](decisions/D-010-publish-scrubbed-rewritten-history-in-a-recreated-repo.md) | decided | 2026-10-18 |
+| D-009 | [The repo goes public with tasks/ and docs/ scrubbed in place and the history rewritten once before the switch](decisions/D-009-publish-scrubbed-rewrite-history-before-switch.md) | superseded | 2026-10-18 |
+| D-008 | [GitHub issues and milestones mirror tasks/ one-way through a script; nothing is edited on GitHub by hand; a release tag closes the milestones it ships](decisions/D-008-github-milestones-mirror-roadmap-one-way.md) | decided | 2026-10-18 |
+| D-007 | [macOS builds ship as an ad-hoc signed universal .app in a zip, without notarization](decisions/D-007-macos-distribution-adhoc-signed-app-zip.md) | decided | 2026-10-18 |
+| D-006 | [Several mbox files are open side by side, one active at a time; there is no merged view](decisions/D-006-several-files-open-one-active-no-merged-view.md) | decided | 2026-10-18 |
+| D-005 | [When .mboxer/ beside the mbox cannot be created, the index lives under %LOCALAPPDATA%\mboxer\index\<name>-<path hash>\](decisions/D-005-index-fallback-under-localappdata.md) | decided | 2026-10-17 |
+| D-004 | [The sidecar index lives in .mboxer/<mbox name>/ beside the mbox and is rebuilt whole when stale](decisions/D-004-sidecar-index-location-and-freshness.md) | decided | 2026-10-17 |
+| D-003 | [A message is identified by the byte offset of its From  envelope line](decisions/D-003-message-identity-is-envelope-byte-offset.md) | decided | 2026-10-17 |
+| D-002 | [Rust + Tauri 2 (WebView2) with a one-time sidecar full-text index](decisions/D-002-rust-tauri2-sidecar-fulltext-index.md) | decided | 2026-10-17 |
+| D-001 | [Build our own mbox viewer instead of adopting an existing one](decisions/D-001-build-own-viewer-instead-of-buying.md) | decided | 2026-10-17 |
 <!-- tasks:index:end -->

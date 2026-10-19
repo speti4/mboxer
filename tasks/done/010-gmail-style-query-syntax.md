@@ -24,7 +24,7 @@ a label click rewrite the text (`from:anna`, `after:2026-01-01`, `label:Inbox`),
 and the label selection; it follows that Esc and Clear empty the whole query, the label too.
 **`before:` is an inclusive** day, the same the panel's "to" field shows (differs from Gmail,
 documented in the README). The parser lives in the UI (`ui/query.js`, it has to be there for the two-way
-sync), the CLI keeps its flags; the core's only change is the `subject` filter. No new runtime crate (D-02).
+sync), the CLI keeps its flags; the core's only change is the `subject` filter. No new runtime crate (D-002).
 Size S → M: the field became the model, which touches every panel handler.
 
 Note from 006: `state.query` is the shared model of the field, the panel and the folders pane; the core

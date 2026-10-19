@@ -1,6 +1,6 @@
 // mboxer files: the remembered mbox files — the paths in the order of the
 // folder pane and which of them was active — saved in localStorage under one
-// key (task 016, D-06). Pure functions over a `{ paths, active }` value; main.js
+// key (task 016, D-006). Pure functions over a `{ paths, active }` value; main.js
 // holds the value, calls `write` after a change, and draws the pane from it.
 // The module knows the OS it runs on (task 019): a path is compared the way
 // that file system spells it. `window.MboxerFiles` in the viewer, CommonJS

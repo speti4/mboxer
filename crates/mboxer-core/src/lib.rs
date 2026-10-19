@@ -2,7 +2,7 @@
 //!
 //! The reader walks an mbox of any size with a bounded buffer and hands out one
 //! [`RawMessage`] at a time, each tagged with the byte offset and length that
-//! identify it for the rest of the application (decision D-03). Parsing of
+//! identify it for the rest of the application (decision D-003). Parsing of
 //! headers and MIME parts is delegated to `mail-parser`; [`MessageSummary`] is
 //! the owned, index-friendly digest of one message. [`index`] builds and queries
 //! the sidecar full-text index that stores those identities next to the mbox.

@@ -6,7 +6,7 @@
 //! tantivy handle is dropped before the directory is removed or renamed:
 //! Windows refuses both while a file is memory-mapped. When the `.building`
 //! directory cannot be created beside the mbox, the build goes to the index
-//! home instead (task 014, D-05) and the other location is cleared, so one
+//! home instead (task 014, D-005) and the other location is cleared, so one
 //! index exists per mbox.
 
 use std::fs;

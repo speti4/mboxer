@@ -14,12 +14,12 @@ plan: 12-14-15-taskokat-fejlessz-k-le-keen-whale.md
 
 Release profile, a single portable exe (no installer), version stamp in one place and in the UI, a short
 `docs/usage.md` for the people who run it; CI build. Why: a user only has to put one file next to their mbox,
-nothing to install (D-02). Done when: a user on a clean Windows 11 opens their own mbox with the bare
+nothing to install (D-002). Done when: a user on a clean Windows 11 opens their own mbox with the bare
 exe. From 005: the exe is `crates/mboxer-app` (`cargo build --release` → `target\release\mboxer.exe`,
 release = windowed), the WebView2 profile is under `%LOCALAPPDATA%\io.github.speti4.mboxer` (the `tauri.conf.json`
 `identifier`), the usage doc mentions this. User decision 2026-10-17 (planning round): GitHub Actions too,
 with tests ("a gh action with tests"); the package `mboxer-<verzió>.zip` = `mboxer.exe` + `usage.md`
-(the CLI exe is a developer tool, left out). No new crate (D-02).
+(the CLI exe is a developer tool, left out). No new crate (D-002).
 
 ## Steps
 
@@ -54,7 +54,7 @@ with tests ("a gh action with tests"); the package `mboxer-<verzió>.zip` = `mbo
 ## Deviations from the plan
 
 - none: the plan landed as written. A méretnyereség a profilból elhanyagolható (26 KB), a profil marad, mert a
-  fat LTO-nak futásidő-haszna is van és a strip a D-02 "egy exe" szellemében tisztább.
+  fat LTO-nak futásidő-haszna is van és a strip a D-002 "egy exe" szellemében tisztább.
 
 ## Verification
 

@@ -272,7 +272,7 @@ impl MboxIndex {
     }
 
     /// How many messages carry each Gmail label, sorted by label. Exact: the
-    /// index is built in one pass and never holds deleted documents (D-04), so
+    /// index is built in one pass and never holds deleted documents (D-004), so
     /// a term's document frequency is its message count. Labels are
     /// multi-valued, so the counts do not add up to the message count.
     pub fn label_counts(&self) -> Result<Vec<(String, u64)>> {
@@ -331,7 +331,7 @@ impl MboxIndex {
         })
     }
 
-    /// Fetches one message by its D-03 identity.
+    /// Fetches one message by its D-003 identity.
     pub fn lookup(&self, offset: u64) -> Result<Option<Hit>> {
         let query = TermQuery::new(
             Term::from_field_u64(self.fields.offset, offset),

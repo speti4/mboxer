@@ -1,11 +1,13 @@
-"""Mirrors tasks/ into GitHub issues and milestones, one way (task 022, D-08).
+"""Mirrors tasks/ into GitHub issues and milestones, one way (task 022, D-008).
 
 The task files are the source of truth (tasks/README.md). Every task (backlog/ wip/ done/ dropped/)
-and every decision (decisions/D-NN-*.md) is one issue: the id in the title, the Context prose in the
+and every decision (decisions/D-NNN-*.md) is one issue: the id in the title, the Context prose in the
 body, the milestone from the frontmatter, labels for stage / status / size, open or closed by the
 folder. Every `## ` heading of tasks/roadmap.md is a milestone (its state is never touched here: a
 release closes a milestone). Idempotent: an issue is found by the marker in its body and only the
-fields that differ are patched; an issue whose file is gone is reported, never closed or deleted.
+fields that differ are patched; an id padded to another width since its issue was made (task 043:
+two-digit decision ids became three-digit) still finds that issue, which is edited in place, marker
+included. An issue whose file is gone is reported, never closed or deleted.
 CI runs it on every push to main that touches tasks/ (.github/workflows/sync-issues.yml). By hand:
 
     python -I scripts/sync-issues.py --dry-run     # print what would change
@@ -155,7 +157,7 @@ def scalar(data: dict[str, str | list[str]], key: str) -> str | None:
 @dataclass
 class Item:
     kind: str  # "task" | "decision"
-    key: str  # "021" | "D-08"
+    key: str  # "021" | "D-008"
     sort: tuple[int, str]
     rel_path: str  # "done/021-slug.md"
     title: str
@@ -386,6 +388,28 @@ def _norm(text: str | None) -> str:
     return (text or "").replace("\r\n", "\n").rstrip()
 
 
+def same_id(key: str) -> str:
+    """The key without the zero padding of its number: "D-8", "D-0008" and "D-008" are one decision."""
+    return re.sub(r"\d+", lambda m: str(int(m.group())), key, count=1)
+
+
+def match_issues(items: list[Item], existing_by_key: dict[tuple[str, str], dict]) -> dict[tuple[str, str], tuple[dict, str] | None]:
+    """(kind, key) of every item → (its issue, the key in that issue's marker), or None for a new one.
+    The marker's exact key wins; else an issue whose marker holds the same number at another width.
+    Matched issues are popped from `existing_by_key`, so what stays there is an orphan."""
+    out: dict[tuple[str, str], tuple[dict, str] | None] = {}
+    for item in items:
+        issue = existing_by_key.pop((item.kind, item.key), None)
+        out[(item.kind, item.key)] = None if issue is None else (issue, item.key)
+    for item in items:
+        if out[(item.kind, item.key)] is not None:
+            continue
+        old = next((k for k in existing_by_key if k[0] == item.kind and same_id(k[1]) == same_id(item.key)), None)
+        if old is not None:
+            out[(item.kind, item.key)] = (existing_by_key.pop(old), old[1])
+    return out
+
+
 # --- the sync -------------------------------------------------------------------------------
 
 
@@ -430,9 +454,11 @@ def sync(repo: str, apply: bool) -> int:
         if match:
             existing_by_key[(match.group(1), match.group(2))] = issue
 
+    matched = match_issues(items, existing_by_key)
     created = updated = unchanged = 0
     for item in items:
-        issue = existing_by_key.pop((item.kind, item.key), None)
+        found = matched[(item.kind, item.key)]
+        issue, marker_key = (None, item.key) if found is None else found
         milestone_number = milestones[item.milestone]["number"] if item.milestone else None
         if issue is None:
             log(f"issue      create   {item.title}  [{item.state}, {', '.join(item.labels)}]")
@@ -464,7 +490,8 @@ def sync(repo: str, apply: bool) -> int:
         if not patch:
             unchanged += 1
             continue
-        log(f"issue      update   #{issue['number']} {item.title}  ({', '.join(sorted(patch))})")
+        was = f", was {marker_key}" if marker_key != item.key else ""
+        log(f"issue      update   #{issue['number']} {item.title}  ({', '.join(sorted(patch))}{was})")
         updated += 1
         if apply:
             gh("api", "-X", "PATCH", f"repos/{repo}/issues/{issue['number']}", payload=patch)

@@ -40,7 +40,7 @@ describes every feature, the search syntax and the `mboxer-cli` command line.
 
 ## Build from source
 
-mboxer is a Rust core with a Tauri 2 window on WebView2 ([D-02](tasks/decisions/)). You need Rust stable with
+mboxer is a Rust core with a Tauri 2 window on WebView2 ([D-002](tasks/decisions/)). You need Rust stable with
 the MSVC toolchain and the Visual Studio 2022 C++ build tools (details in [CONTRIBUTING.md](CONTRIBUTING.md)):
 
 ```powershell
@@ -65,7 +65,7 @@ target\release\mboxer.exe [file.mbox]
 The plan lives in [`tasks/`](tasks/README.md): the backlog, the work in flight and the history, one file per
 item, with milestones in [`tasks/roadmap.md`](tasks/roadmap.md). The files are mirrored one way into
 [issues](https://github.com/speti4/mboxer/issues) and [milestones](https://github.com/speti4/mboxer/milestones),
-so the task files stay the only place to edit (D-08). Windows comes first; a macOS build is on the roadmap.
+so the task files stay the only place to edit (D-008). Windows comes first; a macOS build is on the roadmap.
 
 mboxer started as a faster, steadier alternative to [eneam/mboxviewer](https://github.com/eneam/mboxviewer) for
 anyone who keeps an old mailbox as a Takeout export.

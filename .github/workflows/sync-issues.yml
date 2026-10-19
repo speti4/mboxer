@@ -1,5 +1,5 @@
 # Mirrors tasks/ into GitHub issues and milestones, one way (scripts/sync-issues.py, task 022,
-# D-08): on every push to main that touches the task files, and by hand through "Run workflow".
+# D-008): on every push to main that touches the task files, and by hand through "Run workflow".
 name: sync-issues
 
 on:

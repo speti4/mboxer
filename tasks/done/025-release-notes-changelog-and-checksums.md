@@ -27,14 +27,14 @@ Run as a task session under docs/git-workflow.md, in parallel with 035 and 032; 
 1. [x] Changelog generator (a mode of `scripts/sync-issues.py` or a sibling script): `CHANGELOG.md` with the 0.1.0
    section backfilled, and the notes of one release for the release job
 2. [x] `scripts/release.ps1`: `SHA256SUMS.txt` next to the zip, `THIRD-PARTY-LICENSES.html` inside it (`cargo-about`,
-   its config, the D-02 justification and the D-011 licence check of the tool)
+   its config, the D-002 justification and the D-011 licence check of the tool)
 3. [x] `ci.yml` release job: notes from the changelog instead of `--generate-notes`, the checksum file uploaded
 4. [x] `docs/development.md` (CI and releases), `docs/usage.md` if the zip's content changes for the user
 5. [x] Local dry run of the release script: notes, checksum and licence file produced; pull request, CI green
 
 ## Build-time tools
 
-- `cargo-about` 0.9.2 (D-02): build-time only, never linked into the exe — it renders the third-party licence page
+- `cargo-about` 0.9.2 (D-002): build-time only, never linked into the exe — it renders the third-party licence page
   of the zip from the same Cargo.lock graph `cargo deny` checks, with the licence texts the crates ship; a
   hand-written collector would re-implement its licence-file discovery. Its own licence is `MIT OR Apache-2.0`,
   both on the D-011 allowlist (D-011 governs the shipped graph; the tool is outside it either way). Installed with
@@ -56,7 +56,7 @@ Run as a task session under docs/git-workflow.md, in parallel with 035 and 032; 
   `sync-issues.py` via importlib, so there is one parser.
 - Release membership by the tag trees (`git ls-tree v<version> tasks/done/`), not by the `closed` date: on
   2026-10-18 017 closed before the v0.1.0 tag and 021–034 after it, the same date.
-- Entries link to the task file, not to the issue: issue N is not task N for every id (#34 is D-04).
+- Entries link to the task file, not to the issue: issue N is not task N for every id (#34 is D-004).
 - The notes travel as a file: `release.ps1` writes `dist/release-notes-<version>.md` (so the local dry run shows
   them too) and the job passes it to `gh release create --notes-file` instead of `--generate-notes`.
 - Extra: the `deny` job compares `about.toml`'s accepted licences with `deny.toml`'s allowlist, so a mismatch

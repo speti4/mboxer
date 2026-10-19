@@ -16,13 +16,13 @@ What: `.github/dependabot.yml` for cargo and github-actions (weekly, with a cool
 commit SHA with a version comment, on releases past the Node 20 deprecation; `permissions: contents: read` as the
 workflow default, `concurrency` and `timeout-minutes` on every job; `cargo-deny` (licences, advisories, bans,
 sources) as a CI job with a `deny.toml`; a workflow linter (`zizmor`) in CI. Build-time tools only, each with
-its D-02 justification line.
+its D-002 justification line.
 Why: a public repo that ships an exe needs a visible, automatic answer to "are the dependencies and the
 pipeline trustworthy", and the licence check is a precondition for the third-party notices (025).
 Done when: CI is green with `cargo deny check` and the workflow lint, and the first dependabot PR has arrived.
 User decision 2026-10-18: MPL-2.0 is allowed globally in the licence allowlist (D-011, confirmed by the user 2026-10-18).
 
-D-02 lines (no new crate enters the exe or the build):
+D-002 lines (no new crate enters the exe or the build):
 - `cargo-deny` — CI job (`EmbarkStudios/cargo-deny-action`) and an optional `cargo install` on a dev machine; it
   reads `Cargo.lock`, it is never linked.
 - `zizmor` — CI job (`zizmorcore/zizmor-action`) and `uvx zizmor` on a dev machine; it reads `.github/` only.

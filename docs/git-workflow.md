@@ -12,9 +12,9 @@ CLAUDE.md imports this file, so every Claude Code session starts with it.
   `docs:`, `ci:`, `chore:`, `tasks:`, `deps:` (dependabot).
 - **Trailers.** `Co-Authored-By:` lines are fine, including `Co-Authored-By: Claude …`. A `Claude-Session:`
   trailer and a Claude Code session link are not allowed in a commit message or a pull request description
-  (D-10, point 3). A pull request written with Claude Code ends its description with `🤖 Generated with Claude
+  (D-010, point 3). A pull request written with Claude Code ends its description with `🤖 Generated with Claude
   Code`; the squash merge appends the `Co-authored-by` lines of the branch's commits by itself.
-- **Author address.** The maintainer commits with the GitHub noreply address (D-10); contributors choose their
+- **Author address.** The maintainer commits with the GitHub noreply address (D-010); contributors choose their
   own.
 - **The hook.** Once per clone, `git config core.hooksPath .githooks` enables the `commit-msg` hook, which checks
   the rules above (`scripts/check-commit.sh`). The `commit-rules` CI job runs the same check over every pushed

@@ -71,7 +71,7 @@ fn html_part(parts: &[TextPart]) -> Option<&TextPart> {
 
 /// Undoes the mboxrd quoting of a body for display: one `>` comes off every
 /// line that is `>`s followed by `From `. The bytes in the file stay as written
-/// (D-03): mboxo and mboxrd cannot be told apart, so this is a display choice.
+/// (D-003): mboxo and mboxrd cannot be told apart, so this is a display choice.
 pub fn unescape_from_lines(text: &str) -> String {
     text.split_inclusive('\n')
         .map(|line| {

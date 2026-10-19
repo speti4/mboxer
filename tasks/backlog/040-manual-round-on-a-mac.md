@@ -10,7 +10,7 @@ milestone: M4 macOS
 # Manual round on a Mac: the bundle starts, the 019 runtime paths and the 020 print work
 
 What: on a Mac, with the zip of a `bundle-macos` run (tag or manual dispatch, 018): the `.app` starts after the
-Gatekeeper first-start step of D-07; Finder "Open with" and a Dock drop list the app for an `.mbox` (the document
+Gatekeeper first-start step of D-007; Finder "Open with" and a Dock drop list the app for an `.mbox` (the document
 type in `Info.plist`) and open the file through `RunEvent::Opened` (019); an opened attachment carries the
 `com.apple.quarantine` xattr; an mbox in a read-only folder indexes under `~/Library/Application Support`; the
 tooltips show `⌘` in WKWebView; `⌘P` opens a print window with the native panel over it, the message laid out as

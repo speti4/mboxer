@@ -52,7 +52,7 @@ struct ScanArgs {
     quiet: bool,
 }
 
-/// The sidecar folder and the fallback index home (D-05) as this platform spells them.
+/// The sidecar folder and the fallback index home (D-005) as this platform spells them.
 #[cfg(windows)]
 const INDEX_PLACES: (&str, &str) = (".mboxer\\<file name>\\", "%LOCALAPPDATA%\\mboxer\\index\\");
 #[cfg(target_os = "macos")]

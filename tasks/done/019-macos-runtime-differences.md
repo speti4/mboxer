@@ -12,7 +12,7 @@ milestone: M4 macOS
 
 ## Context
 
-What: `default_index_home` falls back to `$HOME/Library/Application Support/mboxer/index` on macOS (D-05 amended,
+What: `default_index_home` falls back to `$HOME/Library/Application Support/mboxer/index` on macOS (D-005 amended,
 CLI help and doc strings follow); `mark_of_the_web` gets a macOS arm writing the `com.apple.quarantine` xattr
 (best effort, the `xattr` command, no new crate); `BLOCKED_EXTENSIONS` adds the macOS executable types (`command
 tool pkg mpkg dmg app sh scpt applescript workflow terminal webloc inetloc fileloc`); `RunEvent::Opened` (Finder
@@ -29,7 +29,7 @@ Mac: the on-Mac checks of the done-when are a follow-up. Docs: this task writes 
 
 ## Steps
 
-1. [x] `mboxer-core`: `default_index_home` with the macOS fallback; D-05 amended in place (an `Amended` line, the
+1. [x] `mboxer-core`: `default_index_home` with the macOS fallback; D-005 amended in place (an `Amended` line, the
    decision stays `decided`); CLI help and doc strings follow
 2. [x] `mboxer-core`: `mark_of_the_web` macOS arm (`xattr -w com.apple.quarantine`, best effort);
    `BLOCKED_EXTENSIONS` gains the macOS executable types, with a test
@@ -45,7 +45,7 @@ Mac: the on-Mac checks of the done-when are a follow-up. Docs: this task writes 
 - 2026-10-19 — Index home: `default_index_home` a platform per-user adatmappáját használja (`user_data_dir`,
   tiszta függvény, unit teszt mindhárom OS-re): `%LOCALAPPDATA%` Windowson, `~/Library/Application Support`
   macOS-en, `$XDG_DATA_HOME` / `~/.local/share` máshol (Linux eddig egyből a temp alá ment; az XDG út egy sor,
-  ezért bekerült), utána marad a temp. D-05 egy `Amended 2026-10-19:` sorral bővült, a státusz `decided`. A CLI
+  ezért bekerült), utána marad a temp. D-005 egy `Amended 2026-10-19:` sorral bővült, a státusz `decided`. A CLI
   `index` after-help szövege `cfg`-vel a platform saját írásmódját mutatja (`index_help()`).
 - 2026-10-19 — Quarantine: `mark_of_the_web` macOS ágon a rendszer `xattr -w com.apple.quarantine
   "0081;<hex idő>;mboxer;"` parancsát futtatja, a kimenet és a hiba eldobva (mint a Windows ADS ág); nincs új
@@ -79,7 +79,7 @@ Mac: the on-Mac checks of the done-when are a follow-up. Docs: this task writes 
 - `crates/mboxer-app/icons/icon.png` and the `tauri.conf.json` icon line are added here as well as in 018 (#61),
   byte for byte the same, because the macOS cross-check cannot pass without them.
 - Linux index home: `$XDG_DATA_HOME/mboxer/index` (default `~/.local/share`) instead of the temp folder; one
-  arm of the same match, recorded in the D-05 amendment.
+  arm of the same match, recorded in the D-005 amendment.
 
 ## Verification
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Builds the macOS app bundle and packs the release zip: dist/mboxer-<version>-macos.zip holding
 # mboxer.app, usage.md and THIRD-PARTY-LICENSES.html, with SHA256SUMS.txt next to it (tasks 018, 041,
-# D-07). The macOS counterpart of scripts/release.ps1; it runs on a Mac or on the macos-latest runner,
+# D-007). The macOS counterpart of scripts/release.ps1; it runs on a Mac or on the macos-latest runner,
 # never on Windows, except --licences-only.
 #
 # The version is the workspace Cargo.toml one, the only place it is written. The script builds the
@@ -9,8 +9,8 @@
 # universal binary, lays out mboxer.app (Info.plist with the io.github.speti4.mboxer identifier and the
 # .mbox document type, icon.icns from the committed iconset through iconutil), signs the bundle ad hoc
 # (codesign -s -; no Developer ID, no notarization: the user allows it once under Privacy & Security,
-# D-07) and zips it with ditto, which keeps the bundle's structure, permissions and extended attributes.
-# No Tauri CLI (D-02): the bundle is these ~100 lines. The licence page is cargo-about over the crates
+# D-007) and zips it with ditto, which keeps the bundle's structure, permissions and extended attributes.
+# No Tauri CLI (D-002): the bundle is these ~100 lines. The licence page is cargo-about over the crates
 # compiled into the two darwin builds, with release.ps1's about.toml and template (task 041, D-012); CI
 # renders it on Linux with --licences-only, where a minute costs a tenth of a macOS one, and hands it
 # to the macOS job, which packs it with --licences.
@@ -231,7 +231,7 @@ plutil -lint "$app/Contents/Info.plist"
 printf 'APPL????' > "$app/Contents/PkgInfo"
 
 # Ad hoc: a signature without an identity, which is what Apple Silicon needs to load the binary at all;
-# Gatekeeper still asks the user once (D-07).
+# Gatekeeper still asks the user once (D-007).
 codesign --force --deep --sign - "$app"
 codesign --verify --deep --strict "$app"
 

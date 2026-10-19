@@ -16,7 +16,7 @@ Today the reader shows only the MIME tree listing, the attachments cannot be rea
 sanitizer stripped the `cid:` images and left the content id in `data-mboxer-cid` on the `<img>`.
 008 adds the attachment strip under the headers (name, size, type), a click on the chip opens
 with the default application (temp file), Save… and Save all…, and fills in the cid images in the
-sandboxed iframe. Decoding is on demand from the message offset (D-03), the index does not change.
+sandboxed iframe. Decoding is on demand from the message offset (D-003), the index does not change.
 Why: the archive is often opened for one file (user decision 2026-10-17, MVP must-have).
 Done when: base64 and quoted-printable attachments open and can be saved byte for byte, the
 cid-referenced inline images show in the HTML view.

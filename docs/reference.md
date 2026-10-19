@@ -12,7 +12,7 @@ the message list, and a reader with the headers and the body. The list shows the
 virtualised, so a 100 000-message archive scrolls like a short one.
 
 Several mbox files can be open side by side (a split Takeout export, more than one export). Each is a row at
-the top of the folder pane, one is active at a time, and the open set is remembered across starts (D-06).
+the top of the folder pane, one is active at a time, and the open set is remembered across starts (D-006).
 
 ### Labels
 
@@ -108,8 +108,8 @@ HTML mail is designed for one.
 ## The index
 
 The index is a cache in `.mboxer\<file name>\` next to the mbox; delete it any time. It is rebuilt whole when
-it no longer matches the file (D-04). When that folder is not writable (a read-only share, a DVD), the index
-goes under `%LOCALAPPDATA%\mboxer\index\` (on a Mac `~/Library/Application Support/mboxer/index/`; D-05);
+it no longer matches the file (D-004). When that folder is not writable (a read-only share, a DVD), the index
+goes under `%LOCALAPPDATA%\mboxer\index\` (on a Mac `~/Library/Application Support/mboxer/index/`; D-005);
 `MBOXER_INDEX_HOME` overrides that root, and every open looks in both places. Accents and case are folded on both the index and the query side, so `szamla` finds `Számla`.
 
 ## The command line

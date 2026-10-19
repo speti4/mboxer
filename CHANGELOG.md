@@ -9,6 +9,14 @@ not the list. The summary under a heading is written by hand and kept by the gen
 
 <!-- The summary above is written by hand; the list below is generated from tasks/done/ by scripts/changelog.py. -->
 
+### M4 macOS
+
+- macOS build, `.app` bundle and CI ([018](https://github.com/speti4/mboxer/blob/main/tasks/done/018-macos-build-bundle-and-ci.md))
+- macOS runtime differences: index home, quarantine, Finder open, UI keys and fonts ([019](https://github.com/speti4/mboxer/blob/main/tasks/done/019-macos-runtime-differences.md))
+- Print on macOS through a second webview window ([020](https://github.com/speti4/mboxer/blob/main/tasks/done/020-macos-print-second-webview-window.md))
+- `THIRD-PARTY-LICENSES.html` in the macOS zip ([041](https://github.com/speti4/mboxer/blob/main/tasks/done/041-third-party-licences-in-the-macos-zip.md))
+- Cut the CI minutes: macOS tests on tags and manual runs ([042](https://github.com/speti4/mboxer/blob/main/tasks/done/042-cut-ci-minutes.md))
+
 ### M5 Public release
 
 - Community health files: licence, security policy, contributing guide, issue and PR templates ([023](https://github.com/speti4/mboxer/blob/main/tasks/done/023-community-health-files.md))
@@ -16,10 +24,15 @@ not the list. The summary under a heading is written by hand and kept by the gen
 - Release notes and changelog from the task files, checksums and third-party licences ([025](https://github.com/speti4/mboxer/blob/main/tasks/done/025-release-notes-changelog-and-checksums.md))
 - README as a front page, the reference moved into docs ([026](https://github.com/speti4/mboxer/blob/main/tasks/done/026-readme-front-page.md))
 - Pre-publish audit of the history and the content ([027](https://github.com/speti4/mboxer/blob/main/tasks/done/027-pre-publish-history-and-content-audit.md))
-- Scrub the repo and rewrite the history per D-09 ([030](https://github.com/speti4/mboxer/blob/main/tasks/done/030-scrub-and-rewrite-history-per-d-09.md))
+- Scrub the repo and rewrite the history per D-009 ([030](https://github.com/speti4/mboxer/blob/main/tasks/done/030-scrub-and-rewrite-history-per-d-09.md))
 - Install the Rust toolchain in CI without a third-party action ([033](https://github.com/speti4/mboxer/blob/main/tasks/done/033-install-the-toolchain-without-a-third-party-action.md))
 - Git workflow policy for contributors and parallel sessions, with the commit rules enforced ([034](https://github.com/speti4/mboxer/blob/main/tasks/done/034-git-workflow-policy-and-commit-hooks.md))
 - CLAUDE.md fit for a public repo: no personal settings, no contradictions, a commands block ([035](https://github.com/speti4/mboxer/blob/main/tasks/done/035-claude-md-review-before-publication.md))
+- Git workflow doc: current decision reference, the deps type, the expected index failure ([036](https://github.com/speti4/mboxer/blob/main/tasks/done/036-git-workflow-references-and-commit-types.md))
+- Refresh the README screenshot after the date column fix ([037](https://github.com/speti4/mboxer/blob/main/tasks/done/037-refresh-the-viewer-screenshot.md))
+- README links the changelog next to the releases ([038](https://github.com/speti4/mboxer/blob/main/tasks/done/038-readme-links-the-changelog.md))
+- The commit hook's error messages cite D-010, not D-009 ([039](https://github.com/speti4/mboxer/blob/main/tasks/done/039-check-commit-messages-cite-d-10.md))
+- Pad the decision ids to three digits before the repo goes public ([043](https://github.com/speti4/mboxer/blob/main/tasks/done/043-pad-decision-ids-to-three-digits.md))
 
 ### Other
 

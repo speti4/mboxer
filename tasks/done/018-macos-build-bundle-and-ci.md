@@ -17,11 +17,11 @@ What: a `scripts/bundle-macos.sh` that builds `aarch64-apple-darwin` + `x86_64-a
 identifier, `.mbox` document type, `icon.icns` via `iconutil` from PNGs that `make-icon.py` also emits),
 ad-hoc signs it (`codesign -s -`) and packs `dist/mboxer-<version>-macos.zip` (`.app` + `usage.md`) with
 `ditto`; `ci.yml` gets `macos-latest` in the `test` matrix and a second release artefact, `deny.toml` the two
-macOS targets in `[graph] targets` (D-011). No Tauri CLI (D-02).
+macOS targets in `[graph] targets` (D-011). No Tauri CLI (D-002).
 Why: the first of three macOS tasks (plan 2026-10-18); it proves the workspace compiles and tests pass on macOS
 before 019 and 020. First step on Windows: `cargo check --target aarch64-apple-darwin -p mboxer-app`.
 Done when: the `macos-latest` CI job is green and the release zip holds an `.app` that starts on a Mac
-(manual round by a Mac user; the author has no Mac, the Gatekeeper step is D-07).
+(manual round by a Mac user; the author has no Mac, the Gatekeeper step is D-007).
 Run as a task session under docs/git-workflow.md, in parallel with 036, 038 and 019 (plan 2026-10-19); the
 author has no Mac, so the script is verified by the CI job and the "starts on a Mac" check is a follow-up.
 Docs: this task writes `docs/development.md` (build and bundle); 019 writes `docs/usage.md`.
@@ -75,7 +75,7 @@ Docs: this task writes `docs/development.md` (build and bundle); 019 writes `doc
   39241991149): `bundle-macos` success 11.5 perc alatt (két release build 6m10s + 4m40s, `lipo -archs` →
   `x86_64 arm64`, 23 MB bináris, `iconutil`, `codesign --verify --deep --strict`, `ditto`; a zip 9 MB), a
   `macos-zip` artifact feltöltve (mboxer-0.1.0-macos.zip + SHA256SUMS.txt, egy napig él). Ami nem ellenőrizhető
-  innen: hogy az `.app` elindul egy Macen és a Gatekeeper-lépés (D-07) — follow-up a PR-ban.
+  innen: hogy az `.app` elindul egy Macen és a Gatekeeper-lépés (D-007) — follow-up a PR-ban.
 
 ## Closing checklist
 

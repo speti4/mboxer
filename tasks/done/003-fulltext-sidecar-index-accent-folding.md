@@ -15,15 +15,15 @@ plan: folytassuk-a-003-taskkal-parsed-panda.md
 The heart of M1: a persistent tantivy index goes on top of the 002 streaming reader, next to the mbox
 (`.mboxer/<mbox fájlnév>/`), indexing the metadata (from, to, cc, subject, date, labels, has-attachment,
 attachment names) and the body text with accent- and case-insensitive tokenization, and storing the
-`offset/len` identity of D-03 for the seek. On reopen the index is reused if the mbox has not changed
+`offset/len` identity of D-003 for the seek. On reopen the index is reused if the mbox has not changed
 (size + mtime + sampled hash + format version), otherwise it is rebuilt. Done when: the build runs
 through the 14 GB file; reopen < 1 s; a body search for `szamla` returns the same as for `számla`,
 in < 1 s.
 
 User decisions 2026-10-17: a minimal CLI (`mboxer index`, `mboxer search`) in this task, the filter
-flags and the benchmark doc stay in 004; D-03 goes to `decided` with the 003 commit.
+flags and the benchmark doc stay in 004; D-003 goes to `decided` with the 003 commit.
 
-Build-time crates (D-02 justification, runtime dependencies stay at zero):
+Build-time crates (D-002 justification, runtime dependencies stay at zero):
 - `tantivy 0.27` (`mmap`, `lz4-compression`; without zstd, which would compile C) — inverted index, tokenizer
   chain with the built-in `AsciiFoldingFilter` (Ő/ő/Ű/ű included), fast fields, mmap reopen; an own index
   would take months. MSRV 1.88 → workspace `rust-version` 1.85 → 1.88.
@@ -42,7 +42,7 @@ Build-time crates (D-02 justification, runtime dependencies stay at zero):
 7. [x] CLI: `mboxer index <mbox> [--force --threads --quiet]`, `mboxer search <mbox> <query> [--limit --relevance]` open/search idővel
 8. [x] Tesztek: unit (FNV, tokenizer, blokkválasztás) + `tests/index.rs` (ékezet/kisbetű, phrase, szűrők, lapozás, html-only fixture, fingerprint Fresh/Stale/Missing, cancel, parse-hibás üzenet, `read_at` roundtrip)
 9. [x] Futtatás a 14 GB-on `scripts/peak-memory.ps1` alatt: build idő, peak RAM (< 1 GB), indexméret; `search szamla` = `search számla`, < 1 s; open < 1 s → Verification
-10. [x] D-03 → decided; D-04 proposed (sidecar hely + frissességi szabály)
+10. [x] D-003 → decided; D-004 proposed (sidecar hely + frissességi szabály)
 11. [x] `cargo fmt`, `cargo clippy --all-targets -- -D warnings`, `cargo test` zöld; `tasks_check`; commit
 
 ## Log
@@ -57,7 +57,7 @@ Build-time crates (D-02 justification, runtime dependencies stay at zero):
 - 2026-10-17 — html-only fixture failed: mail-parser's `html_to_text` drops the whitespace after a closing tag
   (`<b>Árajánlat</b> a` → `Árajánlata`), so the word was unsearchable → `html_words` inserts a space before every
   tag before calling it (unit test covers it)
-- 2026-10-17 — D-03 set to decided (user, planning round); D-04 proposed (sidecar location + freshness rule)
+- 2026-10-17 — D-003 set to decided (user, planning round); D-004 proposed (sidecar location + freshness rule)
 - 2026-10-17 — 14 GB run and search timings under Verification; follow-up 014 filed; closed
 
 ## Deviations from the plan
@@ -82,7 +82,7 @@ Build-time crates (D-02 justification, runtime dependencies stay at zero):
   - `szamla`, `számla`, `SZÁMLA`, `szamla OR számla`: 1137 hits each — accent and case folding confirmed on
     both sides; search 0.5–0.8 ms, open 7–10 ms (targets: < 1 s each)
   - phrase `"számla melléklet"`: 7 hits; `meeting`: 2326; `ajánlat`: 422; `--relevance` 0.4 ms
-  - the top hit's `offset/len` pair is a valid D-03 identity (the integration test proves `read_at` on every hit)
+  - the top hit's `offset/len` pair is a valid D-003 identity (the integration test proves `read_at` on every hit)
 - 2026-10-17 — `tasks_check` (write): 0 errors, 0 warnings; README index regenerated.
 
 ## Closing checklist

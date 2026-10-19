@@ -5,7 +5,7 @@ cost: one-way
 sources: [done/002-rust-workspace-and-mbox-stream-parser.md, folytassuk-a-002-task-wise-starfish.md]
 ---
 
-# D-03 — A message is identified by the byte offset of its `From ` envelope line
+# D-003 — A message is identified by the byte offset of its `From ` envelope line
 
 ## Context
 

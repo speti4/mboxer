@@ -106,10 +106,10 @@ one universal binary and lays out `mboxer.app`: `Contents/MacOS/mboxer`, `Conten
 `io.github.speti4.mboxer` identifier, the `Cargo.toml` version as `CFBundleShortVersionString` and
 `CFBundleVersion`, the `.mbox` document type, `LSMinimumSystemVersion` 10.13 as Tauri 2 defaults it) and
 `Contents/Resources/icon.icns`, which `iconutil` makes from the committed `icons/icon.iconset/`. The bundle is
-ad-hoc signed (`codesign -s -`) and not notarized (D-07): Apple Silicon loads it, Gatekeeper asks the user once.
+ad-hoc signed (`codesign -s -`) and not notarized (D-007): Apple Silicon loads it, Gatekeeper asks the user once.
 `ditto` packs `mboxer.app`, `docs/usage.md` and `THIRD-PARTY-LICENSES.html` into
 `dist/mboxer-<version>-macos.zip`, the way Finder's *Compress* does, and `SHA256SUMS.txt` next to it holds the
-zip's line in the `shasum -a 256 -c` format. No Tauri CLI is involved (D-02); the bundle is the script.
+zip's line in the `shasum -a 256 -c` format. No Tauri CLI is involved (D-002); the bundle is the script.
 
 The licence page is cargo-about with the `about.toml` and the template of `release.ps1`, over the crates of the
 two darwin builds instead of the Windows one (`--target aarch64-apple-darwin --target x86_64-apple-darwin`), so
@@ -172,7 +172,7 @@ the changelog, so parallel task branches do not conflict over it.
 `.github/workflows/sync-issues.yml` runs `scripts/sync-issues.py` on every push to `main` that touches `tasks/`.
 It keeps one GitHub issue per task and decision file (the id in the title, the Context prose, labels, the
 milestone, open or closed by the folder) and the milestones from the `tasks/roadmap.md` headings. It is
-idempotent and one-way (D-08); a release on the Releases page closes the milestones it ships. A dry run shows
+idempotent and one-way (D-008); a release on the Releases page closes the milestones it ships. A dry run shows
 what a run would change:
 
 ```powershell

@@ -21,13 +21,13 @@ headers of a sample; unit tests cover the Gmail Takeout format with nested MIME,
 base64 parts.
 
 User decisions 2026-10-17: the session installs the toolchain (VS C++ build tools + Windows SDK, rustup)
-with winget / the VS installer; the seek contract is a separate decision (D-03, proposed).
+with winget / the VS installer; the seek contract is a separate decision (D-003, proposed).
 
 Survey 2026-10-17 (64 MB sample, header names only): CRLF line endings; envelope `From <digits>@xxx
 <ctime-dátum>`; `>From ` escape in the body; average ~105 KB, max in the sample 5.6 MB; every message
 carries `X-Gmail-Labels` and `X-GM-THRID`; the D: drive is a SATA HDD (the scan is disk-bound).
 
-Build-time crates (D-02 justification, runtime dependencies stay at zero):
+Build-time crates (D-002 justification, runtime dependencies stay at zero):
 - `mail-parser 0.11` — RFC 5322 + MIME, 41 charsets (ISO-8859-2, windows-1250), RFC 2047/2231,
   attachment handling; an own implementation would take months.
 - `clap 4` (derive) — 004 brings the `index`/`search` subcommands and flags; a hand-written arg-parse
@@ -41,7 +41,7 @@ Build-time crates (D-02 justification, runtime dependencies stay at zero):
 4. [x] `mboxer-core/src/message.rs`: `parse`, `MessageSummary` (labels, thread id, has_attachment…), `text_parts`, `part_tree`
 5. [x] `mboxer-cli`: `mboxer scan <mbox> [--sample N] [--limit N] [--quiet]` progress + összegzés
 6. [x] Tesztek: szintetikus fixture-ök (LF, Gmail CRLF nested MIME, magyar charsetek, edge case-ek), roundtrip `read_at`, `max_message_bytes` guard
-7. [x] D-03 proposed: üzenetazonosság = envelope byte offset
+7. [x] D-003 proposed: üzenetazonosság = envelope byte offset
 8. [x] Futtatás a 14 GB-on: `cargo run --release -- scan …`, `scripts/peak-memory.ps1` → peak < 200 MB; számok a Verification-be
 9. [x] `cargo fmt`, `cargo clippy --all-targets -- -D warnings`, `cargo test` zöld; `tasks_check`; commit
 
@@ -62,7 +62,7 @@ Build-time crates (D-02 justification, runtime dependencies stay at zero):
 - 2026-10-17 — real 14 GB scan done (numbers under Verification); the 64 MB-sample extrapolation (~140k messages) was
   off by 40%: the archive has 86 085 messages, the early ones are smaller than the average
 - 2026-10-17 — follow-up filed: `backlog/013-unescape-from-lines-in-message-bodies.md` (display-side `>From ` unescape,
-  deferred here on purpose, see D-03)
+  deferred here on purpose, see D-003)
 
 ## Deviations from the plan
 
