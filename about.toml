@@ -1,8 +1,10 @@
-# cargo-about configuration (task 025): scripts/release.ps1 renders THIRD-PARTY-LICENSES.html for the zip from
-# the crates compiled into mboxer.exe, with scripts/third-party-licenses.hbs as the template. The accepted
+# cargo-about configuration (tasks 025, 041): scripts/release.ps1 renders THIRD-PARTY-LICENSES.html for the
+# Windows zip from the crates compiled into mboxer.exe, scripts/bundle-macos.sh the one for the macOS zip from the
+# crates of the two darwin builds, both with scripts/third-party-licenses.hbs as the template. The accepted
 # licences are deny.toml's allowlist (D-011); a licence added there is added here in the same change.
 accepted = ["MIT", "Apache-2.0", "Unicode-3.0", "BSD-3-Clause", "Zlib", "MPL-2.0"]
-# The shipped target only, as in deny.toml.
+# The Windows target; bundle-macos.sh overrides it with `--target aarch64-apple-darwin --target
+# x86_64-apple-darwin`. deny.toml checks all three.
 targets = ["x86_64-pc-windows-msvc"]
 # Build scripts, proc-macros' build helpers and test-only crates are not in the exe.
 ignore-build-dependencies = true

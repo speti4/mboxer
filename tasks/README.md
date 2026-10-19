@@ -13,15 +13,15 @@ file, never the issue.
 <!-- tasks:index:start -->
 _Generated 2026-10-19 — edit the files, not this section._
 
-**State:** 5 backlog (1 ready · 0 blocked · 4 waiting · 0 ideas) · 0 in progress · 37 done · 1 dropped · 12 decisions
+**State:** 4 backlog (1 ready · 0 blocked · 3 waiting · 0 ideas) · 0 in progress · 38 done · 1 dropped · 12 decisions
 
 ### Ready
 
-#### M4 macOS
+#### M5 Public release
 
 | # | Task | Size | Created |
 |---|---|---|---|
-| 041 | [THIRD-PARTY-LICENSES.html in the macOS zip](backlog/041-third-party-licences-in-the-macos-zip.md) | S | 2026-10-19 |
+| 043 | [Pad the decision ids to three digits before the repo goes public](backlog/043-pad-decision-ids-to-three-digits.md) | M | 2026-10-19 |
 
 ### Needs decision
 
@@ -33,15 +33,14 @@ _none_
 
 | # | Task | Waits for | Size | Created |
 |---|---|---|---|---|
-| 040 | [Manual round on a Mac: the bundle starts, the 019 runtime paths and the 020 pri…](backlog/040-manual-round-on-a-mac.md) | 041 merged, then a colleague with a Mac runs it from the zip of a `bundle-macos` run on main | S | 2026-10-19 |
+| 040 | [Manual round on a Mac: the bundle starts, the 019 runtime paths and the 020 pri…](backlog/040-manual-round-on-a-mac.md) | a colleague with a Mac runs it from the zip of a `bundle-macos` run on main | S | 2026-10-19 |
 
 #### M5 Public release
 
 | # | Task | Waits for | Size | Created |
 |---|---|---|---|---|
-| 028 | [Publication day: visibility switch and the public-only repo settings](backlog/028-publication-day-repo-settings.md) | every other open task done first (user decision 2026-10-19) — 041, 043, and 040 run by a colleague with a Mac; 029 follows 028 | S | 2026-10-18 |
+| 028 | [Publication day: visibility switch and the public-only repo settings](backlog/028-publication-day-repo-settings.md) | every other open task done first (user decision 2026-10-19) — 043, and 040 run by a colleague with a Mac; 029 follows 028 | S | 2026-10-18 |
 | 029 | [Authenticode signing of the release exe](backlog/029-windows-code-signing.md) | 028 (SignPath Foundation takes public repos only; user decision 2026-10-19) | M | 2026-10-18 |
-| 043 | [Pad the decision ids to three digits before the repo goes public](backlog/043-pad-decision-ids-to-three-digits.md) | 041 merged (it edits the same docs and scripts) | M | 2026-10-19 |
 
 ### Ideas
 
@@ -62,6 +61,7 @@ _none_
 | # | Task | Closed |
 |---|---|---|
 | 042 | [Cut the CI minutes: macOS tests on tags and manual runs](done/042-cut-ci-minutes.md) | 2026-10-19 |
+| 041 | [THIRD-PARTY-LICENSES.html in the macOS zip](done/041-third-party-licences-in-the-macos-zip.md) | 2026-10-19 |
 | 039 | [The commit hook's error messages cite D-10, not D-09](done/039-check-commit-messages-cite-d-10.md) | 2026-10-19 |
 | 038 | [README links the changelog next to the releases](done/038-readme-links-the-changelog.md) | 2026-10-19 |
 | 037 | [Refresh the README screenshot after the date column fix](done/037-refresh-the-viewer-screenshot.md) | 2026-10-19 |
@@ -70,9 +70,8 @@ _none_
 | 019 | [macOS runtime differences: index home, quarantine, Finder open, UI keys and fon…](done/019-macos-runtime-differences.md) | 2026-10-19 |
 | 018 | [macOS build, .app bundle and CI](done/018-macos-build-bundle-and-ci.md) | 2026-10-19 |
 | 035 | [CLAUDE.md fit for a public repo: no personal settings, no contradictions, a com…](done/035-claude-md-review-before-publication.md) | 2026-10-18 |
-| 034 | [Git workflow policy for contributors and parallel sessions, with the commit rul…](done/034-git-workflow-policy-and-commit-hooks.md) | 2026-10-18 |
 
-_27 more in `done/`._
+_28 more in `done/`._
 
 ### Decisions
 

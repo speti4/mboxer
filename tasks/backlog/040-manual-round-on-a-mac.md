@@ -1,6 +1,6 @@
 ---
 status: waiting
-waits-for: 041 merged, then a colleague with a Mac runs it from the zip of a `bundle-macos` run on main
+waits-for: a colleague with a Mac runs it from the zip of a `bundle-macos` run on main
 size: S
 origin: done/018-macos-build-bundle-and-ci.md
 created: 2026-10-19
