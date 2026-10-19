@@ -4,5 +4,7 @@ rules:
   cache-poisoning:
     ignore:
       # rust-cache in the test and lint jobs only speeds up the checks; the release jobs of the same workflow
-      # build without a cache, so nothing a cache holds reaches a published zip.
-      - ci.yml
+      # build without a cache, so nothing a cache holds reaches a published zip. Scoped to the two `uses:` lines
+      # (task 046), so a cache added anywhere else is flagged; a line moved by an edit above it moves here too.
+      - ci.yml:67
+      - ci.yml:91
