@@ -40,7 +40,7 @@ D-009 stands, with point 2 replaced:
    included) and future (`git config user.email`).
 5. 030 lands before 028 flips the visibility.
 
-The user chose the recreated repo on 2026-10-18 while planning task 030 and approved the plan the same day.
+Decided on 2026-10-18 while planning task 030.
 
 ## Not chosen
 

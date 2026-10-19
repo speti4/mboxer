@@ -25,35 +25,35 @@ and Source views follow the theme. No new crate (D-002).
 
 ## Steps
 
-1. [x] `ui/style.css`: `color-scheme`, új tokenek (`--on-accent`, `--warn*`, `--overlay`, `--reader-canvas`), a
-   hardcode-olt színek tokenre, dark készlet `@media (prefers-color-scheme: dark) :root:not([data-theme="light"])`
-   és `:root[data-theme="dark"]` alatt
-2. [x] `ui/theme.js` (új): `MboxerTheme` — `read / write / apply / next / label / title`, betöltéskor `apply(read())`
-3. [x] `ui/index.html`: `theme.js` a `<head>`-ben, `#theme-btn` a toolbarban
-4. [x] `ui/main.js`: `setTheme`, gomb, `start()`, Tauri `setTheme` best effort; `IFRAME_STYLE` világos vászon
+1. [x] `ui/style.css`: `color-scheme`, new tokens (`--on-accent`, `--warn*`, `--overlay`, `--reader-canvas`), the
+   hard-coded colours moved to tokens, a dark set under `@media (prefers-color-scheme: dark) :root:not([data-theme="light"])`
+   and `:root[data-theme="dark"]`
+2. [x] `ui/theme.js` (new): `MboxerTheme` — `read / write / apply / next / label / title`, `apply(read())` on load
+3. [x] `ui/index.html`: `theme.js` in the `<head>`, `#theme-btn` in the toolbar
+4. [x] `ui/main.js`: `setTheme`, button, `start()`, Tauri `setTheme` best effort; `IFRAME_STYLE` light canvas
 5. [x] `capabilities/default.json`: `core:window:allow-set-theme`
-6. [x] `tests/ui/theme.test.js` + `tests/ui_query.rs` mindkét Node tesztet futtatja
-7. [x] `docs/usage.md` bekezdés a témáról
-8. [x] `node --check`, `cargo fmt`, `cargo clippy --all-targets -- -D warnings`, `cargo test`; Chrome stub-check;
+6. [x] `tests/ui/theme.test.js` + `tests/ui_query.rs` runs both Node tests
+7. [x] `docs/usage.md` paragraph on the theme
+8. [x] `node --check`, `cargo fmt`, `cargo clippy --all-targets -- -D warnings`, `cargo test`; Chrome stub check;
    `tasks_check`; commit
-9. [x] User kézi kör a 14 GB archívumon dark módú Windows alatt (indulás, címsor, váltás, újraindítás)
+9. [x] Manual round on the 14 GB archive under a dark-mode Windows (start, title bar, switching, restart)
 
 ## Log
 
 - 2026-10-18 — plan approved; 017 promoted to wip
-- 2026-10-18 — implementálva (8 fájl, +162/−24): tokenek + dark készlet, `theme.js`, gomb, `setTheme`, capability,
-  Node teszt, usage doc. `node --test`: 22 pass (16 query + 6 theme); `cargo fmt --check`, `cargo clippy
-  --all-targets -- -D warnings` tiszta; `cargo test` zöld (30 app + 1 ui node + 4 + 6 CLI + 30 + 9 + 22 core)
-- 2026-10-18 — Chrome stub-check (scratchpad `serve-ui-theme.js`, stub `__TAURI__.core` + `window.getCurrentWindow().setTheme`
-  recorder, 127.0.0.1:8767): 25/25 ellenőrzés OK — auto: nincs `data-theme`, `setTheme(null)`; light: `--bg #ffffff`,
-  `color-scheme light`, mentve, gomb "Light" + tooltip; dark: `--bg #1e1f22`, `color-scheme dark`, toolbar
-  `#26282c`, kijelölt sor `#2d4a6e`, `setTheme("dark")`; reload után `data-theme="dark"` már a `theme.js`-ből,
-  `setTheme` induláskor `["dark"]`; HTML nézet iframe body `#fff` / `#1f2328` / `color-scheme light` dark módban;
-  Text nézet `--fg`; mark a sorban `#a37c00` + világos fg, a bodyban `#7a5c00`. Képernyőkép: remote bar, warn státusz,
-  overlay olvasható. A Chrome maga is dark módú volt, így az auto ág (`prefers-color-scheme`) is lefutott
+- 2026-10-18 — implemented (8 files, +162/−24): tokens + dark set, `theme.js`, button, `setTheme`, capability,
+  Node test, usage doc. `node --test`: 22 pass (16 query + 6 theme); `cargo fmt --check`, `cargo clippy
+  --all-targets -- -D warnings` clean; `cargo test` green (30 app + 1 ui node + 4 + 6 CLI + 30 + 9 + 22 core)
+- 2026-10-18 — Chrome stub check (scratchpad `serve-ui-theme.js`, stub `__TAURI__.core` + `window.getCurrentWindow().setTheme`
+  recorder, 127.0.0.1:8767): 25/25 checks OK — auto: no `data-theme`, `setTheme(null)`; light: `--bg #ffffff`,
+  `color-scheme light`, saved, button "Light" + tooltip; dark: `--bg #1e1f22`, `color-scheme dark`, toolbar
+  `#26282c`, selected row `#2d4a6e`, `setTheme("dark")`; after a reload `data-theme="dark"` already comes from
+  `theme.js`, `setTheme` at start-up `["dark"]`; HTML view iframe body `#fff` / `#1f2328` / `color-scheme light` in dark
+  mode; Text view `--fg`; mark in the row `#a37c00` + light fg, in the body `#7a5c00`. Screenshot: remote bar, warn
+  status, overlay readable. Chrome itself ran in dark mode, so the auto branch (`prefers-color-scheme`) ran too
 - 2026-10-18 — commit `563fcc2` (feat, task 017)
-- 2026-10-18 — a user kézi köre az igazi Tauri ablakban, a 14 GB archívumon: "sikeres a teszt". A tervben feltételesen
-  említett follow-up (WebView2 fehér villanás a betöltés előtt) nem merült fel, nem kerül backlogra; closed
+- 2026-10-18 — manual round in the real Tauri window, on the 14 GB archive: passed. The follow-up the plan named
+  conditionally (a WebView2 white flash before loading) did not come up, so it is not filed; closed
 
 ## Deviations from the plan
 
@@ -62,10 +62,10 @@ and Source views follow the theme. No new crate (D-002).
 ## Verification
 
 - 2026-10-18 — `cargo fmt --check` clean, `cargo clippy --all-targets -- -D warnings` clean, `cargo test` pass
-  (új: `tests/ui/theme.test.js` 6 teszt a `node --test` alatt, az `ui_query.rs` mindkét Node fájlt futtatja).
-  Chrome stub-check 25/25 (részletek a Logban).
-- 2026-10-18 — User kézi kör dark módú Windows alatt, a 14 GB archívummal: sötét indulás, a gomb élőben vált, a
-  beállítás megmarad újraindítás után — done-when met.
+  (new: `tests/ui/theme.test.js` 6 tests under `node --test`, `ui_query.rs` runs both Node files).
+  Chrome stub check 25/25 (details in the Log).
+- 2026-10-18 — manual round under a dark-mode Windows, with the 14 GB archive: dark start, the button switches
+  live, the setting survives a restart — done-when met.
 
 ## Closing checklist
 

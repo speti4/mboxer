@@ -24,7 +24,7 @@ licence is added to the list by a change to this decision. MPL-2.0 is allowed gl
 file-level and the crates are used unmodified; its notice and the source location go into the licence file of 025.
 Sources are crates.io only (no other registry, no git dependencies). A RustSec advisory or a yanked crate fails
 the check; an ignore names the advisory id and the reason in `deny.toml`. Duplicate versions are reported, not
-failed. The user chose the global MPL-2.0 allowance and confirmed the record on 2026-10-18.
+failed. The global MPL-2.0 allowance was decided on 2026-10-18.
 
 ## Not chosen
 

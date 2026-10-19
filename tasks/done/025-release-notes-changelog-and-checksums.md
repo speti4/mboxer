@@ -45,9 +45,9 @@ Done in parallel with 035 and 032; no tag is pushed without the maintainer.
 
 - 2026-10-18 — promoted by the main session; worked in `.claude/worktrees/025-changelog-checksums-licences` on
   branch `task/025-changelog-checksums-licences`
-- 2026-10-18 — `scripts/changelog.py`, `CHANGELOG.md` (0.1.0 a kézzel írt v0.1.0 notes-szal), `about.toml` +
-  `scripts/third-party-licenses.hbs`, `release.ps1` (licence page, SHA256SUMS, notes), `ci.yml` release job és
-  deny-összevetés, docs; PR #54, CI zöld; lezárva a branchen
+- 2026-10-18 — `scripts/changelog.py`, `CHANGELOG.md` (0.1.0 with the hand-written v0.1.0 notes), `about.toml` +
+  `scripts/third-party-licenses.hbs`, `release.ps1` (licence page, SHA256SUMS, notes), `ci.yml` release job and
+  the deny comparison, docs; PR #54, CI green; closed on the branch
 
 ## Deviations from the plan
 
@@ -64,18 +64,19 @@ Done in parallel with 035 and 032; no tag is pushed without the maintainer.
 
 ## Verification
 
-- 2026-10-18 — lokális dry run: `scripts\release.ps1` (release profile, `Finished ... in 2m 08s`), a `dist\`-ben:
-  `mboxer-0.1.0.zip` 5 364 221 B (benne `mboxer.exe` 15 114 240 B, `THIRD-PARTY-LICENSES.html` 272 097 B,
+- 2026-10-18 — local dry run: `scripts\release.ps1` (release profile, `Finished ... in 2m 08s`), in `dist\`:
+  `mboxer-0.1.0.zip` 5 364 221 B (holding `mboxer.exe` 15 114 240 B, `THIRD-PARTY-LICENSES.html` 272 097 B,
   `usage.md` 6 453 B), `SHA256SUMS.txt` 83 B
   (`3a3d42c7adef5042fa4b3776ba9355e602cc27de26e77f8d720c84180e0082b0  mboxer-0.1.0.zip`, `sha256sum -c` → OK),
-  `release-notes-0.1.0.md` 4 558 B (a v0.1.0 kézi szöveg + 17 task M1/M2/M3/Other alatt + "Verify the download").
-- 2026-10-18 — a licence page: MIT 252, Unicode-3.0 19, Apache-2.0 5, MPL-2.0 5, BSD-3-Clause 3, Zlib 1
-  crate-hivatkozás, mind forrás-linkkel; `--frozen` és hálózatos futás bájtra azonos.
-- 2026-10-18 — `changelog.py --check` up to date, `--notes 0.2.0` (tag nélkül) az Unreleased listát adja, a
-  summary-átvitel új tagre és a marker nélküli szakasz olvasása egy importált próbában rendben.
-- 2026-10-18 — lokálisan `cargo fmt --check`, `cargo clippy --all-targets -- -D warnings`, `cargo test` (109 teszt),
-  `cargo deny check`, `uvx zizmor .github` (no findings) zöld; CI run 39154858864 (PR #54): test, deny,
-  workflow-lint, commit-rules pass, release skipping (csak tagen fut, tag nem lett pusholva).
+  `release-notes-0.1.0.md` 4 558 B (the hand-written v0.1.0 text + 17 tasks under M1/M2/M3/Other + "Verify the
+  download").
+- 2026-10-18 — the licence page: MIT 252, Unicode-3.0 19, Apache-2.0 5, MPL-2.0 5, BSD-3-Clause 3, Zlib 1 crate
+  references, each with a source link; a `--frozen` run and a networked run are byte-identical.
+- 2026-10-18 — `changelog.py --check` up to date, `--notes 0.2.0` (no tag) gives the Unreleased list; the summary
+  carry-over to a new tag and reading a section without the marker pass in an imported test.
+- 2026-10-18 — locally `cargo fmt --check`, `cargo clippy --all-targets -- -D warnings`, `cargo test` (109 tests),
+  `cargo deny check`, `uvx zizmor .github` (no findings) green; CI run 39154858864 (PR #54): test, deny,
+  workflow-lint, commit-rules pass, release skipped (it runs only on a tag; no tag was pushed).
 
 ## Closing checklist
 

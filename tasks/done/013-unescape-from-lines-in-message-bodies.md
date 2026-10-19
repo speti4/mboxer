@@ -16,7 +16,7 @@ Done when: A fixture with `>From ` and `>>From ` body lines renders as `From ` a
 
 ## Log
 
-- 2026-10-17 — bundled into task 007 (user decision in its planning round): `unescape_from_lines` in
+- 2026-10-17 — bundled into task 007 (decided in its planning round): `unescape_from_lines` in
   `crates/mboxer-app/src/view.rs` runs on the plain-text body only; the Source view and `read_at`
   show the bytes as written. Fixture `html-remote.mbox` carries `>From ` and `>>From ` lines.
 

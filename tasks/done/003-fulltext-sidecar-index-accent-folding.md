@@ -20,7 +20,7 @@ attachment names) and the body text with accent- and case-insensitive tokenizati
 through the 14 GB file; reopen < 1 s; a body search for `szamla` returns the same as for `számla`,
 in < 1 s.
 
-User decisions 2026-10-17: a minimal CLI (`mboxer index`, `mboxer search`) in this task, the filter
+Decided 2026-10-17: a minimal CLI (`mboxer index`, `mboxer search`) in this task, the filter
 flags and the benchmark doc stay in 004; D-003 goes to `decided` with the 003 commit.
 
 Build-time crates (D-002 justification, runtime dependencies stay at zero):
@@ -33,17 +33,17 @@ Build-time crates (D-002 justification, runtime dependencies stay at zero):
 
 ## Steps
 
-1. [x] Függőségek: `Cargo.toml` (tantivy, serde, serde_json, tempfile dev; `rust-version = "1.88"`)
-2. [x] `mboxer-core/src/index/fingerprint.rs`: `.mboxer/<név>/` helye, `mboxer.json`, FNV-1a mintavételes hash, `IndexStatus`
-3. [x] `index/schema.rs`: `"fold"` tokenizer (Simple → RemoveLong(40) → LowerCaser → AsciiFolding), mezők (offset, len, date, thread_id, message_id, from/to/cc, from_addr/to_addr, subject, body, labels, has_attachment, attachment_names)
-4. [x] `index/build.rs`: egy menetes építés `.building/` könyvtárba, progress + cancel, atomi rename, parse-hibás üzenet is bekerül, body cap 4 MiB, html-only → `html_to_text`
-5. [x] `index/search.rs`: `MboxIndex::open` (Ready / Missing / Stale), `SearchQuery` → QueryParser + programozott szűrők, `(Count, TopDocs)` DateDesc / Relevance, `Hit` a tárolt mezőkből
+1. [x] Dependencies: `Cargo.toml` (tantivy, serde, serde_json, tempfile dev; `rust-version = "1.88"`)
+2. [x] `mboxer-core/src/index/fingerprint.rs`: the `.mboxer/<name>/` location, `mboxer.json`, FNV-1a sampled hash, `IndexStatus`
+3. [x] `index/schema.rs`: `"fold"` tokenizer (Simple → RemoveLong(40) → LowerCaser → AsciiFolding), fields (offset, len, date, thread_id, message_id, from/to/cc, from_addr/to_addr, subject, body, labels, has_attachment, attachment_names)
+4. [x] `index/build.rs`: single-pass build into a `.building/` directory, progress + cancel, atomic rename, messages that fail to parse are indexed too, body cap 4 MiB, html-only → `html_to_text`
+5. [x] `index/search.rs`: `MboxIndex::open` (Ready / Missing / Stale), `SearchQuery` → QueryParser + programmatic filters, `(Count, TopDocs)` DateDesc / Relevance, `Hit` from the stored fields
 6. [x] `error.rs`: `Index`, `IndexMeta`, `Json`, `Cancelled`
-7. [x] CLI: `mboxer index <mbox> [--force --threads --quiet]`, `mboxer search <mbox> <query> [--limit --relevance]` open/search idővel
-8. [x] Tesztek: unit (FNV, tokenizer, blokkválasztás) + `tests/index.rs` (ékezet/kisbetű, phrase, szűrők, lapozás, html-only fixture, fingerprint Fresh/Stale/Missing, cancel, parse-hibás üzenet, `read_at` roundtrip)
-9. [x] Futtatás a 14 GB-on `scripts/peak-memory.ps1` alatt: build idő, peak RAM (< 1 GB), indexméret; `search szamla` = `search számla`, < 1 s; open < 1 s → Verification
-10. [x] D-003 → decided; D-004 proposed (sidecar hely + frissességi szabály)
-11. [x] `cargo fmt`, `cargo clippy --all-targets -- -D warnings`, `cargo test` zöld; `tasks_check`; commit
+7. [x] CLI: `mboxer index <mbox> [--force --threads --quiet]`, `mboxer search <mbox> <query> [--limit --relevance]` with open/search timing
+8. [x] Tests: unit (FNV, tokenizer, block selection) + `tests/index.rs` (accents/case, phrase, filters, paging, html-only fixture, fingerprint Fresh/Stale/Missing, cancel, message that fails to parse, `read_at` roundtrip)
+9. [x] Run on the 14 GB file under `scripts/peak-memory.ps1`: build time, peak RAM (< 1 GB), index size; `search szamla` = `search számla`, < 1 s; open < 1 s → Verification
+10. [x] D-003 → decided; D-004 proposed (sidecar location + freshness rule)
+11. [x] `cargo fmt`, `cargo clippy --all-targets -- -D warnings`, `cargo test` green; `tasks_check`; commit
 
 ## Log
 
@@ -57,7 +57,7 @@ Build-time crates (D-002 justification, runtime dependencies stay at zero):
 - 2026-10-17 — html-only fixture failed: mail-parser's `html_to_text` drops the whitespace after a closing tag
   (`<b>Árajánlat</b> a` → `Árajánlata`), so the word was unsearchable → `html_words` inserts a space before every
   tag before calling it (unit test covers it)
-- 2026-10-17 — D-003 set to decided (user, planning round); D-004 proposed (sidecar location + freshness rule)
+- 2026-10-17 — D-003 set to decided; D-004 proposed (sidecar location + freshness rule)
 - 2026-10-17 — 14 GB run and search timings under Verification; follow-up 014 filed; closed
 
 ## Deviations from the plan

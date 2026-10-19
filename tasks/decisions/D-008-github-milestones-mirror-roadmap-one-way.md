@@ -11,7 +11,7 @@ sources: [done/021-github-milestones-and-first-release.md, done/022-sync-tasks-t
 
 The repo's task standard (`tasks/`, the `/tasks` skill, the generated README index) is the source of truth for
 what is open, in flight and done, and every task carries `milestone:` naming a `## ` heading of
-`tasks/roadmap.md`. The user asked on 2026-10-18 whether the roadmap milestones should also appear on GitHub
+`tasks/roadmap.md`. The question on 2026-10-18 was whether the roadmap milestones should also appear on GitHub
 (`speti4/mboxer/milestones`). A GitHub milestone measures progress over its issues, so milestones alone (task
 021) were an empty progress bar, and a hand-maintained set of issues next to the task files would be a second
 source of truth that drifts within days. While the repo was private (until 2026-10), the issues served the
@@ -31,8 +31,8 @@ maintainer; since the switch they are public.
   M5 closes with the first public release (`v0.2.0`, task 028) once 029 is done; until then it stays open.
   The script never changes a milestone's state.
 
-Proposed on 2026-10-18 during task 022 planning, from the user's choices of milestones with a v0.1.0 release
-and a one-way sync from CI, decisions included, with English bodies; confirmed by the user on 2026-10-18.
+Proposed on 2026-10-18 during task 022 planning: milestones with a v0.1.0 release and a one-way sync from CI,
+decisions included, with English bodies; decided on 2026-10-18.
 
 ## Not chosen
 

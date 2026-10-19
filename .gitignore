@@ -15,6 +15,7 @@ takeout-*.zip
 *.log
 .DS_Store
 .claude/settings.local.json
+CLAUDE.local.md
 
 # synthetic test fixtures are the one exception to the mbox rule
 !crates/*/tests/fixtures/*.mbox

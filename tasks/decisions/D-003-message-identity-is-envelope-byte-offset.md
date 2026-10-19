@@ -26,7 +26,7 @@ on users' machines, so the contract is fixed before the first index exists.
 - `>From ` lines inside bodies are left as written (no mboxo/mboxrd unescaping) until a reader
   feature needs it; search is unaffected.
 
-Proposed on 2026-10-17 during task 002; confirmed by the user on 2026-10-17 (task 003 planning), before the first index stored an offset.
+Proposed on 2026-10-17 during task 002; decided on 2026-10-17 (task 003 planning), before the first index stored an offset.
 
 Amended 2026-10-19: the `>From ` quoting is undone for display in the reader's plain-text body (013, bundled into
 007) and at byte level in the `.eml` export (011); `read_at` and the index keep the bytes as written.

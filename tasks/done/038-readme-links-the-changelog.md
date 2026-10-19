@@ -27,10 +27,10 @@ Done in parallel with 036, 018 and 019.
 ## Log
 
 - 2026-10-19 — promoted in the main session, branch `task/038-readme-changelog-link`
-- 2026-10-19 — task session a `.claude/worktrees/038-readme-changelog-link` worktree-ben: a README letöltési
-  lépése a `CHANGELOG.md`-re mutat és egy mondatban adja a `Get-FileHash` / `SHA256SUMS.txt` összevetést (ugyanaz
-  az egysoros, amit a `docs/usage.md` is ír, kódblokk nélkül, mert a lépés listája sem használ ilyet); a
-  dokumentációs lista új sora a changelog és a releases oldal; lezárva a branchen
+- 2026-10-19 — task session in the `.claude/worktrees/038-readme-changelog-link` worktree: the README's download
+  step points to `CHANGELOG.md` and gives the `Get-FileHash` / `SHA256SUMS.txt` comparison in one sentence (the same
+  one-liner `docs/usage.md` has, without a code block, since the step list uses none); the docs list's new line is
+  the changelog and the releases page; closed on the branch
 
 ## Deviations from the plan
 
@@ -38,11 +38,11 @@ Done in parallel with 036, 018 and 019.
 
 ## Verification
 
-- 2026-10-19 — `README.md` minden relatív linkje (14 db, köztük az új `CHANGELOG.md`) létező fájlra vagy mappára
-  mutat (shell ciklus `[ -e ]`-vel a worktree gyökeréből); 112 karakternél hosszabb sor csak a három meglévő
-  badge / kép sor; a `Get-FileHash` mondat a `docs/usage.md` 20. sorával egyező parancsot ad
-- 2026-10-19 — `tasks_check` a worktree-n: csak a README index „stale” jelzése (a main session regenerálja a
-  merge előtt)
+- 2026-10-19 — every relative link of `README.md` (14, the new `CHANGELOG.md` included) points to an existing file
+  or folder (a shell loop with `[ -e ]` from the worktree root); the only lines over 112 characters are the three
+  existing badge / image lines; the `Get-FileHash` sentence gives the same command as line 20 of `docs/usage.md`
+- 2026-10-19 — `tasks_check` on the worktree: only the README index "stale" report (the main session regenerates it
+  before the merge)
 
 ## Closing checklist
 

@@ -24,7 +24,7 @@ was clarified on 2026-10-17 to mean the runtime: build-time crates are fine when
   Gmail-style query syntax is a later milestone.
 - Each user has their own mbox; the index lives beside it; no sharing or server component.
 
-Confirmed by the user on 2026-10-17.
+Decided on 2026-10-17.
 
 ## Not chosen
 

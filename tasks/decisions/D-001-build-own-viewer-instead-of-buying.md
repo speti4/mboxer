@@ -18,7 +18,7 @@ no runtime to install, usable by non-technical people, each with their own file.
 
 Build our own viewer. No free tool meets the bar: every candidate either has no GUI, caps the free
 tier far below 14 GB, or still scans the whole file for body search, which takes minutes at this
-size. Confirmed by the user on 2026-10-17.
+size. Decided on 2026-10-17.
 
 ## Not chosen
 

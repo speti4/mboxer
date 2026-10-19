@@ -43,44 +43,44 @@ Docs: this task writes `docs/development.md` (build and bundle); 019 writes `doc
 ## Log
 
 - 2026-10-19 — promoted in the main session, branch `task/018-macos-bundle-and-ci`
-- 2026-10-19 — a darwin `cargo check` Windowson két dolgon akadt el, egyik sem a mi kódunk: az
-  `objc2-exception-helper` build scriptje C fordítót kér (csak a linkeléshez kell; a `DOCS_RS` változóval
-  kihagyja magát, ezt dokumentálja a development.md), és a tauri-codegen minden nem-Windows targeten PNG ikont
-  vár (`icons/icon.png`, a `make-icon.py` írja, a `tauri.conf.json` listázza). A forrásokban nem volt
-  `cfg(windows)` hézag: az `attachments.rs` mark-of-the-web-je már gate-elt.
-- 2026-10-19 — a bundle script, az iconset PNG-k (commitolva, mint az `icon.ico`: a macOS runnernek így nem kell
-  Pillow), a CI (test matrix, `bundle-macos` job tagre vagy kézi futtatásra, a release job összefűzi a két zipet
-  és a checksumokat), `deny.toml`, a release notes lábléce, development.md. PR #61.
+- 2026-10-19 — a darwin `cargo check` on Windows stopped on two things, neither in our code: the
+  `objc2-exception-helper` build script asks for a C compiler (needed only for linking; the `DOCS_RS` variable
+  makes it skip itself, documented in development.md), and tauri-codegen expects a PNG icon on every non-Windows
+  target (`icons/icon.png`, written by `make-icon.py`, listed in `tauri.conf.json`). The sources had no
+  `cfg(windows)` gap: the mark of the web in `attachments.rs` was already gated.
+- 2026-10-19 — the bundle script, the iconset PNGs (committed, like `icon.ico`, so the macOS runner needs no
+  Pillow), CI (test matrix, a `bundle-macos` job on a tag or a manual run, the release job joins the two zips and
+  the checksums), `deny.toml`, the release notes footer, development.md. PR #61.
 
 ## Deviations from the plan
 
-- A `bundle-macos` job nem csak tagre fut, hanem `workflow_dispatch`-re is: Mac nélkül csak így fut a script
-  valóban (lipo, iconutil, codesign, ditto), és egy kézi teszthez is így van build (a zip egy
-  napig artifact). A `commit-rules` job kézi futtatáskor kimarad (nincs commit range).
-- A release notes lábléce (`scripts/changelog.py --notes`) is megnevezi a macOS zipet és az első indítás lépését:
-  a `SHA256SUMS.txt` két zipet fed, a szöveg eddig egyet írt le.
+- The `bundle-macos` job runs not only on a tag but also on `workflow_dispatch`: without a Mac this is the only way
+  the script really runs (lipo, iconutil, codesign, ditto), and it is also how a build for a manual test is made
+  (the zip is an artifact for a day). The `commit-rules` job is skipped on a manual run (no commit range).
+- The release notes footer (`scripts/changelog.py --notes`) also names the macOS zip and the first-start step:
+  `SHA256SUMS.txt` covers two zips, and the text described only one.
 
 ## Verification
 
-- 2026-10-19 — Windowson: `rustup target add aarch64-apple-darwin x86_64-apple-darwin`, majd `DOCS_RS=1 cargo
-  check --target aarch64-apple-darwin -p mboxer-app -p mboxer-cli` és ugyanez `x86_64-apple-darwin`-ra: mindkettő
-  `Finished`. `python -I scripts/make-icon.py`: a tíz `icon.iconset/*.png` és az `icon.png` megjelent, az
-  `icon.ico` bájtra azonos maradt (a `git status` nem jelezte). `bash -n scripts/bundle-macos.sh` és
-  `uvx --from shellcheck-py shellcheck -s bash scripts/bundle-macos.sh`: tiszta. `cargo fmt --check`, `cargo
-  clippy --all-targets -- -D warnings`, `cargo test` (minden teszt ok), `cargo deny check` (három target:
-  advisories, bans, licenses, sources ok, új licence nem kellett), `uvx zizmor .github` (no findings), `python -I
+- 2026-10-19 — on Windows: `rustup target add aarch64-apple-darwin x86_64-apple-darwin`, then `DOCS_RS=1 cargo
+  check --target aarch64-apple-darwin -p mboxer-app -p mboxer-cli` and the same for `x86_64-apple-darwin`: both
+  `Finished`. `python -I scripts/make-icon.py`: the ten `icon.iconset/*.png` and `icon.png` appeared, `icon.ico`
+  stayed byte-identical (`git status` showed no change). `bash -n scripts/bundle-macos.sh` and
+  `uvx --from shellcheck-py shellcheck -s bash scripts/bundle-macos.sh`: clean. `cargo fmt --check`, `cargo
+  clippy --all-targets -- -D warnings`, `cargo test` (every test ok), `cargo deny check` (three targets:
+  advisories, bans, licenses, sources ok, no new licence needed), `uvx zizmor .github` (no findings), `python -I
   scripts/changelog.py --check` (up to date).
 - 2026-10-19 — CI, PR #61 (run 39241983968): `test (windows-latest)` 3m04s, `test (macos-latest)` 3m53s, `deny`,
-  `workflow-lint`, `commit-rules` mind pass. Kézi futtatás a branchen (`gh workflow run ci.yml`, run
-  39241991149): `bundle-macos` success 11.5 perc alatt (két release build 6m10s + 4m40s, `lipo -archs` →
-  `x86_64 arm64`, 23 MB bináris, `iconutil`, `codesign --verify --deep --strict`, `ditto`; a zip 9 MB), a
-  `macos-zip` artifact feltöltve (mboxer-0.1.0-macos.zip + SHA256SUMS.txt, egy napig él). Ami nem ellenőrizhető
-  innen: hogy az `.app` elindul egy Macen és a Gatekeeper-lépés (D-007) — follow-up a PR-ban.
+  `workflow-lint`, `commit-rules` all pass. A manual run on the branch (`gh workflow run ci.yml`, run
+  39241991149): `bundle-macos` success in 11.5 minutes (two release builds 6m10s + 4m40s, `lipo -archs` →
+  `x86_64 arm64`, 23 MB binary, `iconutil`, `codesign --verify --deep --strict`, `ditto`; the zip 9 MB), the
+  `macos-zip` artifact uploaded (mboxer-0.1.0-macos.zip + SHA256SUMS.txt, kept for a day). Not checkable from
+  here: that the `.app` starts on a Mac, and the Gatekeeper step (D-007) — a follow-up in the PR.
 
 ## Closing checklist
 
-- [x] every follow-up is a `backlog/` file (`/tasks add`) or deleted with a reason in the Log (task session: a
-  follow-upok a PR leírásában, a fő session veszi fel őket)
+- [x] every follow-up is a `backlog/` file (`/tasks add`) or deleted with a reason in the Log (follow-ups listed
+  in the PR description and filed before the merge)
 - [x] Verification written, dated
-- [x] `tasks_check` green, README index regenerated (task session: az indexet a fő session generálja)
+- [x] `tasks_check` green, README index regenerated (the index is regenerated when the PR is prepared)
 - [x] moved to `done/` with `closed: YYYY-MM-DD`

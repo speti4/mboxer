@@ -20,7 +20,7 @@ carries over into the sanitized HTML. Why: an HTML mail should look like mail, a
 it natively. Done when: any message renders readably, and without permission not a single network request
 leaves the app.
 
-User decisions 2026-10-17 (planning round): "open in browser" = only the body's links open in the
+Decided 2026-10-17 (planning round): "open in browser" = only the body's links open in the
 system browser, no separate "open message in browser" button; the sanitizer runs in the webview
 (JS, DOMParser — the option that adds no crate), with two independent layers under it:
 the sandbox iframe (`allow-same-origin`, without scripts) and the iframe's own meta CSP (`default-src 'none'`);
@@ -36,14 +36,14 @@ body's highlighting (`renderHighlighted`) must be carried into the srcdoc iframe
 
 ## Steps
 
-1. [x] Cargo: `tauri-plugin-opener` workspace + app dep indoklással; `lib.rs` plugin + parancsok
-2. [x] `types.rs` `html` mező; `view.rs` `html` + `unescape_from_lines` (013) + tesztek; új fixture `html-remote.mbox`
-3. [x] `commands.rs` `read_source`, `open_url` + `allowed_link` teszt; `tauri.conf.json` CSP img-src
-4. [x] `index.html` + `style.css`: reader bar, remote bar, iframe, segmented gombok
-5. [x] `main.js`: `classifyUrl`, `scrubCss`, `sanitizeHtml`, `htmlSrcdoc`, `highlightFragments` refaktor, iframe életciklus, módok, Copy, link-kattintás
-6. [x] Node stub-DOM teszt a pure függvényekre; `node --check`; a DOM-bejáró sanitizer Chrome-ban a fixture HTML-jén
-7. [x] README; 008 jegyzet (`data-mboxer-cid`); 013 → done
-8. [x] Kézi kör (fixture DevTools-szal + 14 GB) → Verification; `cargo fmt`, `clippy -D warnings`, `cargo test`; `tasks_check`; commit
+1. [x] Cargo: `tauri-plugin-opener` as a workspace + app dep with its reason; `lib.rs` plugin + commands
+2. [x] `types.rs` `html` field; `view.rs` `html` + `unescape_from_lines` (013) + tests; new fixture `html-remote.mbox`
+3. [x] `commands.rs` `read_source`, `open_url` + `allowed_link` test; `tauri.conf.json` CSP img-src
+4. [x] `index.html` + `style.css`: reader bar, remote bar, iframe, segmented buttons
+5. [x] `main.js`: `classifyUrl`, `scrubCss`, `sanitizeHtml`, `htmlSrcdoc`, `highlightFragments` refactor, iframe lifecycle, modes, Copy, link clicks
+6. [x] Node stub-DOM test of the pure functions; `node --check`; the DOM-walking sanitizer in Chrome on the fixture HTML
+7. [x] README; 008 note (`data-mboxer-cid`); 013 → done
+8. [x] Manual round (fixture with DevTools + 14 GB) → Verification; `cargo fmt`, `clippy -D warnings`, `cargo test`; `tasks_check`; commit
 
 ## Log
 
@@ -73,7 +73,7 @@ body's highlighting (`renderHighlighted`) must be carried into the srcdoc iframe
 - 2026-10-17 — `cargo fmt`, `cargo clippy --all-targets -- -D warnings` clean, `cargo test` 16 + 4 + 5 + 22 +
   7 + 12 green; README reader paragraph; 008 got the `data-mboxer-cid` / `open_path` note; 013 closed
   into `done/` with its own Verification
-- 2026-10-17 — user's manual round on the fixture and the 14 GB archive: "minden ok". Follow-ups: none
+- 2026-10-17 — manual round on the fixture and the 14 GB archive passed. Follow-ups: none
   filed; two accepted limits noted under Deviations (a match that spans an element boundary is not
   highlighted inside HTML, `srcset` is held back as a whole). Closed
 
@@ -83,7 +83,7 @@ body's highlighting (`renderHighlighted`) must be carried into the srcdoc iframe
   document itself (seen in the frame's resource timing) — no network, but a pointless fetch.
 - `srcset` is held back whole (and restored whole on Show) instead of per candidate: data URLs hold
   commas, so splitting candidates is not safe; the `src` fallback shows meanwhile.
-- No "open the message in the browser" button: user decision in the planning round, links only.
+- No "open the message in the browser" button: decided in the planning round, links only.
 - Accepted limits: the highlighter works per text node, so a word split by an inline tag
   (`sz<b>ámla</b>`) is not marked in the HTML view (it is in the Text view); the `blob:` fallback
   for `about:srcdoc` was not needed — the frame loads under `frame-src 'self'`.
@@ -106,11 +106,10 @@ body's highlighting (`renderHighlighted`) must be carried into the srcdoc iframe
   CSP relaxed for images only; `<mark>` appears in the frame for `számla`; a click on `részletek` is
   intercepted with its href; the frame height follows the document (159 px).
 - 2026-10-17 — `target\debug\mboxer.exe` on a scratchpad copy of `html-remote.mbox`: index built in 63 ms,
-  2 messages. User's manual round on the fixture and on the 14 GB archive (newsletters, Gmail reply
+  2 messages. Manual round on the fixture and on the 14 GB archive (newsletters, Gmail reply
   chains, HTML-only messages): HTML renders, the remote bar counts and Show loads, links open the
   system browser, Text / Source / Copy work, `>From ` lines show unquoted in Text and quoted in Source,
-  the search word is highlighted inside the frame, Esc leaves the frame for the list. Reported as
-  "minden ok". Done-when met: every message renders readably and nothing leaves the app until Show.
+  the search word is highlighted inside the frame, Esc leaves the frame for the list. Done-when met: every message renders readably and nothing leaves the app until Show.
 
 ## Closing checklist
 

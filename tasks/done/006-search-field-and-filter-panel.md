@@ -21,7 +21,7 @@ per keystroke.
 The backend already knows everything (`QueryInput` → `SearchQuery` → `MboxIndex::list`, the `set_query` and
 `position_of` commands exist); most of the work is under `ui/`, no new crate.
 
-User decisions 2026-10-17 (planning round, with the plan's approval): the label filter stays the folders
+Decided 2026-10-17 (planning round): the label filter stays the folders
 pane, the panel does not duplicate it (the label tree belongs to 009); the dates are local days, the "to"
 is inclusive (the core `before` is exclusive, the CLI's UTC day stays); the list sorts by date for a text
 search too, with a Sort: Newest first / Best match selector in the panel (`SortInput::Relevance` is
@@ -31,17 +31,17 @@ starting with `-` or containing `:` are not highlighted (the 010 syntax is untou
 
 ## Steps
 
-1. [x] Backend `set_query` async (`spawn_blocking`, state az `AppHandle`-ból), stderr `query:` sor a méréshez; `list_rows`, `position_of` sync marad
-2. [x] Rust tesztek: `state.rs` text + from + dátumablak egy listingben; `types.rs` teljes `QueryInput` alak
-3. [x] HTML: `#search` a toolbarban, `#filters-btn` jelvénnyel, `#filters` sáv (from, after, before, attachments, sort, clear), `#list-empty`
-4. [x] CSS: 4 soros body grid, keresőmező, szűrősáv, `.badge`, `mark`, `#list-empty`
-5. [x] JS query-modell: `state.query`, `queryInput()`, `applyQuery()` token-guard + 150 ms debounce; `selectLabel` ezen át; warnings, empty state, jelvény
-6. [x] Kijelölés megtartása szűkítés után (`position_of`, reader nem ürül)
-7. [x] Kiemelés: `foldText`, `highlightTerms`, `renderHighlighted` a listában és a readerben
-8. [x] Billentyűk: Ctrl+F / Ctrl+K, Ctrl+Shift+F, Enter / ArrowDown / Escape a mezőben és a panelen
-9. [x] README: keresés, panel, kiemelés, helyi napok, billentyűk
-10. [x] Ellenőrzés a 14 GB-on (headless stderr + user kézi kör) → Verification; jegyzet a 007-be és 010-be
-11. [x] `cargo fmt`, `cargo clippy --all-targets -- -D warnings`, `cargo test` zöld; `tasks_check`; commit
+1. [x] Backend `set_query` async (`spawn_blocking`, the state from the `AppHandle`), a stderr `query:` line for measuring; `list_rows`, `position_of` stay sync
+2. [x] Rust tests: `state.rs` text + from + date window in one listing; `types.rs` the full `QueryInput` shape
+3. [x] HTML: `#search` in the toolbar, `#filters-btn` with a badge, the `#filters` strip (from, after, before, attachments, sort, clear), `#list-empty`
+4. [x] CSS: 4-row body grid, search field, filter strip, `.badge`, `mark`, `#list-empty`
+5. [x] JS query model: `state.query`, `queryInput()`, `applyQuery()` token guard + 150 ms debounce; `selectLabel` through it; warnings, empty state, badge
+6. [x] Selection kept after a narrowing (`position_of`, the reader does not clear)
+7. [x] Highlighting: `foldText`, `highlightTerms`, `renderHighlighted` in the list and the reader
+8. [x] Keys: Ctrl+F / Ctrl+K, Ctrl+Shift+F, Enter / ArrowDown / Escape in the field and the panel
+9. [x] README: search, panel, highlighting, local days, keys
+10. [x] Check on the 14 GB file (headless stderr + manual round) → Verification; notes into 007 and 010
+11. [x] `cargo fmt`, `cargo clippy --all-targets -- -D warnings`, `cargo test` green; `tasks_check`; commit
 
 ## Log
 
@@ -66,7 +66,7 @@ starting with `-` or containing `:` are not highlighted (the 010 syntax is untou
   prefixes, trailing space, one letter, the listing path) + the app's `QueryInput` shape; the CLI's
   explicit `SearchQuery` literal gained the field. fmt / clippy clean, 13 + 4 + 5 + 22 + 7 + 12 green.
   First-round stderr: 28 `query:` lines, median 0 ms, max 73 ms on the reused index
-- 2026-10-17 — second manual round on the rebuilt exe: "minden működik!". Follow-ups: no new task; two
+- 2026-10-17 — second manual round on the rebuilt exe passed. Follow-ups: no new task; two
   notes appended to existing backlog items — 007 (carry the body highlighting into the srcdoc iframe)
   and 010 (`state.query` is the sync point of the syntax and the panel; `typing_word` / `highlightTerms`
   already leave operator-looking words alone). Closed
@@ -74,7 +74,7 @@ starting with `-` or containing `:` are not highlighted (the 010 syntax is untou
 ## Deviations from the plan
 
 - The word being typed matches as a prefix. The plan sent the text to the whole-word index as is;
-  the user's first manual check showed `száml` giving "No messages match" until the last letter
+  the first manual check showed `száml` giving "No messages match" until the last letter
   arrived, which defeats a list that refreshes per keystroke. Core: `SearchQuery.prefix_last_word`
   (the viewer sends it, the CLI leaves it off); `typing_word` splits off the last plain word when
   the text does not end in whitespace, the word carries no syntax and no phrase is open before it;
@@ -97,13 +97,13 @@ starting with `-` or containing `:` are not highlighted (the 010 syntax is untou
 - 2026-10-17 — `target\debug\mboxer.exe "<14 GB mbox>"` with stderr captured, two rounds on the reused index
   (open 59 / 58 ms, 86 085 messages): 28 + 47 `query:` lines, median 0 / 2 ms, max 73 / 104 ms per
   keystroke in a debug build — the "< 1 s per keystroke" target holds with a wide margin.
-- 2026-10-17 — user's manual rounds on the 14 GB archive. Round one found the whole-word gap (`száml` →
+- 2026-10-17 — manual rounds on the 14 GB archive. Round one found the whole-word gap (`száml` →
   no match); after the prefix fix round two passed every point: letter-by-letter typing refreshes the
   list with the prefix highlighted in the subject and the body, the From field narrows, the date window
   and the attachment filter narrow, a label click combines with the panel and Clear returns to All mail,
   the selected message stays selected through a narrowing, an empty result shows "No messages match", an
   unclosed quote shows a warning in the status bar, Esc / Enter / ArrowDown move the focus as described.
-  Reported as "minden működik!". Done-when met: a body word plus a sender in three interactions
+  Done-when met: a body word plus a sender in three interactions
   (Ctrl+F, the word, From), well under a second per keystroke.
 
 ## Closing checklist

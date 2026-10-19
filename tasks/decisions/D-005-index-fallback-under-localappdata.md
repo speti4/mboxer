@@ -32,7 +32,7 @@ has a lasting effect on where mboxer writes on a user's machine, so it is record
   exists per mbox. The CLI prints the fallback on `index`, the viewer shows the index directory
   in the status bar tooltip.
 
-Proposed on 2026-10-17 during task 014 planning; confirmed by the user on 2026-10-18.
+Proposed on 2026-10-17 during task 014 planning; decided on 2026-10-18.
 
 Amended 2026-10-19: the index home is the platform's per-user data folder plus `mboxer/index` —
 `%LOCALAPPDATA%\mboxer\index` on Windows, `~/Library/Application Support/mboxer/index` on macOS,

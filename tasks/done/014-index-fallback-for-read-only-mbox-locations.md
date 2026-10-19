@@ -25,31 +25,31 @@ ACL, a read-only share or a *file* named `.mboxer` does — the test provokes it
 
 ## Steps
 
-1. [x] `fingerprint.rs`: `INDEX_HOME_ENV`, `default_index_home`, `fallback_dir`, `resolve`, `status_in`; unit tesztek
-2. [x] `build.rs`: `BuildOptions.home`, elsődleges → fallback, a másik hely takarítása, `BuildReport.fallback`
-3. [x] `search.rs`: `MboxIndex::open_in`; `mod.rs` / `lib.rs` exportok
-4. [x] CLI: `index` kiírja a fallbacket; `--help` említi `MBOXER_INDEX_HOME`-ot
-5. [x] App: `OpenSummary.index_dir`, státuszsor tooltip
-6. [x] Tesztek: `tests/index.rs` (blokkolt sidecar → fallback; elsődleges nyer; egy index marad), `tests/cli.rs`
+1. [x] `fingerprint.rs`: `INDEX_HOME_ENV`, `default_index_home`, `fallback_dir`, `resolve`, `status_in`; unit tests
+2. [x] `build.rs`: `BuildOptions.home`, primary → fallback, cleanup of the other location, `BuildReport.fallback`
+3. [x] `search.rs`: `MboxIndex::open_in`; `mod.rs` / `lib.rs` exports
+4. [x] CLI: `index` prints the fallback; `--help` mentions `MBOXER_INDEX_HOME`
+5. [x] App: `OpenSummary.index_dir`, status bar tooltip
+6. [x] Tests: `tests/index.rs` (blocked sidecar → fallback; primary wins; one index remains), `tests/cli.rs`
 7. [x] D-005 (`/tasks decide`), README
-8. [x] `cargo fmt`, clippy, `cargo test`; kézi: fixture-másolat blokkolt mappában CLI-vel és a viewerrel
+8. [x] `cargo fmt`, clippy, `cargo test`; manual: fixture copy in a blocked folder with the CLI and the viewer
 9. [x] `tasks_check`; commit
 
 ## Log
 
 - 2026-10-17 — plan approved; 014 promoted to wip
-- 2026-10-17 — core: `fallback_dir` (fájlnév + FNV-1a 64 a kanonikus abszolút útvonalon, 16 hex), `resolve`
-  (friss elsődleges > friss fallback > stale elsődleges > stale fallback > Missing), `status`/`open` →
-  `status_in`/`open_in` alapértelmezett home-mal; `build` az elsődleges `.building` előkészítésének hibájára
-  vált a fallbackre, a nem használt helyet best-effort törli; `BuildReport.fallback`. Egy nem kimerítő `match`
-  javítva (a `Fresh` elsődleges már korábban visszatér). CLI `index:` sor `(fallback: …)` utótaggal, az `index`
-  subcommand `after_help`-je a két helyet és `MBOXER_INDEX_HOME`-ot írja (a struct doc-komment nem jelent meg a
-  help-ben, ezért konstans). App: `OpenSummary.indexDir`, a státuszsor tooltipje `index: <dir>`
-- 2026-10-17 — tesztek elsőre zöldek: 30 app + 1 + 4 + 6 CLI + 30 + 9 + 22 core; clippy, fmt tiszta
-- 2026-10-17 — kézi kör: `threads.mbox` másolat `%TEMP%\mboxer-014-manual\` alatt egy `.mboxer` *fájllal*
-  blokkolva → debug CLI `index:` `%LOCALAPPDATA%\mboxer\index\threads.mbox-40f8a8f2b62873aa (fallback: …)`,
-  6 üzenet; `search --label Work --count` 2 találat, open 8,5 ms; a debug viewer ugyanazon a másolaton:
-  `opened threads.mbox: 6 messages, Reused, 8 ms` (a fallback indexet újrahasználta). Mindkét mappa törölve
+- 2026-10-17 — core: `fallback_dir` (file name + FNV-1a 64 over the canonical absolute path, 16 hex), `resolve`
+  (fresh primary > fresh fallback > stale primary > stale fallback > Missing), `status`/`open` →
+  `status_in`/`open_in` with the default home; `build` switches to the fallback on an error while preparing the
+  primary `.building`, and removes the unused location best-effort; `BuildReport.fallback`. A non-exhaustive
+  `match` fixed (a `Fresh` primary already returns earlier). CLI `index:` line with a `(fallback: …)` suffix; the
+  `index` subcommand's `after_help` names both locations and `MBOXER_INDEX_HOME` (the struct doc comment did not
+  show up in the help, hence a constant). App: `OpenSummary.indexDir`, the status bar tooltip `index: <dir>`
+- 2026-10-17 — tests green on the first run: 30 app + 1 + 4 + 6 CLI + 30 + 9 + 22 core; clippy, fmt clean
+- 2026-10-17 — manual round: a `threads.mbox` copy under `%TEMP%\mboxer-014-manual\` blocked by a `.mboxer`
+  *file* → debug CLI `index:` `%LOCALAPPDATA%\mboxer\index\threads.mbox-40f8a8f2b62873aa (fallback: …)`,
+  6 messages; `search --label Work --count` 2 hits, open 8.5 ms; the debug viewer on the same copy:
+  `opened threads.mbox: 6 messages, Reused, 8 ms` (reused the fallback index). Both folders deleted
 - 2026-10-17 — D-005 proposed; closed
 
 ## Deviations from the plan
@@ -59,15 +59,15 @@ ACL, a read-only share or a *file* named `.mboxer` does — the test provokes it
 ## Verification
 
 - 2026-10-17 — `cargo fmt --check` clean, `cargo clippy --all-targets -- -D warnings` clean, `cargo test`: 30 app
-  (`summary.index_dir` = `index_dir(&mbox)`) + 1 ui_query + 4 + 6 CLI (új:
-  `a_blocked_mbox_folder_indexes_into_the_home_and_search_finds_it` — `MBOXER_INDEX_HOME` alá épít, a `search`
-  1 találat, home nélkül exit 1) + 30 core unit (új: `fallback_dir_is_keyed_by_the_mbox_path`) + 9 fixtures +
-  22 index (új: `a_blocked_sidecar_falls_back_to_the_index_home` — fallback build, `status_in` Fresh, `open_in`
-  Ready, keresés talál, más home Missing, stale → in-place rebuild; `the_primary_location_wins_when_it_is_writable`
-  — elsődleges épül, a home üres; blokkolva a rebuild a home-ba megy és a stale elsődleges törlődik; újra írható
-  mappában az építés visszatér és a fallback könyvtár eltűnik) pass.
-- 2026-10-17 — kézi kör (lásd Log): blokkolt mappában a CLI a `%LOCALAPPDATA%\mboxer\index\` alá épít és a `search`
-  megtalálja; a viewer ugyanazt az indexet újrahasználja. Done-when met.
+  (`summary.index_dir` = `index_dir(&mbox)`) + 1 ui_query + 4 + 6 CLI (new:
+  `a_blocked_mbox_folder_indexes_into_the_home_and_search_finds_it` — builds under `MBOXER_INDEX_HOME`, `search`
+  1 hit, exit 1 without a home) + 30 core unit (new: `fallback_dir_is_keyed_by_the_mbox_path`) + 9 fixtures +
+  22 index (new: `a_blocked_sidecar_falls_back_to_the_index_home` — fallback build, `status_in` Fresh, `open_in`
+  Ready, search finds, another home Missing, stale → in-place rebuild; `the_primary_location_wins_when_it_is_writable`
+  — the primary is built, the home stays empty; when blocked, the rebuild goes to the home and the stale primary is
+  deleted; in a writable folder again, the build returns there and the fallback directory disappears) pass.
+- 2026-10-17 — manual round (see Log): in a blocked folder the CLI builds under `%LOCALAPPDATA%\mboxer\index\` and
+  `search` finds it; the viewer reuses the same index. Done-when met.
 
 ## Closing checklist
 

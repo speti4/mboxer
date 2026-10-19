@@ -22,8 +22,8 @@ several close on the tag's day, and what renders the licence page.
 `done/` (the `closed` date cannot tell tasks closed on the tag's day apart), grouped by milestone, under a
 hand-written summary per section that every run keeps. The release zip carries `THIRD-PARTY-LICENSES.html`
 rendered by `cargo-about` (a pinned build-time tool, not in the exe), whose `about.toml` accepts exactly the
-licences `deny.toml` allows, checked in CI; a `SHA256SUMS.txt` is published next to the zip. Confirmed by the user
-on 2026-10-18.
+licences `deny.toml` allows, checked in CI; a `SHA256SUMS.txt` is published next to the zip. Decided on
+2026-10-18.
 
 ## Not chosen
 

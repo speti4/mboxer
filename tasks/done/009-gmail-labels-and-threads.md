@@ -21,86 +21,91 @@ Why: Takeout gives the Gmail structure for free, this is what makes the flat arc
 Done when: a click on a label narrows the list; a message with replies shows as one expandable
 conversation.
 
-User decisions 2026-10-17 (planning round): grouping on by default, a *Conversations* switch on the filter strip;
+Decided 2026-10-17 (planning round): grouping on by default, a *Conversations* switch on the filter strip;
 a click on a parent label = parent + every sub-label (OR, `any_labels`); `Category *` → *Categories*
 node; oldest first in an expanded thread. The index format does not change (no rebuild); no new
 crate (D-002). The real archive's header sample (600 MB) has no label with `/` and none RFC 2047-encoded.
 
 ## Steps
 
-1. [x] Core `search.rs`: `SearchQuery.any_labels` (Should-klauzula), `group_threads`, `Hit.thread_id`
-2. [x] Core `listing.rs`: `Entry` collector (`date` + `thread_id` oszlop), `arrange` CSR, `Expanded` prefix-összeg,
+1. [x] Core `search.rs`: `SearchQuery.any_labels` (Should clause), `group_threads`, `Hit.thread_id`
+2. [x] Core `listing.rs`: `Entry` collector (`date` + `thread_id` column), `arrange` CSR, `Expanded` prefix sum,
    `locate` / `row_of_group`, `ListRow` / `RowKind`, `rows` / `toggle` / `position_of` / `len` / `message_count` /
-   `group_count`; unit tesztek; exportok
-3. [x] Fixture `threads.mbox`; `tests/index.rs` esetek; `cargo test -p mboxer-core`
+   `group_count`; unit tests; exports
+3. [x] Fixture `threads.mbox`; `tests/index.rs` cases; `cargo test -p mboxer-core`
 4. [x] App `types.rs` (`QueryInput`, `Row` kind, `ListInfo`, `PositionInfo`, `LabelNode`), `folders.rs` (`label_tree`,
-   `Bin`), `state.rs` (`load` grouping-gal), `commands.rs` (`open_mbox`, `toggle_thread`, `position_of`), `lib.rs`; tesztek
-5. [x] UI `index.html` + `style.css`; `main.js` címkefa, thread sorok, toggle + layout token, billentyűk, státusz, kapcsoló
-6. [x] `node --check` + stub-DOM check (`stripReplyPrefix`, `labelsUnder`, fa-sorrend, kijelölés-eltolás)
-7. [x] README; Log / Deviations / Verification; backlog item az RFC 2047 címkenevekre
-8. [x] `cargo fmt`, `cargo clippy --all-targets -- -D warnings`, `cargo test`; debug exe a fixture-másolaton és a 14 GB-on
-   (stderr `query:` idők); user kézi kör; `tasks_check`; commit
+   `Bin`), `state.rs` (`load` with grouping), `commands.rs` (`open_mbox`, `toggle_thread`, `position_of`), `lib.rs`; tests
+5. [x] UI `index.html` + `style.css`; `main.js` label tree, thread rows, toggle + layout token, keys, status, switch
+6. [x] `node --check` + stub-DOM check (`stripReplyPrefix`, `labelsUnder`, tree order, selection shift)
+7. [x] README; Log / Deviations / Verification; backlog item for the RFC 2047 label names
+8. [x] `cargo fmt`, `cargo clippy --all-targets -- -D warnings`, `cargo test`; debug exe on the fixture copy and on the
+   14 GB file (stderr `query:` timings); manual round; `tasks_check`; commit
 
 ## Log
 
 - 2026-10-17 — plan approved; 009 promoted to wip
-- 2026-10-17 — core: `SearchQuery.any_labels` (Should-TermQuery-k egy Must-klauzulában) és `group_threads`,
-  `Hit.thread_id`; `listing.rs` újraírva: az `AllMatches` collector `Entry`-ket gyűjt (`date` + `thread_id`
-  FAST oszlop, `NonZeroU64` niche), `arrange` CSR-be rendez (ungrouped ág bitre a mai sorrend), a sor-aritmetika
-  a `Layout` structban (`Expanded` prefix-összeg, `partition_point`), `ListRow`/`RowKind`, `toggle`,
-  `position_of` auto-kibontással. Fixture `threads.mbox` (6 üzenet, B3 a fájl végén de a legrégebbi,
-  `Workshop`/`Work-archive` negatív esetek). Első futás: egy unit-teszt várakozása volt rossz (a 2-es thread
-  legújabb tagja 14 > a thread nélküli 13 → a thread előz), a kód jó. 29 unit + 8 + 19 core zöld
-- 2026-10-17 — app: `LabelNode` fa (`folders.rs` `label_tree`: `/` szegmensek, `Category <x>` → `Categories`
-  csomópont, `Bin`/`Chat` a well-known listában), `QueryInput.anyLabels/groupThreads`, `Row.kind/threadCount/
-  expanded/threadIndex` (thread id nem megy ki: u64 > 2^53), `ListInfo.messages/conversations`, `PositionInfo`,
-  `open_mbox(groupThreads)` → `OpenMbox::load` grouping-gal, `toggle_thread(generation, row)`; a CLI literál
-  a két új mezővel. Egy tesztvárakozás javítva (a `Categories` csomópont a well-known blokk után, a user-címkék
-  előtt áll). `cargo test` 30 app + 4 + 5 CLI + 29 + 8 + 19 core zöld; fmt + clippy tiszta
-- 2026-10-17 — UI: `Conversations` checkbox (`#f-threads`, localStorage `mboxer.groupThreads`, a Clear nem bántja),
-  címkefa chevronnal és `--depth` behúzással (konténer: `total` dőlten; kulcs = exact címke vagy `<út>#`),
-  `labelsUnder(key)` → `anyLabels`; a lista 6 oszlopos sor (`twisty, att, from, subject, count, date`),
-  thread sor `stripReplyPrefix`-szel és darabszám-jelvénnyel, member sor behúzva; `toggleThread` a
-  `state.layout` tokennel (a `requestBlock` eldobja a régi layout lapjait, a `pending` csak a saját promise-át
-  törli), a kijelölés `max(row, selected + delta)`; ArrowRight nyit / ArrowLeft zár a listában és a fában;
-  `position_of` → `PositionInfo.total` átvétele. `node --check` tiszta; stub-DOM check 35 eset, 0 hiba
-- 2026-10-17 — `target\debug\mboxer.exe` a `threads.mbox` másolatán: `opened threads.mbox: 6 messages, Built
-  { build_secs: 0, parse_failures: 0 }, 92 ms`; a 14 GB-on hideg cache-sel 1352 ms, melegen 88 ms (a 005/006
-  ungrouped listingje ~60 ms volt ugyanebben a debug buildben → a 86 085 üzenet csoportosítása ~30 ms). Mindkét
-  ablak nyitva maradt a user kézi köréhez. Follow-up 015 (RFC 2047-kódolt címkenevek) felvéve a backlogba
-- 2026-10-17 — implementation committed as `f7f95ef`; waiting for the user's manual round
-- 2026-10-17 — user's manual round on the fixture copy and the 14 GB archive: "minden ok". Follow-ups: 015 filed
-  earlier (RFC 2047 label names); the "only matching members in a conversation" limit stays under Deviations as
+- 2026-10-17 — core: `SearchQuery.any_labels` (Should TermQueries inside one Must clause) and `group_threads`,
+  `Hit.thread_id`; `listing.rs` rewritten: the `AllMatches` collector gathers `Entry` values (`date` + `thread_id`
+  FAST column, `NonZeroU64` niche), `arrange` sorts them into a CSR (the ungrouped branch keeps today's order bit
+  for bit), the row arithmetic lives in the `Layout` struct (`Expanded` prefix sum, `partition_point`),
+  `ListRow`/`RowKind`, `toggle`, `position_of` with auto-expansion. Fixture `threads.mbox` (6 messages, B3 at the
+  end of the file but the oldest, `Workshop`/`Work-archive` as negative cases). First run: one unit test's
+  expectation was wrong (thread 2's newest member 14 > the threadless 13 → the thread comes first), the code was
+  right. 29 unit + 8 + 19 core green
+- 2026-10-17 — app: `LabelNode` tree (`folders.rs` `label_tree`: `/` segments, `Category <x>` → `Categories`
+  node, `Bin`/`Chat` in the well-known list), `QueryInput.anyLabels/groupThreads`, `Row.kind/threadCount/
+  expanded/threadIndex` (the thread id is not sent out: u64 > 2^53), `ListInfo.messages/conversations`,
+  `PositionInfo`, `open_mbox(groupThreads)` → `OpenMbox::load` with grouping, `toggle_thread(generation, row)`;
+  the CLI literal got the two new fields. One test expectation fixed (the `Categories` node comes after the
+  well-known block, before the other labels). `cargo test` 30 app + 4 + 5 CLI + 29 + 8 + 19 core green; fmt +
+  clippy clean
+- 2026-10-17 — UI: `Conversations` checkbox (`#f-threads`, localStorage `mboxer.groupThreads`, Clear leaves it
+  alone), label tree with a chevron and `--depth` indentation (container: `total` in italics; key = the exact
+  label or `<path>#`), `labelsUnder(key)` → `anyLabels`; the list row has 6 columns (`twisty, att, from, subject,
+  count, date`), a thread row with `stripReplyPrefix` and a count badge, a member row indented; `toggleThread`
+  with the `state.layout` token (`requestBlock` drops the pages of an old layout, `pending` clears only its own
+  promise), the selection becomes `max(row, selected + delta)`; ArrowRight opens / ArrowLeft closes in the list
+  and in the tree; `position_of` → `PositionInfo.total` taken over. `node --check` clean; stub-DOM check 35
+  cases, 0 failures
+- 2026-10-17 — `target\debug\mboxer.exe` on the `threads.mbox` copy: `opened threads.mbox: 6 messages, Built
+  { build_secs: 0, parse_failures: 0 }, 92 ms`; on the 14 GB file 1352 ms with a cold cache, 88 ms warm (the
+  005/006 ungrouped listing was ~60 ms in the same debug build → grouping the 86 085 messages costs ~30 ms). Both
+  windows left open for the manual round. Follow-up 015 (RFC 2047-encoded label names) filed in the backlog
+- 2026-10-17 — implementation committed as `f7f95ef`; waiting for the manual round
+- 2026-10-17 — manual round on the fixture copy and the 14 GB archive passed. Follow-ups: 015 filed earlier
+  (RFC 2047 label names); the "only matching members in a conversation" limit stays under Deviations as
   accepted. Closed
 
 ## Deviations from the plan
 
-- `setTotal` (toggle vagy `position_of` utáni sorszám-változás) minden cache-elt lapot eldob, nem csak a thread
-  sor blokkjától lefelé: egyszerűbb, és a látható ablak 1–3 lapja újratöltődik, ami 200 soros lapoknál nem látszik.
-- A `Layout` struct (sor-aritmetika index nélkül tesztelve) a terv "a listing mezői" helyett külön típus; a
-  `Listing` delegál rá. Az API a tervezett.
+- `setTotal` (a row count change after a toggle or `position_of`) drops every cached page, not only those from the
+  thread row's block down: simpler, and the 1–3 pages of the visible window reload, which does not show with
+  200-row pages.
+- The `Layout` struct (row arithmetic tested without an index) is a type of its own instead of the plan's
+  "fields of the listing"; `Listing` delegates to it. The API is as planned.
 
 ## Verification
 
 - 2026-10-17 — `cargo fmt --check` clean, `cargo clippy --all-targets -- -D warnings` clean, `cargo test`: 30 app
-  (új: `label_tree` 5 eset — rendezés `Bin`-nel és a `Categories` csomóponttal, `/` hierarchia + `labels` +
-  `total`, konténer-szülő, Takeout-kategóriák, furcsa címkék; `QueryInput` `anyLabels`/`groupThreads`; `Row`
-  kind serde, `ListInfo`/`PositionInfo`/`LabelNode` alak; `conversations_are_grouped_from_the_first_listing`) +
-  4 + 5 CLI + 29 core unit (új: `arrange` 3 eset, `Layout` sor-aritmetika 1 000 csoporttal, member-sor kibontás,
-  ungrouped layout) + 8 fixtures + 19 index (új 7: ungrouped 6 sor, grouped 3 sor, toggle, `position_of`
-  auto-kibontás, csak találó tagok relevance alatt is, `any_labels`, dátum nélküli tag) pass.
-- 2026-10-17 — `node --check ui/main.js` clean; stub-DOM check (scratchpad `ui-check-009.js`, a `main.js`-ből
-  kiszelt függvényeken): `stripReplyPrefix` 8 eset, a címkefa renderelése (látható nevek, mélység, kulcsok,
-  konténer `total` vs saját count, chevronok, szeparátor), `labelsUnder` 5 eset, kijelölés a kulcsok szerint,
-  összezárás/kibontás kattintással és a twisty `stopPropagation`-je, a toggle kijelölés-szabálya 6 eset:
-  35 eset, 0 hiba.
-- 2026-10-17 — `target\debug\mboxer.exe` a fixture-másolaton: 6 üzenet, index 92 ms alatt épült; a 14 GB-on
-  újrahasznált index, hideg cache 1352 ms, meleg 88 ms (grouping ≈ 30 ms debug buildben, cél < 100 ms teljesül).
-- 2026-10-17 — user's manual round on the fixture copy and on the 14 GB archive: conversations show as one
+  (new: `label_tree` 5 cases — ordering with `Bin` and the `Categories` node, `/` hierarchy + `labels` +
+  `total`, container parent, Takeout categories, odd labels; `QueryInput` `anyLabels`/`groupThreads`; `Row`
+  kind serde, `ListInfo`/`PositionInfo`/`LabelNode` shape; `conversations_are_grouped_from_the_first_listing`) +
+  4 + 5 CLI + 29 core unit (new: `arrange` 3 cases, `Layout` row arithmetic with 1 000 groups, member row
+  expansion, ungrouped layout) + 8 fixtures + 19 index (7 new: ungrouped 6 rows, grouped 3 rows, toggle,
+  `position_of` auto-expansion, only matching members under relevance too, `any_labels`, a member without a date)
+  pass.
+- 2026-10-17 — `node --check ui/main.js` clean; stub-DOM check (scratchpad `ui-check-009.js`, on functions cut out
+  of `main.js`): `stripReplyPrefix` 8 cases, rendering the label tree (visible names, depth, keys, container
+  `total` vs own count, chevrons, separator), `labelsUnder` 5 cases, selection by key, collapse/expand by click
+  and the twisty's `stopPropagation`, the toggle's selection rule 6 cases: 35 cases, 0 failures.
+- 2026-10-17 — `target\debug\mboxer.exe` on the fixture copy: 6 messages, index built in 92 ms; on the 14 GB file
+  the index reused, 1352 ms with a cold cache, 88 ms warm (grouping ≈ 30 ms in a debug build, the < 100 ms target
+  holds).
+- 2026-10-17 — manual round on the fixture copy and on the 14 GB archive: conversations show as one
   row with the count, the chevron / ArrowRight opens them oldest first and ArrowLeft closes them, a label click
   narrows to the label and its sub-labels (Categories node included), the selection survives a narrowing with
   the conversation opened around it, the Conversations switch returns to one row per message, the status bar
-  counts conversations and messages. Reported as "minden ok". Done-when met: a label click narrows the list;
+  counts conversations and messages. Done-when met: a label click narrows the list;
   a message with replies shows as one expandable conversation.
 
 ## Closing checklist

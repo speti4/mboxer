@@ -17,7 +17,7 @@ What: `/tasks renumber` renames the ten two-digit decision files to three digits
 `scripts/check-commit.sh`, workflows). `scripts/sync-issues.py` keys the decision issues by their id
 (`<!-- sync-issues: decision D-NN -->`), so it must match the old two-digit key to the new one instead of
 opening ten new issues; `CHANGELOG.md` stays in line with `scripts/changelog.py --check`.
-Why: mixed widths sort and read wrong; the public repo starts consistent (user decision 2026-10-19).
+Why: mixed widths sort and read wrong; the public repo starts consistent (decided 2026-10-19).
 Done when: `tasks_check` has no narrow-id warning, a grep for two-digit decision ids finds only history that
 must stay, and a sync run edits the ten decision issues in place.
 Split (2026-10-19): the renumber tool rewrites `tasks/`; everything outside `tasks/` is fixed by hand.
@@ -37,26 +37,27 @@ Split (2026-10-19): the renumber tool rewrites `tasks/`; everything outside `tas
 ## Log
 
 - 2026-10-19 — promoted on `task/043-pad-decision-ids-to-three-digits`.
-- 2026-10-19 — main session: `tasks_renumber` apply (10f2e49), tíz döntésfájl `D-0NN-…`, a `tasks/` hivatkozásai
-  átírva, index újragenerálva.
-- 2026-10-19 — task session, `tasks/` kívül: a `D-01` … `D-10` szóhatáros alakok → `D-001` … `D-010` egy
-  scratch scripttel a git által követett fájlokon (`tasks/` és `CHANGELOG.md` kivételével): 53 csere 30
-  fájlban — Rust/JS kommentek (15 fájl, csak komment), `Cargo.toml` (5), docs (`reference`, `development`,
-  `git-workflow`, `research`: 10), README, CONTRIBUTING, CLAUDE.md, `scripts/` (`check-commit.sh`,
-  `bundle-macos.sh`, `sync-issues.py`), workflows (2), PR template; a research fájl régi `tasks/decisions/D-01-….md` linkje is. A `scripts/__pycache__/` a `.gitignore`
-  `__pycache__/` sora alatt van, nem forrás.
-- 2026-10-19 — `scripts/sync-issues.py`: `match_issues` először a marker pontos kulcsát keresi, aztán azt az
-  issue-t, amelynek markere ugyanazt a számot hordja más szélességben (`same_id`: a szám nullák nélkül, általános,
-  nem lista; taskokra is áll). A meglévő issue-t helyben szerkeszti: a body az új markerrel együtt cserélődik, a
-  title is; a log sor `was D-0N`-t ír. Új dry-run mód nem kellett, a meglévő `--dry-run` élesben (csak GET).
-- 2026-10-19 — `CHANGELOG.md`: a `--check` már a task előtt is elavult volt (a 018–042 között zárt taskok
-  hiányoztak; a changelog csak kiadás előtt frissül, CI nem ellenőrzi), így a futás az Unreleased listát egészében
-  frissítette, a 030 sora `per D-009` lett. A 0.1.0 szekció nem hivatkozik döntésre, változatlan; kiadott történet
-  nem módosult. A 030 és 039 fájlneve (`…-per-d-09.md`, `…-cite-d-10.md`) task fájlnév, a renumber nem nevezi át,
-  a changelog linkje ezért marad a régi slugon.
-- 2026-10-19 — maradék a `tasks/`-ban (nem a task session dolga, a PR Follow-ups listázza): `tasks/roadmap.md:8`
-  `(D-08)`; idézet/történet: `D-007` 34. sor („D-07-t megerősítem”, a user szó szerinti idézete), 036 és 039 Log
-  sorai (`D-09-re`, `D-10-re`, `D-09-es`) — a tool a magyar toldalékos alakot nem írta át.
+- 2026-10-19 — main session: `tasks_renumber` apply (10f2e49), ten decision files `D-0NN-…`, the references in
+  `tasks/` rewritten, index regenerated.
+- 2026-10-19 — task session, outside `tasks/`: the word-bounded forms `D-01` … `D-10` → `D-001` … `D-010` with a
+  scratch script over the files git tracks (except `tasks/` and `CHANGELOG.md`): 53 replacements in 30 files —
+  Rust/JS comments (15 files, comments only), `Cargo.toml` (5), docs (`reference`, `development`, `git-workflow`,
+  `research`: 10), README, CONTRIBUTING, CLAUDE.md, `scripts/` (`check-commit.sh`, `bundle-macos.sh`,
+  `sync-issues.py`), workflows (2), PR template; also the research file's old `tasks/decisions/D-01-….md` link.
+  `scripts/__pycache__/` falls under the `__pycache__/` line of `.gitignore`, not a source.
+- 2026-10-19 — `scripts/sync-issues.py`: `match_issues` first looks for the marker's exact key, then for the issue
+  whose marker carries the same number at another width (`same_id`: the number without leading zeros, general, not
+  a list; it holds for tasks too). It edits the existing issue in place: the body is replaced together with the new
+  marker, the title too; the log line says `was D-0N`. No new dry-run mode was needed; the existing `--dry-run`
+  ran live (GET only).
+- 2026-10-19 — `CHANGELOG.md`: `--check` was already stale before the task (the tasks closed between 018 and 042
+  were missing; the changelog is updated only before a release, CI does not check it), so the run refreshed the
+  whole Unreleased list, and 030's line became `per D-009`. The 0.1.0 section cites no decision and is unchanged;
+  no released history changed. The file names of 030 and 039 (`…-per-d-09.md`, `…-cite-d-10.md`) are task file
+  names the renumber does not rename, so the changelog links keep the old slugs.
+- 2026-10-19 — left in `tasks/` (not the task session's job, listed under the PR's Follow-ups): `tasks/roadmap.md:8`
+  `(D-08)`; quotes and history: a verbatim quote in line 34 of `D-007`, and Log lines of 036 and 039 with
+  suffixed forms of the old ids that the tool did not rewrite.
 
 ## Deviations from the plan
 
@@ -64,18 +65,18 @@ Split (2026-10-19): the renumber tool rewrites `tasks/`; everything outside `tas
 
 ## Verification
 
-- 2026-10-19 — `grep -rnE "D-(0[0-9]|10)\b"` `tasks/`, `target/`, `.git/`, `.claude/` nélkül: üres (kis-/nagybetű
-  nélkül csak a `CHANGELOG.md` két linkje a 030/039 fájlnevére).
-- 2026-10-19 — `python -I scripts/sync-issues.py --dry-run` a valódi repón (read-only): a tíz döntés-issue (#31–#40)
-  `update (body, title, was D-0N)`, D-011/D-012 csak body; `created 0, updated 41, unchanged 14`, orphan nincs.
-  A többi update a task-issue-k body-ja (a renumber átírta a task fájlok hivatkozásait).
+- 2026-10-19 — `grep -rnE "D-(0[0-9]|10)\b"` without `tasks/`, `target/`, `.git/`, `.claude/`: empty
+  (case-insensitive, only the two `CHANGELOG.md` links to the 030/039 file names).
+- 2026-10-19 — `python -I scripts/sync-issues.py --dry-run` on the real repo (read-only): the ten decision issues
+  (#31–#40) `update (body, title, was D-0N)`, D-011/D-012 body only; `created 0, updated 41, unchanged 14`, no
+  orphan. The other updates are task issue bodies (the renumber rewrote the task files' references).
 - 2026-10-19 — `python -I scripts/changelog.py --check`: up to date.
-- 2026-10-19 — `scripts/check-commit.sh` scratch üzenetekkel: tiszta → 0; `Claude-Session:` trailer → 1, „(D-010
-  point 3)”; session link → 1, „(D-010 point 3)”; nem-noreply cím → 1 (D-010); a `.githooks/commit-msg` hookon át a
-  trailer → 1.
+- 2026-10-19 — `scripts/check-commit.sh` with scratch messages: clean → 0; `Claude-Session:` trailer → 1, "(D-010
+  point 3)"; session link → 1, "(D-010 point 3)"; non-noreply address → 1 (D-010); through the
+  `.githooks/commit-msg` hook the trailer → 1.
 - 2026-10-19 — `uvx zizmor .github`: no findings; `cargo deny check`: ok;
-  `cargo fmt --check`, `cargo clippy --all-targets -- -D warnings`, `cargo test`: mind zöld
-  (a kód változása csak komment).
+  `cargo fmt --check`, `cargo clippy --all-targets -- -D warnings`, `cargo test`: all green
+  (the code change is comments only).
 
 ## Closing checklist
 

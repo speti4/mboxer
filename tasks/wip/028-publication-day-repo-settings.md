@@ -22,7 +22,7 @@ Why: these settings exist only for public repos or are free only there, so they 
 the switch itself.
 Done when: every item is applied or recorded in the Log with the reason it was left out.
 
-Maintainer decisions 2026-10-19:
+Decided 2026-10-19:
 - 028 runs ahead of 040 (the manual macOS test): standard runners are free for public repos.
 - The first public release is 0.2.0; the macOS zip ships as an untested preview.
 - The ruleset on `main` requires the full CI (test on windows-latest, lint, deny, workflow-lint, commit-rules), so
@@ -48,19 +48,25 @@ Maintainer decisions 2026-10-19:
 ## Log
 
 - 2026-10-19 — promoted on `task/028-publication-day-repo-settings`
-- 2026-10-19 — négy review (docs, kód, meta/CI, taskok) ~140 tétellel; a switch előtti tartalmi rész ide, a
-  macOS felhasználói doksi 044-be, a többi backlogba (045–048)
-- 2026-10-19 — tartalmi kör (három párhuzamos fork, diszjunkt fájlokon): ~35 task/decision fájl, a docs, a
-  CONTRIBUTING, a PR template, a code of conduct, a `.gitignore`; `git-workflow.md` kettévágva
-  (`maintainer-sessions.md`); a maradék grep csak az audit tárgyát (D-009, 027, 030) és a 034 hook-nevét adja.
-  A remote-on már csak `main` van (a „hét branch” elavult lokális remote-tracking ref volt, `fetch --prune`).
-- 2026-10-19 — CI/release: `paths-ignore` ki, `--locked` (CI, `release.ps1`, `bundle-macos.sh`), tag-on-main
-  lépés, `actions/attest-build-provenance` v4.2.2 `subject-checksums`-szal, a notes lábléce `gh attestation
-  verify`-jal; verzió 0.2.0 (`cargo update --workspace`: csak a három workspace crate); CHANGELOG Unreleased
-  összefoglaló; `docs/images/social-preview.png` 1280×640 a `viewer.png`-ből
-- 2026-10-19 — lokális checkek zöldek: `cargo fmt --check`, `cargo clippy --all-targets --locked -- -D
-  warnings`, `cargo test --locked` (117 teszt), `cargo deny check`, `uvx zizmor .github` (no findings),
-  `changelog.py --check`, `tasks_check` 0/0; a sync dry-run: created 5, updated 46, unchanged 9
+- 2026-10-19 — four reviews (docs, code, metadata/CI, task files), about 140 items: the pre-switch content goes
+  into this task, the macOS user docs into 044, the rest into the backlog (045–048)
+- 2026-10-19 — content pass on disjoint file sets: about 35 task and decision files, the docs, CONTRIBUTING, the
+  PR template, the code of conduct, `.gitignore`; `git-workflow.md` split (`maintainer-sessions.md`); the
+  leftover grep finds only the audit subject (D-009, 027, 030) and the hook's maintainer name (034). The remote
+  holds only `main` (the merged branches were stale local remote-tracking refs, gone after `fetch --prune`)
+- 2026-10-19 — CI and release: `paths-ignore` removed, `--locked` (CI, `release.ps1`, `bundle-macos.sh`), the
+  tag-on-main step, `actions/attest-build-provenance` v4.2.2 with `subject-checksums`, the notes footer names
+  `gh attestation verify`; version 0.2.0 (`cargo update --workspace` changes only the three workspace crates);
+  the CHANGELOG summary; `docs/images/social-preview.png`, 1280×640, from `viewer.png`
+- 2026-10-19 — local checks green: `cargo fmt --check`, `cargo clippy --all-targets --locked -- -D warnings`,
+  `cargo test --locked` (117 tests), `cargo deny check`, `uvx zizmor .github` (no findings),
+  `changelog.py --check`, `tasks_check` 0/0; pull request #76
+- 2026-10-19 — issue edit history is public on a public repo and held the pre-cleanup texts, so the 55 mirror
+  issues (no comments, no other issues) were deleted and recreated by `scripts/sync-issues.py`: created 60, a
+  second run unchanged 60. Issue numbers no longer equal task ids; the mirror finds its issues by marker
+- 2026-10-19 — every task file is English and states decisions and results instead of reported answers;
+  maintainer-only instructions (the local archive, the session playbook import) moved to a gitignored
+  `CLAUDE.local.md`
 
 ## Deviations from the plan
 

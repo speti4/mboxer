@@ -35,12 +35,12 @@ Done in parallel with 038, 018 and 019.
 ## Log
 
 - 2026-10-19 — promoted in the main session, branch `task/036-git-workflow-references`
-- 2026-10-19 — task session: a `docs/git-workflow.md` trailer-szabálya D-010 3. pontjára hivatkozik; a CONTRIBUTING
-  típuslistája `deps:`-szel bővült; a task-session szakasz új pontja a `tasks_check` várt stale-index jelentését
-  és a tiszta `git status`-t írja le a jelentés előtt; a main-session szakasz PR-előkészítő pontja az előző merge
-  `git pull`-ja után indul (`tasks_next_id` a kicsekkolt fát olvassa). `scripts/check-commit.sh` nem ellenőriz
-  típus-prefixet, így `deps:` ott nem igényelt változást; a hibaüzenetei még D-009-re hivatkoznak, ez a PR
-  Follow-ups szakaszába került. Lezárva a branchen, PR nyitva.
+- 2026-10-19 — task session: the trailer rule of `docs/git-workflow.md` cites point 3 of D-010; CONTRIBUTING's type
+  list gained `deps:`; a new point of the task-session section describes the expected stale-index report of
+  `tasks_check` and a clean `git status` before reporting; the main-session section's PR-preparation point starts
+  after the `git pull` of the previous merge (`tasks_next_id` reads the checked-out tree). `scripts/check-commit.sh`
+  does not check type prefixes, so `deps:` needed no change there; its error messages still cite D-009, which went
+  into the PR's Follow-ups section. Closed on the branch, PR open.
 
 ## Deviations from the plan
 
@@ -48,12 +48,12 @@ Done in parallel with 038, 018 and 019.
 
 ## Verification
 
-- 2026-10-19 — `git diff` a két fájlon: `D-009` már nem fordul elő egyikben sem (`grep -n D-009` üres); a
-  `deps:` típus a CONTRIBUTING Conventions listájában; a task-session szakasz 3. pontja és a main-session szakasz
-  PR-előkészítő pontja a Context minden mondatát tartalmazza. A sortördelés a doksi meglévő szélességén belül
-  maradt (a leghosszabb új sor 111 bájt, a meglévő leghosszabb 113). A `commit-msg` hook a docs commitot
-  átengedte (`core.hooksPath=.githooks`). `tasks_check` `write` nélkül: csak a várt stale-index jelentés a
-  README-n. CI: a PR `commit-rules` és a többi job eredménye a PR leírásában.
+- 2026-10-19 — `git diff` on the two files: `D-009` no longer appears in either (`grep -n D-009` empty); the
+  `deps:` type is in CONTRIBUTING's Conventions list; point 3 of the task-session section and the PR-preparation
+  point of the main-session section cover every sentence of the Context. The wrapping stays within the doc's
+  existing width (the longest new line 111 bytes, the longest existing one 113). The `commit-msg` hook passed the
+  docs commit (`core.hooksPath=.githooks`). `tasks_check` without `write`: only the expected stale-index report on
+  the README. CI: the results of the PR's `commit-rules` and the other jobs are in the PR description.
 
 ## Closing checklist
 

@@ -31,18 +31,19 @@ Done in parallel with 035 and 025; checked over synthetic data only.
 
 - 2026-10-18 — promoted by the main session; worked in `.claude/worktrees/032-list-date-column-alignment` on
   branch `task/032-list-date-column-alignment`
-- 2026-10-18 — ok: a `.row` grid hat sávos (`14px 20px 180px 1fr auto 90px`); a plain sor üres `.count`-ja
-  `display: none`, kiesik a gridből, és az auto-placement a dátumot a badge `auto` sávjába tolta (a 90px-es
-  dátumsáv üres maradt) — a flat nézetben minden sorral ez történt. Javítás: `.row .date { grid-column: -2; }`.
-  Az „üres badge-hely a plain sorban" (`visibility: hidden`) változat helyett ez, mert a grid már deklarál egy
-  fix, jobbra igazított dátumsávot, csak az elhelyezés volt rossz, és a plain sor tárgya megkapja a badge helyét.
-- 2026-10-18 — a keskeny ablak / keskeny lista próbája egy második okot hozott: a splitter 120px-ig engedi a
-  listát, ~400px alatt a fix sávok szélesebbek a listánál, a sor kilóg, a dátum badge-szélességtől függően tolódik
-  és levágódik. A feladó sávja `minmax(0, min(180px, 40%))` lett; három változatot mértem (`minmax(0, 180px)`:
-  360px-nél a tárgy 0px; `minmax(80px, 1fr)` tárgy: 260px-nél újra kilóg; a választott: 360px-nél feladó 138px,
-  tárgy 34px; 200px-ig egy oszlop, csak a splitter 120px-es minimumánál térnek el újra a dátumok, T 339 / P 321
-  / M 335). Alapértelmezett 480px-nél változatlan.
-- 2026-10-18 — PR #53, CI zöld; task zárva a branchben.
+- 2026-10-18 — cause: the `.row` grid has six tracks (`14px 20px 180px 1fr auto 90px`); a plain row's empty
+  `.count` is `display: none`, drops out of the grid, and auto-placement pushed the date into the badge's `auto`
+  track (the 90px date track stayed empty) — in the flat view this happened to every row. Fix:
+  `.row .date { grid-column: -2; }`. Chosen over an "empty badge slot in the plain row" (`visibility: hidden`),
+  because the grid already declares a fixed, right-aligned date track, only the placement was wrong, and the plain
+  row's subject gets the badge's room.
+- 2026-10-18 — the narrow window / narrow list check found a second cause: the splitter lets the list shrink to
+  120px; below ~400px the fixed tracks are wider than the list, the row overflows, and the date shifts with the
+  badge width and is clipped. The sender track became `minmax(0, min(180px, 40%))`; three variants measured
+  (`minmax(0, 180px)`: subject 0px at 360px; `minmax(80px, 1fr)` subject: overflows again at 260px; the chosen one:
+  sender 138px, subject 34px at 360px; one column down to 200px, the dates differ again only at the splitter's
+  120px minimum, T 339 / P 321 / M 335). Unchanged at the default 480px.
+- 2026-10-18 — PR #53, CI green; task closed on the branch.
 
 ## Deviations from the plan
 
@@ -51,22 +52,22 @@ Done in parallel with 035 and 025; checked over synthetic data only.
 
 ## Verification
 
-- 2026-10-18 — Chrome, a worktree `ui/` mappája egy scratchpad Node szerverről (127.0.0.1:8772) stub
-  `__TAURI__` backenddel: 14 szintetikus szál `example.com` címekkel (1, 2, 3, 5, 12, 128 üzenetes; rövid és
-  hosszú tárgyak), egy kinyitott beszélgetés (member sorok), `/before/` alatt a branch első commitjának
-  `style.css`-e. Mérés `javascript_tool`-lal: minden látható sor dátumszövegének jobb széle (Range rect),
-  soronként csoportosítva (T thread, P plain, M member), L a lista jobb széle.
-- Előtte (804px széles viewport, conversation nézet): 480px listánál T 682, P/M 586 (96px eltérés); 360px-nél
-  T 585 > L 570 (levágva), P 537, M 551; 260px-nél minden dátum a listán kívül. Flat nézet 480px-nél P 586
-  (L 690), az üres 90px-es sáv mellett.
-- Utána: 804px és 1884px széles viewport, conversation és flat nézet, 600/480/360/260px lista — minden esetben
-  egyetlen érték soronként: pl. 804px, conv 480 → T/P/M 682, L 690; conv 360 → 562 / L 570; conv 260 → 462 /
-  L 470; flat 480 → P 682 / L 690; 1884px, conv 600 → 817 / L 825. A dátum mindig a sor 8px-es paddingje
-  előtt végződik. Light (`rgb(255, 255, 255)` háttér) és Dark téma: ugyanazok a számok; képernyőképek mindkét
-  témában, mindkét nézetben, keskeny és széles ablakban megnézve.
-- `cargo fmt --check` ok, `cargo clippy --all-targets -- -D warnings` ok, `cargo test`: 109 Rust teszt zöld
-  (app 35, ui_query 1, cli 4 + 6, core 31, fixtures 10, index 22); a Node UI tesztek 30/30.
-- CI run 39154494811 (PR #53, commit a8e1e64): commit-rules, deny, test, workflow-lint zöld.
+- 2026-10-18 — Chrome, the worktree's `ui/` folder served from a scratchpad Node server (127.0.0.1:8772) with a
+  stub `__TAURI__` backend: 14 synthetic threads with `example.com` addresses (1, 2, 3, 5, 12, 128 messages; short
+  and long subjects), one expanded conversation (member rows), the branch's first-commit `style.css` under
+  `/before/`. Measured with `javascript_tool`: the right edge of every visible row's date text (Range rect),
+  grouped by row kind (T thread, P plain, M member), L the list's right edge.
+- Before (804px wide viewport, conversation view): at a 480px list T 682, P/M 586 (96px apart); at 360px
+  T 585 > L 570 (clipped), P 537, M 551; at 260px every date outside the list. Flat view at 480px P 586 (L 690),
+  next to the empty 90px track.
+- After: 804px and 1884px wide viewports, conversation and flat views, 600/480/360/260px lists — one value per
+  row kind in every case: e.g. 804px, conv 480 → T/P/M 682, L 690; conv 360 → 562 / L 570; conv 260 → 462 /
+  L 470; flat 480 → P 682 / L 690; 1884px, conv 600 → 817 / L 825. The date always ends before the row's 8px
+  padding. Light (`rgb(255, 255, 255)` background) and Dark theme: the same numbers; screenshots checked in both
+  themes, both views, narrow and wide windows.
+- `cargo fmt --check` ok, `cargo clippy --all-targets -- -D warnings` ok, `cargo test`: 109 Rust tests green
+  (app 35, ui_query 1, cli 4 + 6, core 31, fixtures 10, index 22); the Node UI tests 30/30.
+- CI run 39154494811 (PR #53, commit a8e1e64): commit-rules, deny, test, workflow-lint green.
 
 ## Closing checklist
 

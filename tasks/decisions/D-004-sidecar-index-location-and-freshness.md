@@ -30,7 +30,7 @@ the user's data.
 - Tokenization: words, lower-cased, ASCII-folded (`AsciiFoldingFilter`, covers ő/ű) on both the
   index and the query side; phrase positions are kept on every text field.
 
-Proposed on 2026-10-17 during task 003 planning; confirmed by the user on 2026-10-17 after the 14 GB run.
+Proposed on 2026-10-17 during task 003 planning; decided on 2026-10-17 after the 14 GB run.
 
 ## Not chosen
 

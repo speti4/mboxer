@@ -30,8 +30,8 @@ already goes through a SmartScreen click (task 012).
 - Developer ID signing and notarization stay open as a later decision, when the user count or the
   Gatekeeper friction justifies the yearly fee; the Tauri documentation's CI variables cover it.
 
-Proposed on 2026-10-18 during the macOS planning before task 018, from the user's choice of no signing
-fee and a one-time manual approval; confirmed by the user on 2026-10-18.
+Proposed on 2026-10-18 during the macOS planning before task 018: no signing fee, a one-time manual approval
+on the Mac; decided on 2026-10-18.
 
 ## Not chosen
 

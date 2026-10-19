@@ -19,10 +19,10 @@ to the file, milestone from the frontmatter, labels for stage / status / size, o
 and keeps the milestones in step with `tasks/roadmap.md`; `.github/workflows/sync-issues.yml` runs it on every
 push to `main` that touches `tasks/`. One-way and idempotent: GitHub is never edited by hand, a no-op run
 changes nothing. Why: the milestone progress bars become real, and the backlog is visible to collaborators
-without cloning, while the task files stay the only source of truth. User decisions 2026-10-18: variant
+without cloning, while the task files stay the only source of truth. Decided 2026-10-18: variant
 "one-way sync from CI" over a one-shot backfill or GitHub-as-backlog; decisions mirrored with a `decision`
-label; issue bodies in English only (the 16 Hungarian `## Context` sections of `done/` files are translated
-once, Log / Verification untouched); the script lives in this repo, a reusable template later.
+label; issue bodies in English only (the 16 `## Context` sections of `done/` files not yet in English are
+translated once, Log / Verification untouched); the script lives in this repo, a reusable template later.
 Done when: 29 issues exist with the right state, milestone and labels, a second run reports `unchanged 29`,
 the workflow is green, and closing this task closes its own issue through CI.
 
@@ -30,7 +30,7 @@ the workflow is green, and closing this task closes its own issue through CI.
 
 1. [x] `scripts/sync-issues.py` (stdlib + `gh api`): parser, roadmap → milestones, labels, diff, `--dry-run` / `--check`
 2. [x] Dry run: 22 tasks + 8 decisions parsed (this file included), 30 creates planned, 0 errors
-3. [x] Translate the `## Context` of the 16 Hungarian `done/` files (one-time exception to "done is never rewritten")
+3. [x] Translate the `## Context` of the 16 non-English `done/` files (one-time exception to "done is never rewritten")
 4. [x] Backfill from the dev machine; second run `unchanged 30`; milestone counters 0/3, 0/5, 0/8, 3/0
 5. [x] `.github/workflows/sync-issues.yml`; docs (CLAUDE.md convention, README, tasks/README preamble, roadmap, D-008)
 6. [x] `tasks_check`, commit, push; the workflow run is green with `unchanged 30`
@@ -45,16 +45,16 @@ the workflow is green, and closing this task closes its own issue through CI.
   `<!-- sync-issues: task 021 -->` is the lookup key; only differing fields are PATCHed; `--dry-run` / `--check`.
   First dry run found two things: 013 had an empty body (fixed with `_lead`), and `python -I` ignores
   `PYTHONIOENCODING`, so the script reconfigures stdout to UTF-8 itself (the titles carry em dashes).
-- 2026-10-18 — the 16 Hungarian `## Context` sections translated by a subagent, Edit tool only, LF kept, every diff hunk
+- 2026-10-18 — the 16 non-English `## Context` sections translated, Edit tool only, LF kept, every diff hunk
   inside the Context range (checked mechanically against the hunk headers); Log / Verification untouched.
 - 2026-10-18 — backfill from the dev machine: `applied: created 30, updated 0, unchanged 0`, the 4 milestone descriptions
   rewritten from the roadmap paragraphs; second run `created 0, updated 0, unchanged 30`; `--check` exits 0.
   Issue numbers happen to equal the task ids (#1–#22) and D-001–D-008 are #23–#30 (the repo had no issues or PRs).
 - 2026-10-18 — follow-up not filed here: lifting the script into a reusable template belongs to the task tooling, not to
-  this repo, to be opened there when this has run for a while (user decision 2026-10-18: script lives here first).
+  this repo, to be opened there when this has run for a while (decided 2026-10-18: the script lives here first).
 - 2026-10-18 — commit `17c3275` pushed; `sync-issues.yml` run 39127643289 green in 15 s, log line
   `applied: created 0, updated 0, unchanged 30`. Closing: this file moved to `done/`, the push after it must close
-  issue #22 through the workflow (the end-to-end proof, recorded under Verification by the next session or by hand).
+  issue #22 through the workflow (the end-to-end proof, recorded under Verification afterwards).
 
 ## Deviations from the plan
 

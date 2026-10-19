@@ -19,7 +19,7 @@ the window afterwards; a capability entry covers the `print` window. Windows kee
 Fallback if the second window does not print: a top-level `window.print()` with `@media print` CSS that leaves
 only the reader body visible.
 Why: Tauri/wry on macOS silently ignores `iframe.contentWindow.print()` (tauri-apps/tauri#13451, upstream, no
-fix planned); the whole 011 print path depends on it. Full parity is the user's choice (2026-10-18).
+fix planned); the whole 011 print path depends on it. Decided 2026-10-18: full parity.
 Done when: on a Mac *Print…* (`⌘P`) opens the native panel with the message laid out as the reader shows it,
 and *Save as PDF* writes the same picture; the Windows print preview is unchanged.
 Done in parallel with 039 and 041. The macOS check is a cross-compile here; the run on a Mac goes into 040's
@@ -37,48 +37,49 @@ manual round.
 4. [x] tests where the logic is testable without a window (the data-URL inlining, the command's input checks)
 5. [x] `DOCS_RS=1 cargo clippy --target aarch64-apple-darwin --all-targets -- -D warnings`, the CONTRIBUTING.md
    checks, `node --check` on `ui/main.js`
-6. [ ] Windows manual check: *Print…* still opens the WebView2 print preview with the same picture — the
-   user's, after the pull request (the main session holds the one manual round); unticked in its `## Checks`
+6. [ ] Windows manual check: *Print…* still opens the WebView2 print preview with the same picture — a manual
+   check after the pull request; unticked in its `## Checks`
 7. [x] 040's checklist gains the macOS print point (Print… panel, *Save as PDF*) — through the pull request's
    `## Follow-ups`, since a task session does not edit another task file
 
 ## Log
 
 - 2026-10-19 — promoted on `task/020-macos-print-second-webview-window`.
-- 2026-10-19 — API-forrás (Cargo.lock: tauri 2.12.4, tauri-runtime-wry 2.12.2, wry 0.57.0, a registry
-  forrásából): `WebviewWindowBuilder` + `WebviewUrl::CustomProtocol`, `on_page_load` (`PageLoadEvent::Finished`),
-  `on_navigation`, `on_new_window`, `Builder::register_uri_scheme_protocol` (a `UriSchemeContext` megadja a kérő
-  webview címkéjét), `WebviewWindow::print()`. A wry macOS `print()`: `printOperationWithPrintInfo` +
-  `runOperationModalForWindow(webview.window(), delegate: None)` — a panel sheetként a webview saját ablakán
-  nyílik, és nincs visszajelzés a végéről. A tauri `webview` plugin macOS-en a felső `window.print()`-et
-  `plugin:webview|print`-re (ugyanerre) cseréli; a #13451 szerint ez működik, csak az iframe `print()` néma.
-- 2026-10-19 — Választás: **második ablak**, nem a fallback. A felső `window.print()` a háromtáblás appot
-  nyomtatná: `@media print`-tel csak a reader maradna, de a HTML-törzs egy tartalomra méretezett iframe, amit a
-  WebKit oldalhatáron nem tör megbízhatóan; a külön ablak egy önálló, a Windows-szal azonos print dokumentumot
-  nyomtat. Az ablak **látható** (820×1000, középen, címe `Print: <tárgy>`), nem rejtett: a panel sheetként az ő
-  ablakára kerül, egy rejtett ablakon a sheet láthatatlan maradhat, és mivel a wry nem ad befejezés-jelzést, az
-  ablakot nem lehet a nyomtatás után biztonsággal bezárni (egy nyitott sheet alól bezárva a nyomtatás
-  megszakad). Így az ablak egyben előnézet, mint a WebView2-é; a user zárja (`⌘W`), és a fő ablakkal együtt
-  záródik (különben az app nem lépne ki).
-- 2026-10-19 — Rust: `src/print.rs`. `PrintJobs` (az `AppState`-ben): job id → HTML + `allow_remote` +
-  `printed`; minden nyomtatás saját `print-<id>` ablakot kap (egy nyitott sheet alatt nem cserélődik a tartalom).
-  Az `mboxer-print:` séma (csak macOS-en regisztrálva) a kérő webview címkéje alapján csak a saját ablakának adja
-  a dokumentumot, minden más webview (a fő is) 404-et kap; a válasz fejléce `Content-Security-Policy: default-src
-  'none'; img-src data:[ https: http:]; style-src 'unsafe-inline'` (a remote képek csak akkor, ha a user a
-  readerben engedte), plusz a dokumentum saját, a reader-frame-ből másolt CSP meta-ja. `on_page_load` Finished →
-  `take_print` (egyszer, egy reload nem nyomtat újra) → `print()` egy külön szálról, hogy a navigációs callback
-  után, eseményként fusson a fő szálon (fő szálról a `run_on_main_thread` inline futna). `on_navigation` csak a
-  sémán belül enged, `on_new_window` → `Deny`. `on_window_event` Destroyed: a print ablak eldobja a jobját, a
-  `main` bezárása a print ablakokat is. `print_message` (async, hogy az ablak ne szinkron commandban épüljön):
-  `check_html` (nem üres, ≤ 128 MB), macOS-en `open_window`, máshol hiba.
-- 2026-10-19 — UI: új `ui/print.js` modul (`window.MboxerPrint`, Node alatt CommonJS): `usesPrintWindow(os)`,
-  `dataUrl(type, bytes)` (base64 32 KB-os darabokban, a média típus paraméterei nélkül), `inlineBlobImages(doc,
-  lookup)` (minden `blob:` kép `data:` URL lesz, blobonként egyszer olvasva; ismeretlen blob → `src` törölve). A
-  `fillCidImages` a blob URL mellé a Blob-ot is megjegyzi (`state.cidBlobs`, üzenetváltáskor törlődik). A
-  `printDocument` a dokumentumot adja vissza, a `serializeDocument` ugyanazt a `<!doctype html>…` stringet
-  állítja elő, mint eddig, így a Windows ág (`el.printFrame.srcdoc = …`) bájtra azonos. Macen
-  `printInWindow`: inlining, majd `print_message` `{ html, subject, allowRemote }`; hiba → status sor.
-- 2026-10-19 — Capability: nem került új bejegyzés a `capabilities/` alá (lásd Deviations).
+- 2026-10-19 — API source (Cargo.lock: tauri 2.12.4, tauri-runtime-wry 2.12.2, wry 0.57.0, from the registry
+  sources): `WebviewWindowBuilder` + `WebviewUrl::CustomProtocol`, `on_page_load` (`PageLoadEvent::Finished`),
+  `on_navigation`, `on_new_window`, `Builder::register_uri_scheme_protocol` (the `UriSchemeContext` gives the
+  requesting webview's label), `WebviewWindow::print()`. wry's macOS `print()`: `printOperationWithPrintInfo` +
+  `runOperationModalForWindow(webview.window(), delegate: None)` — the panel opens as a sheet on the webview's own
+  window, with no report of its end. On macOS the tauri `webview` plugin replaces the top-level `window.print()`
+  with `plugin:webview|print` (the same call); per #13451 this works, only the iframe `print()` is silent.
+- 2026-10-19 — Choice: **a second window**, not the fallback. A top-level `window.print()` would print the
+  three-pane app: with `@media print` only the reader would remain, but the HTML body is an iframe sized to its
+  content, which WebKit does not reliably break at page boundaries; the separate window prints a standalone print
+  document identical to the Windows one. The window is **visible** (820×1000, centred, titled `Print: <subject>`),
+  not hidden: the panel goes onto its window as a sheet, a sheet on a hidden window could stay invisible, and as
+  wry gives no completion signal the window cannot safely be closed after printing (closing it under an open
+  sheet aborts the print). So the window doubles as the preview, like WebView2's; it is closed with `⌘W` and
+  closes together with the main window (otherwise the app would not quit).
+- 2026-10-19 — Rust: `src/print.rs`. `PrintJobs` (in `AppState`): job id → HTML + `allow_remote` + `printed`;
+  every print gets its own `print-<id>` window (the content is not swapped under an open sheet). The
+  `mboxer-print:` scheme (registered on macOS only) gives the document only to its own window, by the requesting
+  webview's label; every other webview (the main one too) gets a 404; the response header is
+  `Content-Security-Policy: default-src 'none'; img-src data:[ https: http:]; style-src 'unsafe-inline'` (remote
+  images only if they were allowed in the reader), plus the document's own CSP meta copied from the reader frame.
+  `on_page_load` Finished → `take_print` (once; a reload does not print again) → `print()` from a separate thread,
+  so it runs on the main thread as an event after the navigation callback (from the main thread
+  `run_on_main_thread` would run inline). `on_navigation` allows only the scheme, `on_new_window` → `Deny`.
+  `on_window_event` Destroyed: a print window drops its job, closing `main` closes the print windows too.
+  `print_message` (async, so the window is not built in a synchronous command): `check_html` (not empty,
+  ≤ 128 MB), `open_window` on macOS, an error elsewhere.
+- 2026-10-19 — UI: new `ui/print.js` module (`window.MboxerPrint`, CommonJS under Node): `usesPrintWindow(os)`,
+  `dataUrl(type, bytes)` (base64 in 32 KB chunks, without the media type's parameters), `inlineBlobImages(doc,
+  lookup)` (every `blob:` image becomes a `data:` URL, each blob read once; an unknown blob → `src` removed).
+  `fillCidImages` also remembers the Blob next to the blob URL (`state.cidBlobs`, cleared on a message switch).
+  `printDocument` returns the document, `serializeDocument` produces the same `<!doctype html>…` string as before,
+  so the Windows arm (`el.printFrame.srcdoc = …`) is byte-identical. On a Mac `printInWindow`: inlining, then
+  `print_message` `{ html, subject, allowRemote }`; an error → the status line.
+- 2026-10-19 — Capability: no new entry under `capabilities/` (see Deviations).
 
 ## Deviations from the plan
 
@@ -106,14 +107,14 @@ manual round.
   `ui/print.js` clean; `node --test tests/ui/print.test.js`: 4 pass (OS switch, data URLs incl. 100 kB through
   the chunking, blob images inlined / unknown ones dropped / data and remote ones kept, one read per blob).
 - Not verified here (no Mac): the print window, the native panel and *Save as PDF* on a Mac — the 040 manual
-  round (pull request follow-up). The Windows print preview unchanged: the user's manual check after the pull
-  request (the Windows path builds the same string into the same frame).
+  round (pull request follow-up). The Windows print preview unchanged: a manual check after the pull request (the
+  Windows path builds the same string into the same frame).
 
 ## Closing checklist
 
-- [x] every follow-up is a `backlog/` file (`/tasks add`) or deleted with a reason in the Log — task session:
-  the follow-ups are in the pull request description, the main session files them
+- [x] every follow-up is a `backlog/` file (`/tasks add`) or deleted with a reason in the Log — the follow-ups are
+  in the pull request description and are filed before the merge
 - [x] Verification written, dated
-- [x] `tasks_check` green, README index regenerated — task session: `tasks_check` without `write`, the index is
-  regenerated by the main session before the merge
+- [x] `tasks_check` green, README index regenerated — `tasks_check` without `write` here; the index is regenerated
+  before the merge
 - [x] moved to `done/` with `closed: 2026-10-19`
