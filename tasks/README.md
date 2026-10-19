@@ -13,15 +13,11 @@ file, never the issue.
 <!-- tasks:index:start -->
 _Generated 2026-10-19 — edit the files, not this section._
 
-**State:** 4 backlog (1 ready · 0 blocked · 3 waiting · 0 ideas) · 0 in progress · 38 done · 1 dropped · 12 decisions
+**State:** 3 backlog (0 ready · 0 blocked · 3 waiting · 0 ideas) · 1 in progress · 38 done · 1 dropped · 12 decisions
 
 ### Ready
 
-#### M5 Public release
-
-| # | Task | Size | Created |
-|---|---|---|---|
-| 043 | [Pad the decision ids to three digits before the repo goes public](backlog/043-pad-decision-ids-to-three-digits.md) | M | 2026-10-19 |
+_none_
 
 ### Needs decision
 
@@ -48,7 +44,11 @@ _none_
 
 ### In progress
 
-_none_
+#### M5 Public release
+
+| # | Task | Started | Plan |
+|---|---|---|---|
+| 043 | [Pad the decision ids to three digits before the repo goes public](wip/043-pad-decision-ids-to-three-digits.md) | 2026-10-19 | `n-zz-k-t-a-backlogot-toasty-dove.md` |
 
 ### Closed – do not reopen
 
