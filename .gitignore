@@ -4,16 +4,21 @@ crates/mboxer-app/gen/
 node_modules/
 dist/
 
-# mail never enters the repo: mbox files, exported messages, Takeout downloads, index sidecars
+# mail never enters the repo: mbox files, exported messages, Takeout downloads, index sidecars, a message
+# printed with "Save as PDF"
 *.mbox
 *.eml
 takeout-*.zip
 .mboxer/
+*.pdf
 
-# local
+# local: editor folders, the anonymizer's token map
 .env
 *.log
 .DS_Store
+.vscode/
+.idea/
+.anonilm-map.json
 .claude/settings.local.json
 CLAUDE.local.md
 

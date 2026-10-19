@@ -10,7 +10,10 @@ opens an mbox through a file dialog or from its first argument; on macOS also fr
 drop on the Dock icon. It builds the sidecar index on the first open, with progress and a cancel
 button, and reuses it afterwards. Then it shows the archive in three panes: the Gmail label tree with counts,
 the message list, and a reader with the headers and the body. The list shows the newest messages first and is
-virtualised, so a 100 000-message archive scrolls like a short one.
+virtualised, so a 100 000-message archive scrolls like a short one. One listing scrolls to its row 1 198 372 at
+most: a row is 28 px high and the web view lays out no element taller than 33 554 428 px (measured in Edge 155, the
+engine of WebView2; WebKit uses the same 1/64-px layout unit), so the rows past that cannot be scrolled to. A label
+or a search narrows such a list.
 
 While a file opens, an overlay says "Checking the index…" (only when the check takes longer than a moment) and,
 during a build, "Building the search index…" with the bytes read, the messages counted and the speed in MB/s; with
