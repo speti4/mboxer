@@ -7,6 +7,8 @@ not the list. The summary under a heading is written by hand and kept by the gen
 
 ## Unreleased
 
+The hardening release after the first public one, checked on a 14 GB archive of 86 000 messages. The search index format goes from 2 to 3, so the first open of every mbox with 0.3.0 rebuilds its index once (the time of a first open, nothing else changes; see the usage guide). The viewer no longer panics on a label whose name cuts a multibyte letter, `Re: számla` and other free text with a colon find their messages, a search overtaken by a newer one stops within milliseconds, the highlight marks the same letters the index matches (`strasse` marks `Straße`), a rebuild while the viewer is open swaps the index atomically and the viewer keeps working, and more attachment types can only be saved, never opened. The viewer and the CLI read and order messages by the same rules. The macOS build is still a preview that has not yet been tested on a Mac. Both zips come with a build provenance attestation (`gh attestation verify <zip> --repo speti4/mboxer`).
+
 <!-- The summary above is written by hand; the list below is generated from tasks/done/ by scripts/changelog.py. -->
 
 ### M5 Public release
