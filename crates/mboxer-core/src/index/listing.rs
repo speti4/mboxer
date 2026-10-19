@@ -364,6 +364,8 @@ struct Entry {
     /// `i64::MIN` when the message has no date; orders members in a group.
     date: i64,
     thread: Option<NonZeroU64>,
+    /// The D-003 offset: breaks every tie, so equal keys list in mbox order.
+    offset: u64,
     address: DocAddress,
 }
 
@@ -374,8 +376,8 @@ struct GroupKey {
     len: u32,
     /// The newest member's key.
     key: f64,
-    /// The newest member's address breaks key ties.
-    tie: DocAddress,
+    /// The newest member's offset breaks key ties.
+    tie: u64,
 }
 
 /// Highest key first.
@@ -383,23 +385,24 @@ fn key_desc(a: f64, b: f64) -> Ordering {
     b.partial_cmp(&a).unwrap_or(Ordering::Equal)
 }
 
-/// Sorts the entries into row order: ungrouped, every message in key order
-/// (ties in document order, which is the order in the mbox); grouped, the
-/// groups in the order of their newest member and the members of each group
-/// oldest first. Returns the member addresses and, when grouped, the group
+/// Sorts the entries into row order: ungrouped, every message in key order,
+/// ties in mbox order (by offset); grouped, the groups in the order of their
+/// newest member and the members of each group oldest first, ties again in
+/// mbox order. Document order is not mbox order: a build with several
+/// indexing threads hands the messages to the threads' segments as they come
+/// free (task 060). Returns the member addresses and, when grouped, the group
 /// starts (`groups + 1` entries).
 fn arrange(mut entries: Vec<Entry>, group: bool) -> (Vec<DocAddress>, Option<Vec<u32>>) {
     if !group {
-        entries.sort_unstable_by(|a, b| {
-            key_desc(a.key, b.key).then_with(|| a.address.cmp(&b.address))
-        });
+        entries
+            .sort_unstable_by(|a, b| key_desc(a.key, b.key).then_with(|| a.offset.cmp(&b.offset)));
         return (entries.into_iter().map(|e| e.address).collect(), None);
     }
     entries.sort_unstable_by(|a, b| {
         a.thread
             .cmp(&b.thread)
             .then_with(|| a.date.cmp(&b.date))
-            .then_with(|| a.address.cmp(&b.address))
+            .then_with(|| a.offset.cmp(&b.offset))
     });
     let mut groups: Vec<GroupKey> = Vec::new();
     let mut i = 0;
@@ -418,7 +421,7 @@ fn arrange(mut entries: Vec<Entry>, group: bool) -> (Vec<DocAddress>, Option<Vec
             start: start as u32,
             len: (i - start) as u32,
             key,
-            tie: entries[i - 1].address,
+            tie: entries[i - 1].offset,
         });
     }
     groups.sort_unstable_by(|a, b| key_desc(a.key, b.key).then_with(|| a.tie.cmp(&b.tie)));
@@ -451,6 +454,8 @@ impl AllMatches {
 
 struct SegmentMatches {
     ordinal: SegmentOrdinal,
+    /// Every document has an offset.
+    offset: Column<u64>,
     /// Absent when no document of the segment has a date, or when not needed.
     date: Option<Column<i64>>,
     /// Absent when not grouping, or when no document of the segment has a thread id.
@@ -481,6 +486,7 @@ impl Collector for AllMatches {
         };
         Ok(SegmentMatches {
             ordinal,
+            offset: segment.fast_fields().u64("offset")?,
             date,
             thread,
             by_score,
@@ -516,6 +522,7 @@ impl SegmentCollector for SegmentMatches {
             key,
             date: date.unwrap_or(i64::MIN),
             thread,
+            offset: self.offset.first(doc).unwrap_or(0),
             address: DocAddress::new(self.ordinal, doc),
         });
     }
@@ -529,11 +536,13 @@ impl SegmentCollector for SegmentMatches {
 mod tests {
     use super::*;
 
+    /// An entry whose offset follows its document number.
     fn entry(key: f64, thread: u64, doc: u32) -> Entry {
         Entry {
             key,
             date: key as i64,
             thread: NonZeroU64::new(thread),
+            offset: u64::from(doc) * 100,
             address: DocAddress::new(0, doc),
         }
     }
@@ -543,7 +552,7 @@ mod tests {
     }
 
     #[test]
-    fn ungrouped_order_is_key_desc_then_document_order() {
+    fn ungrouped_order_is_key_desc_then_mbox_order() {
         let entries = vec![
             entry(10.0, 0, 0),
             entry(30.0, 0, 1),
@@ -553,6 +562,29 @@ mod tests {
         let (members, starts) = arrange(entries, false);
         assert_eq!(docs(&members), [1, 3, 0, 2]);
         assert_eq!(starts, None);
+    }
+
+    #[test]
+    fn ties_follow_the_offset_not_the_document_address() {
+        // A multi-thread build: segment 1 holds the earlier messages.
+        let at = |key: f64, thread: u64, segment: u32, offset: u64| Entry {
+            key,
+            date: key as i64,
+            thread: NonZeroU64::new(thread),
+            offset,
+            address: DocAddress::new(segment, 0),
+        };
+        let segments = |addresses: &[DocAddress]| -> Vec<u32> {
+            addresses.iter().map(|a| a.segment_ord).collect()
+        };
+        let entries = vec![at(5.0, 0, 0, 900), at(5.0, 0, 1, 100), at(5.0, 0, 2, 500)];
+        assert_eq!(segments(&arrange(entries.clone(), false).0), [1, 2, 0]);
+        assert_eq!(segments(&arrange(entries, true).0), [1, 2, 0]);
+        // Two members of one thread with one date, and a group tie.
+        let entries = vec![at(5.0, 7, 0, 900), at(5.0, 7, 1, 100), at(5.0, 0, 2, 500)];
+        let (members, starts) = arrange(entries, true);
+        assert_eq!(segments(&members), [2, 1, 0]);
+        assert_eq!(starts, Some(vec![0, 1, 3]));
     }
 
     #[test]

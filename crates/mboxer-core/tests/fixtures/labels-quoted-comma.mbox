@@ -1,0 +1,38 @@
+From 7770001@xxx Fri Jan 16 08:00:00 +0000 2026
+X-GM-THRID: 7770001000000000001
+X-Gmail-Labels: "Work, Home",Inbox
+From: Anna <anna@example.com>
+To: bela@example.com
+Subject: A label with a comma
+Date: Fri, 16 Jan 2026 09:00:00 +0100
+Message-ID: <comma1@mail.example.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+
+Az elso.
+
+From 7770002@xxx Sat Jan 17 08:00:00 +0000 2026
+X-GM-THRID: 7770002000000000002
+X-Gmail-Labels: Inbox,"Projekt, 2026/Q1",Opened,"Say \"hi\", Bob"
+From: Anna <anna@example.com>
+To: bela@example.com
+Subject: Two labels with a comma, one with quotes
+Date: Sat, 17 Jan 2026 09:00:00 +0100
+Message-ID: <comma2@mail.example.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+
+A masodik.
+
+From 7770003@xxx Sun Jan 18 08:00:00 +0000 2026
+X-GM-THRID: 7770003000000000003
+X-Gmail-Labels: Work,Home,Inbox
+From: Anna <anna@example.com>
+To: bela@example.com
+Subject: Plain labels
+Date: Sun, 18 Jan 2026 09:00:00 +0100
+Message-ID: <comma3@mail.example.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+
+A harmadik.

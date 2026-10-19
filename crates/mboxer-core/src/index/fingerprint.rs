@@ -21,10 +21,14 @@ use std::time::UNIX_EPOCH;
 use serde::{Deserialize, Serialize};
 
 use crate::error::{Error, Result};
+use crate::reader::DEFAULT_MAX_MESSAGE_BYTES;
 
 /// Bumped whenever the schema, the tokenizer or a stored value changes; an
 /// older index is rebuilt. 2: label names are RFC 2047 decoded (task 015).
-pub const FORMAT_VERSION: u32 = 2;
+/// 3: the unread `from_addr` and `to_addr` fields are gone, `offset` is a
+/// fast field, the token length is counted in folded characters, nested
+/// HTML-only messages are indexed and a quoted label keeps its comma (task 060).
+pub const FORMAT_VERSION: u32 = 3;
 
 /// The metadata file inside the index directory (tantivy owns `meta.json`).
 pub const META_FILE: &str = "mboxer.json";
@@ -193,16 +197,25 @@ pub struct IndexMeta {
     /// (task 052); absent in an index built before, which reads as 0.
     #[serde(default)]
     pub skipped: u64,
+    /// The build's per-message size limit, which reading a message back
+    /// honours too (task 060); absent in an index built before, which reads
+    /// as [`DEFAULT_MAX_MESSAGE_BYTES`], the only limit those builds used.
+    #[serde(default = "default_max_message_bytes")]
+    pub max_message_bytes: u64,
     /// Unix seconds.
     pub built_at_unix: i64,
     pub build_secs: u64,
     pub tantivy_version: String,
 }
 
+fn default_max_message_bytes() -> u64 {
+    DEFAULT_MAX_MESSAGE_BYTES
+}
+
 impl IndexMeta {
     pub(crate) fn read(dir: &Path) -> Result<Self> {
-        let text = fs::read_to_string(dir.join(META_FILE))?;
-        Ok(serde_json::from_str(&text)?)
+        let bytes = fs::read(dir.join(META_FILE))?;
+        Ok(serde_json::from_slice(&bytes)?)
     }
 
     pub(crate) fn write(&self, dir: &Path) -> Result<()> {
@@ -275,16 +288,19 @@ pub(crate) fn resolve(mbox: &Path, home: &Path) -> Result<(PathBuf, IndexStatus)
     })
 }
 
-/// The state of the index directory `dir` against `mbox`.
+/// The state of the index directory `dir` against `mbox`. A metadata file
+/// that exists but cannot be read or parsed (truncated, not UTF-8, locked,
+/// denied) makes the index stale, so the caller rebuilds it (task 060); only
+/// the mbox itself failing to open is an error.
 fn status_of(dir: &Path, mbox: &Path) -> Result<IndexStatus> {
     if !dir.join(META_FILE).is_file() {
         return Ok(IndexStatus::Missing);
     }
+    let unreadable = |msg: String| Ok(IndexStatus::Stale(StaleReason::Unreadable(msg)));
     let meta = match IndexMeta::read(dir) {
         Ok(meta) => meta,
-        Err(Error::Json(err)) => {
-            return Ok(IndexStatus::Stale(StaleReason::Unreadable(err.to_string())));
-        }
+        Err(Error::Json(err)) => return unreadable(err.to_string()),
+        Err(Error::Io(err)) => return unreadable(err.to_string()),
         Err(err) => return Err(err),
     };
     if meta.format_version != FORMAT_VERSION {

@@ -30,5 +30,5 @@ pub use message::{
 };
 pub use reader::{
     DEFAULT_BUFFER_BYTES, DEFAULT_MAX_MESSAGE_BYTES, MboxReader, RawMessage, eml_bytes, read_at,
-    read_at_from,
+    read_at_from, read_at_from_with_limit, read_at_with_limit,
 };

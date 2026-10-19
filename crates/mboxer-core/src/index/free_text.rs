@@ -18,16 +18,17 @@
 
 use tantivy::query::{
     AllQuery, BooleanQuery, BoostQuery, EmptyScorer, EnableScoring, Explanation, Occur,
-    PhrasePrefixQuery, PhraseQuery, Query, Scorer, TermQuery, Weight,
+    PhraseQuery, Query, Scorer, TermQuery, Weight,
 };
 use tantivy::schema::{Field, IndexRecordOption};
 use tantivy::{DocId, DocSet, Score, SegmentReader, Term};
 
+use crate::index::prefix::RankedPrefixQuery;
 use crate::index::schema::fold_analyzer;
 
-/// How many dictionary terms a prefix may expand to; the terms come in
-/// dictionary order, so the shortest completions come first.
-const PREFIX_EXPANSIONS: u32 = 200;
+/// How many dictionary terms a prefix may expand to; the most frequent
+/// completions are taken ([`RankedPrefixQuery`]).
+const PREFIX_EXPANSIONS: usize = 200;
 
 /// One searchable piece of the free text.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -173,9 +174,7 @@ fn item_query(fields: &[Field], boost: Option<(Field, f32)>, item: Item) -> Opti
                 .map(|(position, text)| (*position, Term::from_field_text(field, text)))
                 .collect();
             let query: Box<dyn Query> = if prefix {
-                let mut query = PhrasePrefixQuery::new_with_offset(terms);
-                query.set_max_expansions(PREFIX_EXPANSIONS);
-                Box::new(query)
+                Box::new(RankedPrefixQuery::new(terms, PREFIX_EXPANSIONS))
             } else if terms.len() == 1 {
                 let (_, term) = terms.remove(0);
                 Box::new(TermQuery::new(term, IndexRecordOption::WithFreqs))

@@ -47,7 +47,8 @@ saved: it opens centred at 1400 × 900.
 The folder pane shows the Gmail labels as a tree. `Work/Clients` sits under `Work`, the Takeout `Category …`
 labels sit under *Categories*, and the system labels come first. Each label shows the number of messages that
 carry it; a parent that only groups sub-labels shows their total in italics. An RFC 2047 encoded label name
-(`=?UTF-8?Q?Sz=C3=A1ml=C3=A1k?=`) is decoded before it is indexed. Clicking a label narrows the list to that
+(`=?UTF-8?Q?Sz=C3=A1ml=C3=A1k?=`) is decoded before it is indexed, and a label with a comma in its name, which
+Gmail writes in quotes (`"Work, Home",Inbox`), stays one label. Clicking a label narrows the list to that
 label *and* every label under it, and *All mail* lifts the label again; a chevron (or `ArrowLeft` /
 `ArrowRight` on the selected node) folds and unfolds a branch. With the focus in the pane, `ArrowUp`,
 `ArrowDown`, `Home` and `End` move the selection, and the list follows at once (an arrow onto another loaded file's row switches to
@@ -124,7 +125,9 @@ their original charset.
 
 The field in the toolbar (`Ctrl+F` or `Ctrl+K`) narrows the list while you type. Words are AND-ed, the word you
 are still typing counts as a prefix until you type a space, `"quotes"` make a phrase, `OR` and `-word` work,
-and accents and case do not matter. The field also takes Gmail-style operators, and it is the one source of
+and accents and case do not matter. A prefix (from two letters on) stands for the 200 indexed words that start
+with it and occur in the most messages, the shorter word first on a tie, so a short prefix finds the common
+words and not the one-off codes that sort first. The field also takes Gmail-style operators, and it is the one source of
 truth: the *Filters* panel (`Ctrl+Shift+F`) and a click on a label in the folder pane write their operator into
 the field, and an operator you type shows up in the panel and in the folder selection.
 
@@ -210,6 +213,12 @@ that folder is not writable (a read-only share, a DVD), the index goes under `%L
 a Mac `~/Library/Application Support/mboxer/index/`;
 [D-005](../tasks/decisions/D-005-index-fallback-under-localappdata.md));
 `MBOXER_INDEX_HOME` overrides that root, and every open looks in both places. Accents and case are folded on both the index and the query side, so `szamla` finds `Számla`.
+A word of more than 40 characters after that folding (a base64 run, a hash) is not indexed; `árvíztűrő` counts
+9 characters, like `arvizturo`. The searchable text of a message is its plain-text part, or the text of its HTML
+part when it has none, decided for the message and for each message forwarded inside it (`message/rfc822`) on its
+own, so an HTML-only newsletter forwarded with a plain note is found by its own words. Messages with the same
+date (or the same score) list in the order they sit in the file. An index whose `mboxer.json` cannot be read
+(truncated, damaged) counts as out of date and is rebuilt.
 
 A build writes into `<file name>.building\` beside the index and puts it in place only when it is complete; a
 viewer may keep the old index open meanwhile. The old index's files are moved aside into `<file name>.old\` first
@@ -237,10 +246,12 @@ mboxer-cli search <file.mbox> [query words] [--from WORDS] [--to WORDS]
 messages, then a summary: message count, throughput, largest message, labels, parse failures.
 
 `index` builds the sidecar index and skips the build when the index already matches the file. Its summary counts
-the skipped messages and lists the byte offsets of the first ten.
+the skipped messages and lists the byte offsets of the first ten. `--force` rebuilds whatever state the old index
+is in.
 
 `search` needs that index. The query words follow the viewer's free-text syntax (AND-ed, `"quotes"`, `OR`,
 `-word`, a trailing `*`, a colon is plain text; a query that starts with `-` goes after `--`), accents and
 case are folded, the
-filters narrow the result, and every hit line carries the message's byte offset and length in the mbox. Dates
+filters narrow the result, and every hit line carries the message's byte offset and length in the mbox.
+`--limit` and `--offset` beyond the number of messages are capped: `--limit 1000000` prints every hit. Dates
 are UTC days here, and `--before` is exclusive (unlike the viewer's `before:`).

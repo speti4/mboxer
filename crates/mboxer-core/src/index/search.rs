@@ -21,6 +21,7 @@ use crate::error::Result;
 use crate::index::fingerprint::{IndexMeta, IndexStatus, StaleReason, default_index_home, resolve};
 use crate::index::free_text::free_text_query;
 use crate::index::schema::{Fields, register_tokenizer};
+use crate::reader::{RawMessage, read_at_with_limit};
 
 /// How much more a free-text word in the subject weighs than one elsewhere.
 const SUBJECT_BOOST: f32 = 2.0;
@@ -204,6 +205,12 @@ impl MboxIndex {
         self.meta.message_count
     }
 
+    /// Reads the message `offset`/`len` (a [`Hit`]'s identity) back from the
+    /// mbox under the size limit of the build that indexed it.
+    pub fn read_message(&self, offset: u64, len: u64) -> Result<RawMessage> {
+        read_at_with_limit(&self.mbox, offset, len, self.meta.max_message_bytes)
+    }
+
     pub(crate) fn searcher(&self) -> Searcher {
         self.reader.searcher()
     }
@@ -231,11 +238,15 @@ impl MboxIndex {
     }
 
     /// Runs `query` and returns one page of hits plus the total count.
+    /// `limit` and `offset` are capped at the number of documents: tantivy
+    /// sizes its collector by them, so `usize::MAX` would overflow (task 060).
     pub fn search(&self, query: &SearchQuery) -> Result<SearchResult> {
         let tantivy_query = self.to_tantivy_query(query);
         let warnings = Vec::new();
         let searcher = self.reader.searcher();
-        if query.limit == 0 {
+        let documents = usize::try_from(searcher.num_docs()).unwrap_or(usize::MAX);
+        let limit = query.limit.min(documents);
+        if limit == 0 || query.offset >= documents {
             let total = searcher.search(&*tantivy_query, &Count)?;
             return Ok(SearchResult {
                 total,
@@ -243,7 +254,7 @@ impl MboxIndex {
                 warnings,
             });
         }
-        let top = TopDocs::with_limit(query.limit).and_offset(query.offset);
+        let top = TopDocs::with_limit(limit).and_offset(query.offset);
         let (total, hits) = match query.sort {
             Sort::DateDesc => {
                 let collector = top.order_by_fast_field::<i64>("date", Order::Desc);

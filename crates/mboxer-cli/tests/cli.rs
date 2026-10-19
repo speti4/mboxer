@@ -174,6 +174,37 @@ fn count_and_paging() {
     assert_eq!(page.matches(" | offset ").count(), 1);
     // The second page by date is the older message.
     assert!(page.contains("2026-01-13T"), "{page}");
+
+    // A limit or an offset far above the message count is capped, not an abort (task 060).
+    let max = usize::MAX.to_string();
+    let everything = search(&mbox, &["--limit", &max]);
+    assert_eq!(field(&everything, "hits:"), "2");
+    assert_eq!(everything.matches(" | offset ").count(), 2);
+    let past = search(&mbox, &["--limit", &max, "--offset", &max]);
+    assert_eq!(field(&past, "hits:"), "2");
+    assert_eq!(past.matches(" | offset ").count(), 0);
+}
+
+#[test]
+fn a_corrupt_index_metadata_file_is_rebuilt() {
+    let (dir, mbox) = indexed();
+    let meta = dir
+        .path()
+        .join(".mboxer")
+        .join("gmail-crlf.mbox")
+        .join("mboxer.json");
+    assert!(meta.is_file());
+    for args in [vec!["--force"], vec![]] {
+        fs::write(&meta, b"{\"format_version\": \xff\xfe").unwrap();
+        let mut full = vec!["index", mbox.to_str().unwrap()];
+        full.extend(args);
+        let output = mboxer(&full);
+        assert!(output.status.success(), "{output:?}");
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        assert!(stderr.contains("index metadata unreadable"), "{stderr}");
+        assert_eq!(field(&stdout(&output), "messages:"), "2");
+        assert_eq!(hits(&mbox, &["számla"]), "1");
+    }
 }
 
 #[test]

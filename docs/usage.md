@@ -194,7 +194,8 @@ a dark one would make some messages unreadable. The *Text* and *Source* views fo
   saved": it is a type that would run as a program, so *Save…* is the way to get it (see *Reading a
   message*).
 - The index rebuilds although nothing changed: the mbox was touched (copied with a new
-  modification time, re-exported). A rebuild is safe, it only takes the time of the first open.
+  modification time, re-exported), or a new mboxer version indexes differently, which rebuilds each
+  index once. A rebuild is safe, it only takes the time of the first open.
 - To force a rebuild, delete the `.mboxer\<mbox file name>\` folder next to the mbox (or the
   folder under `%LOCALAPPDATA%\mboxer\index\`, on a Mac under `~/Library/Application Support/mboxer/index/`)
   and open the mbox again.

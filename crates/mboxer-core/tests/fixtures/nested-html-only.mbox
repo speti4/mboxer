@@ -1,0 +1,42 @@
+From 6660001@xxx Thu Jan 15 08:00:00 +0000 2026
+X-GM-THRID: 6660001000000000001
+X-Gmail-Labels: Inbox
+Message-ID: <fwd1@mail.example.com>
+Date: Thu, 15 Jan 2026 09:00:00 +0100
+From: Anna <anna@example.com>
+To: bela@example.com
+Subject: Fwd: hírlevél
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="outer"
+
+--outer
+Content-Type: multipart/alternative; boundary="alt"
+
+--alt
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+
+Továbbítom az eredetit, lásd lent.
+--alt
+Content-Type: text/html; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+
+<p>Továbbítom az eredetit, lásd lent.</p><p>htmlalternativaszo</p>
+--alt--
+
+--outer
+Content-Type: message/rfc822
+Content-Disposition: attachment
+
+From: Hírlevél <hirlevel@example.com>
+To: anna@example.com
+Subject: Januári hírlevél
+Date: Wed, 14 Jan 2026 10:00:00 +0100
+MIME-Version: 1.0
+Content-Type: text/html; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+
+<html><body><p>A <b>bérszámfejtés</b> határideje változik.</p><style>.x{color:red}</style></body></html>
+
+--outer--
+

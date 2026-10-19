@@ -29,7 +29,7 @@ use crate::index::fingerprint::{
 };
 use crate::index::schema::{Fields, build_schema, register_tokenizer};
 use crate::message::{
-    Mailbox, MessageSummary, TextKind, html_to_plain_text, parse, summarize, text_parts,
+    Mailbox, MessageSummary, TextKind, html_to_plain_text, parse, summarize, text_parts_by_message,
 };
 use crate::reader::{DEFAULT_MAX_MESSAGE_BYTES, MboxReader};
 
@@ -133,6 +133,7 @@ pub fn build(
             message_count: counts.messages,
             parse_failures: counts.parse_failures,
             skipped: counts.skipped,
+            max_message_bytes: options.max_message_bytes,
             built_at_unix: UNIX_EPOCH.elapsed().map_or(0, |d| d.as_secs() as i64),
             build_secs: start.elapsed().as_secs(),
             tantivy_version: tantivy::version_string().to_owned(),
@@ -471,9 +472,9 @@ fn add_summary(doc: &mut TantivyDocument, fields: &Fields, summary: &MessageSumm
     if let Some(message_id) = &summary.message_id {
         doc.add_text(fields.message_id, message_id);
     }
-    add_mailboxes(doc, fields.from, Some(fields.from_addr), &summary.from);
-    add_mailboxes(doc, fields.to, Some(fields.to_addr), &summary.to);
-    add_mailboxes(doc, fields.cc, None, &summary.cc);
+    add_mailboxes(doc, fields.from, &summary.from);
+    add_mailboxes(doc, fields.to, &summary.to);
+    add_mailboxes(doc, fields.cc, &summary.cc);
     if let Some(subject) = &summary.subject {
         doc.add_text(fields.subject, subject);
     }
@@ -489,35 +490,35 @@ fn add_summary(doc: &mut TantivyDocument, fields: &Fields, summary: &MessageSumm
 fn add_mailboxes(
     doc: &mut TantivyDocument,
     display: tantivy::schema::Field,
-    address: Option<tantivy::schema::Field>,
     mailboxes: &[Mailbox],
 ) {
     for mailbox in mailboxes {
         doc.add_text(display, mailbox.display());
-        if let (Some(field), Some(addr)) = (address, &mailbox.address) {
-            doc.add_text(field, addr.to_lowercase());
-        }
     }
 }
 
-/// The searchable text of a message: its plain-text parts, or the text of its
-/// HTML parts when it has no plain part at all, capped at `max_bytes`.
+/// The searchable text of a message, capped at `max_bytes`: for the message
+/// and for every nested `message/rfc822` in it, its plain-text parts, or the
+/// text of its HTML parts when that message has no plain part. The choice is
+/// made per message, so a forwarded HTML-only newsletter is indexed beside
+/// the plain note that forwards it (task 060).
 pub fn body_text(message: &Message<'_>, max_bytes: usize) -> String {
-    let parts = text_parts(message);
-    let has_plain = parts.iter().any(|p| p.kind == TextKind::Plain);
     let mut out = String::new();
-    for part in &parts {
-        let text = match part.kind {
-            TextKind::Plain => part.text.clone(),
-            TextKind::Html if !has_plain => html_to_plain_text(&part.text),
-            TextKind::Html => continue,
-        };
-        if !out.is_empty() {
-            out.push('\n');
-        }
-        out.push_str(&text);
-        if out.len() >= max_bytes {
-            break;
+    'messages: for parts in text_parts_by_message(message) {
+        let has_plain = parts.iter().any(|p| p.kind == TextKind::Plain);
+        for part in &parts {
+            let text = match part.kind {
+                TextKind::Plain => part.text.clone(),
+                TextKind::Html if !has_plain => html_to_plain_text(&part.text),
+                TextKind::Html => continue,
+            };
+            if !out.is_empty() {
+                out.push('\n');
+            }
+            out.push_str(&text);
+            if out.len() >= max_bytes {
+                break 'messages;
+            }
         }
     }
     truncate_at_char_boundary(&mut out, max_bytes);

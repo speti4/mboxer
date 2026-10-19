@@ -83,7 +83,8 @@ pub struct MessageSummary {
     pub message_id: Option<String>,
     /// Gmail's `X-GM-THRID` header.
     pub gmail_thread_id: Option<u64>,
-    /// Gmail's `X-Gmail-Labels` header, RFC 2047 decoded, split on commas and trimmed.
+    /// Gmail's `X-Gmail-Labels` header, RFC 2047 decoded, split on the commas
+    /// outside quoted names and trimmed.
     pub labels: Vec<String>,
     /// The `Date` header as Unix seconds.
     pub date_unix: Option<i64>,
@@ -135,12 +136,42 @@ pub fn summarize(raw: &RawMessage, message: &Message<'_>) -> MessageSummary {
     }
 }
 
+/// Splits the decoded `X-Gmail-Labels` value on commas. Gmail writes a label
+/// that holds a comma as a quoted string (`"Work, Home",Inbox`, a `"` or `\`
+/// inside escaped with `\`), which `mail-parser` hands over as written: a
+/// label that starts with a quote runs to the closing quote (task 060). A
+/// quote anywhere else is part of the name.
 fn split_labels(text: &str) -> Vec<String> {
-    text.split(',')
-        .map(str::trim)
-        .filter(|label| !label.is_empty())
-        .map(str::to_owned)
-        .collect()
+    let mut labels = Vec::new();
+    let mut chars = text.chars().peekable();
+    loop {
+        while chars.next_if(|c| c.is_whitespace()).is_some() {}
+        let mut label = String::new();
+        if chars.next_if_eq(&'"').is_some() {
+            while let Some(c) = chars.next() {
+                match c {
+                    '\\' => label.extend(chars.next()),
+                    '"' => break,
+                    c => label.push(c),
+                }
+            }
+        }
+        let mut last = true;
+        for c in chars.by_ref() {
+            if c == ',' {
+                last = false;
+                break;
+            }
+            label.push(c);
+        }
+        let label = label.trim();
+        if !label.is_empty() {
+            labels.push(label.to_owned());
+        }
+        if last {
+            return labels;
+        }
+    }
 }
 
 fn mailboxes(address: Option<&Address<'_>>) -> Vec<Mailbox> {
@@ -173,12 +204,23 @@ pub struct TextPart {
 
 /// All decoded text and HTML bodies of `message`, outer message first, nested messages after.
 pub fn text_parts(message: &Message<'_>) -> Vec<TextPart> {
-    let mut out = Vec::new();
-    collect_text_parts(message, &mut out);
-    out
+    text_parts_by_message(message)
+        .into_iter()
+        .flatten()
+        .collect()
 }
 
-fn collect_text_parts(message: &Message<'_>, out: &mut Vec<TextPart>) {
+/// [`text_parts`] grouped by the message that owns them: the outer message's
+/// parts first, then one group per nested message, depth first. A group may
+/// be empty.
+pub(crate) fn text_parts_by_message(message: &Message<'_>) -> Vec<Vec<TextPart>> {
+    let mut groups = Vec::new();
+    collect_text_parts(message, &mut groups);
+    groups
+}
+
+fn collect_text_parts(message: &Message<'_>, groups: &mut Vec<Vec<TextPart>>) {
+    let mut out = Vec::new();
     // mail-parser lists a lone text part under both `text_bodies` and `html_bodies` (and
     // vice versa) so that either representation can be produced on demand; filter on the
     // actual part type to report each body once.
@@ -198,9 +240,10 @@ fn collect_text_parts(message: &Message<'_>, out: &mut Vec<TextPart>) {
             });
         }
     }
+    groups.push(out);
     for part in message.attachments() {
         if let PartType::Message(nested) = &part.body {
-            collect_text_parts(nested, out);
+            collect_text_parts(nested, groups);
         }
     }
 }
@@ -427,6 +470,21 @@ mod tests {
         );
         let words: Vec<&str> = text.split_whitespace().collect();
         assert_eq!(words, ["Kedves", "Gábor,", "Árajánlat", "a", "gépre."]);
+    }
+
+    #[test]
+    fn labels_split_on_commas_outside_quotes() {
+        assert_eq!(split_labels("Inbox,Opened"), ["Inbox", "Opened"]);
+        assert_eq!(split_labels(" Inbox , ,Opened,"), ["Inbox", "Opened"]);
+        assert_eq!(
+            split_labels("\"Work, Home\",Inbox"),
+            ["Work, Home", "Inbox"]
+        );
+        assert_eq!(split_labels(r#""a \"b\", c \\ d""#), [r#"a "b", c \ d"#]);
+        assert_eq!(split_labels("\"Unclosed, quote"), ["Unclosed, quote"]);
+        assert_eq!(split_labels("My \"best\",x"), ["My \"best\"", "x"]);
+        assert!(split_labels("").is_empty());
+        assert!(split_labels("\"\"").is_empty());
     }
 
     #[test]

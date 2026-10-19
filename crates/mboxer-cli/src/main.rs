@@ -257,8 +257,16 @@ fn scan(args: &ScanArgs) -> Result<(), Box<dyn Error>> {
 fn index(args: &IndexArgs) -> Result<(), Box<dyn Error>> {
     let stdout = std::io::stdout();
     let mut out = stdout.lock();
-    match status(&args.mbox)? {
-        IndexStatus::Fresh(meta) if !args.force => {
+    // An index whose state cannot be told is rebuilt under `--force`; an
+    // mbox that cannot be read fails the build itself.
+    match status(&args.mbox) {
+        Err(err) if args.force => {
+            if !args.quiet {
+                eprintln!("rebuilding: {err}");
+            }
+        }
+        Err(err) => return Err(err.into()),
+        Ok(IndexStatus::Fresh(meta)) if !args.force => {
             writeln!(
                 out,
                 "index is up to date: {} messages, built {} (use --force to rebuild)",
@@ -267,13 +275,13 @@ fn index(args: &IndexArgs) -> Result<(), Box<dyn Error>> {
             )?;
             return Ok(());
         }
-        IndexStatus::Fresh(_) => {}
-        IndexStatus::Missing => {
+        Ok(IndexStatus::Fresh(_)) => {}
+        Ok(IndexStatus::Missing) => {
             if !args.quiet {
                 eprintln!("no index yet, building");
             }
         }
-        IndexStatus::Stale(reason) => {
+        Ok(IndexStatus::Stale(reason)) => {
             if !args.quiet {
                 eprintln!("rebuilding: {reason}");
             }
