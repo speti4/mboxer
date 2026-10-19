@@ -4,19 +4,22 @@
 //! reduced to text) and the first HTML part as written; the webview sanitizes
 //! the HTML and renders it in a sandboxed iframe (task 007).
 
-use std::path::Path;
-
 use mboxer_core::mail_parser::Message;
 use mboxer_core::{
-    RawMessage, TextKind, TextPart, attachments, html_to_plain_text, parse, part_tree, read_at,
+    MboxIndex, RawMessage, TextKind, TextPart, attachments, html_to_plain_text, parse, part_tree,
     summarize, text_parts, unquote_from_lines,
 };
 
 use crate::types::{BodyKind, BodyView, MessageView};
 
-/// Reads the message at `offset`/`len` from `mbox` and builds its view.
-pub fn read_message_view(mbox: &Path, offset: u64, len: u64) -> mboxer_core::Result<MessageView> {
-    let raw = read_at(mbox, offset, len)?;
+/// Reads the message at `offset`/`len` through `index`, under the size limit of
+/// its build (task 069), and builds its view.
+pub fn read_message_view(
+    index: &MboxIndex,
+    offset: u64,
+    len: u64,
+) -> mboxer_core::Result<MessageView> {
+    let raw = index.read_message(offset, len)?;
     Ok(match parse(&raw) {
         Some(message) => message_view(&raw, &message),
         None => raw_view(&raw),
@@ -104,7 +107,8 @@ fn raw_view(raw: &RawMessage) -> MessageView {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use mboxer_core::MboxReader;
+    use crate::test_support::indexed_fixture;
+    use mboxer_core::{Error, MboxReader, read_at};
     use std::path::PathBuf;
 
     fn fixture(name: &str) -> PathBuf {
@@ -124,7 +128,8 @@ mod tests {
     #[test]
     fn plain_part_wins_and_headers_are_filled() {
         let raw = first_message("gmail-crlf.mbox");
-        let view = read_message_view(&fixture("gmail-crlf.mbox"), raw.offset, raw.len).unwrap();
+        let (_dir, _, index) = indexed_fixture("gmail-crlf.mbox", None);
+        let view = read_message_view(&index, raw.offset, raw.len).unwrap();
         assert_eq!(view.offset, 0);
         assert_eq!(view.len, raw.len);
         assert!(view.date.is_some());
@@ -174,12 +179,12 @@ mod tests {
 
     #[test]
     fn remote_fixture_carries_its_html_and_unquoted_text() {
-        let path = fixture("html-remote.mbox");
+        let (_dir, path, index) = indexed_fixture("html-remote.mbox", None);
         let views: Vec<MessageView> = MboxReader::open(&path)
             .unwrap()
             .map(|item| {
                 let raw = item.unwrap();
-                read_message_view(&path, raw.offset, raw.len).unwrap()
+                read_message_view(&index, raw.offset, raw.len).unwrap()
             })
             .collect();
         assert_eq!(views.len(), 2);
@@ -198,9 +203,9 @@ mod tests {
 
     #[test]
     fn attachments_travel_with_the_view() {
-        let path = fixture("attachments.mbox");
+        let (_dir, path, index) = indexed_fixture("attachments.mbox", None);
         let raw = first_message("attachments.mbox");
-        let view = read_message_view(&path, raw.offset, raw.len).unwrap();
+        let view = read_message_view(&index, raw.offset, raw.len).unwrap();
         let names: Vec<Option<&str>> = view.attachments.iter().map(|a| a.name.as_deref()).collect();
         assert_eq!(names[0], Some("logo.png"));
         assert_eq!(names[3], Some("Forwarded original.eml"));
@@ -219,7 +224,7 @@ mod tests {
         assert!(view.attachments[3].is_message);
         // The second message: one nameless inline part for the cid, nothing to list.
         let second = MboxReader::open(&path).unwrap().nth(1).unwrap().unwrap();
-        let view = read_message_view(&path, second.offset, second.len).unwrap();
+        let view = read_message_view(&index, second.offset, second.len).unwrap();
         assert_eq!(view.attachments.len(), 1);
         assert_eq!(view.attachments[0].name, None);
         assert!(view.attachments[0].inline);
@@ -227,10 +232,10 @@ mod tests {
 
     #[test]
     fn legacy_charsets_are_decoded() {
-        let path = fixture("hungarian-charsets.mbox");
+        let (_dir, path, index) = indexed_fixture("hungarian-charsets.mbox", None);
         for item in MboxReader::open(&path).unwrap() {
             let raw = item.unwrap();
-            let view = read_message_view(&path, raw.offset, raw.len).unwrap();
+            let view = read_message_view(&index, raw.offset, raw.len).unwrap();
             let body = view.body.expect("body");
             assert!(
                 !body.text.contains('\u{FFFD}'),
@@ -238,6 +243,38 @@ mod tests {
                 body.text
             );
         }
+    }
+
+    #[test]
+    fn a_read_above_the_size_limit_of_the_build_is_refused_as_the_index_refuses_it() {
+        // The build's limit is the first message's length: that message is
+        // read, one byte more is refused with the build's limit, while the
+        // default limit of `read_at` would read across into the next message.
+        let first = first_message("gmail-crlf.mbox");
+        let (_dir, mbox, index) = indexed_fixture("gmail-crlf.mbox", Some(first.len));
+        assert_eq!(index.meta().max_message_bytes, first.len);
+        let view = read_message_view(&index, first.offset, first.len).unwrap();
+        assert_eq!((view.offset, view.len), (first.offset, first.len));
+
+        let over = first.len + 1;
+        assert!(read_at(&mbox, first.offset, over).is_ok());
+        let refused = |err: String| {
+            let expected = index.read_message(first.offset, over).unwrap_err();
+            assert!(
+                matches!(expected, Error::MessageTooLarge { limit, .. } if limit == first.len),
+                "{expected:?}"
+            );
+            assert_eq!(err, expected.to_string());
+        };
+        refused(
+            read_message_view(&index, first.offset, over)
+                .unwrap_err()
+                .to_string(),
+        );
+        refused(crate::attachments::read_attachment(&index, first.offset, over, 1).unwrap_err());
+        refused(
+            crate::attachments::read_listed_attachments(&index, first.offset, over).unwrap_err(),
+        );
     }
 
     #[test]

@@ -222,3 +222,53 @@ fn a_bad_date_is_a_usage_error() {
     ]);
     assert_eq!(both.status.code(), Some(2));
 }
+
+/// The offsets of the hits a `search` printed, in the order printed.
+fn offsets(text: &str) -> Vec<u64> {
+    text.lines()
+        .filter_map(|line| line.split(" | offset ").nth(1))
+        .map(|rest| rest.split(' ').next().unwrap().parse().unwrap())
+        .collect()
+}
+
+#[test]
+fn same_date_hits_of_a_four_thread_build_page_in_mbox_order() {
+    // 400 messages with one date: the four indexing threads spread them over
+    // segments in whatever order they pick them up (task 069).
+    let dir = tempfile::tempdir().unwrap();
+    let mbox = dir.path().join("generated.mbox");
+    let mut data = String::new();
+    for n in 0..400 {
+        data.push_str("From sender@example.com Mon Jan  5 09:00:00 2026\n");
+        data.push_str(&format!(
+            "From: sender@example.com\nDate: Mon, 5 Jan 2026 09:00:00 +0000\nSubject: m{n:03}\n\nszo\n\n"
+        ));
+    }
+    fs::write(&mbox, data).unwrap();
+    let path = mbox.to_str().unwrap();
+    let output = mboxer(&["index", path, "--threads", "4", "--quiet"]);
+    assert!(output.status.success(), "{output:?}");
+    assert_eq!(field(&stdout(&output), "messages:"), "400");
+
+    for sort in [&[][..], &["--relevance"][..]] {
+        let mut args = vec!["szo", "--limit", "400"];
+        args.extend_from_slice(sort);
+        let all = offsets(&search(&mbox, &args));
+        assert_eq!(all.len(), 400, "{sort:?}");
+        assert!(
+            all.windows(2).all(|w| w[0] < w[1]),
+            "{sort:?}: ties not in mbox order"
+        );
+        // Every page is the matching slice of that order.
+        for page in 0..4 {
+            let start = (page * 100).to_string();
+            let mut args = vec!["szo", "--limit", "100", "--offset", &start];
+            args.extend_from_slice(sort);
+            assert_eq!(
+                offsets(&search(&mbox, &args)),
+                all[page * 100..(page + 1) * 100],
+                "{sort:?}: page {page}"
+            );
+        }
+    }
+}

@@ -222,8 +222,8 @@ A word of more than 40 characters after that folding (a base64 run, a hash) is n
 9 characters, like `arvizturo`. The searchable text of a message is its plain-text part, or the text of its HTML
 part when it has none, decided for the message and for each message forwarded inside it (`message/rfc822`) on its
 own, so an HTML-only newsletter forwarded with a plain note is found by its own words. Messages with the same
-date (or the same score) list in the order they sit in the file. An index whose `mboxer.json` cannot be read
-(truncated, damaged) counts as out of date and is rebuilt.
+date (or the same score) list in the order they sit in the file, in the viewer and in `mboxer-cli search` alike.
+An index whose `mboxer.json` cannot be read (truncated, damaged) counts as out of date and is rebuilt.
 
 A build writes into `<file name>.building\` beside the index and puts it in place only when it is complete; a
 viewer may keep the old index open meanwhile. The old index's files are moved aside into `<file name>.old\` first

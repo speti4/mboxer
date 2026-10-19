@@ -10,6 +10,7 @@ use std::collections::BTreeMap;
 use std::ops::Bound;
 use std::path::{Path, PathBuf};
 
+use tantivy::collector::sort_key::{SortBySimilarityScore, SortByStaticFastValue};
 use tantivy::collector::{Count, TopDocs};
 use tantivy::query::{AllQuery, BooleanQuery, Occur, Query, RangeQuery, TermQuery};
 use tantivy::schema::{IndexRecordOption, Value};
@@ -237,6 +238,10 @@ impl MboxIndex {
     /// Runs `query` and returns one page of hits plus the total count.
     /// `limit` and `offset` are capped at the number of documents: tantivy
     /// sizes its collector by them, so `usize::MAX` would overflow (task 060).
+    /// A tie (same date, same score) is broken by the D-003 offset, so equal
+    /// keys page in mbox order, the rule of [`MboxIndex::list`]: tantivy would
+    /// break it by document address, which is not mbox order after a build
+    /// with several indexing threads (task 069).
     pub fn search(&self, query: &SearchQuery) -> Result<SearchResult> {
         let tantivy_query = self.to_tantivy_query(query);
         let searcher = self.reader.searcher();
@@ -252,7 +257,11 @@ impl MboxIndex {
         let top = TopDocs::with_limit(limit).and_offset(query.offset);
         let (total, hits) = match query.sort {
             Sort::DateDesc => {
-                let collector = top.order_by_fast_field::<i64>("date", Order::Desc);
+                // A missing date sorts below every date: last, as in the listing.
+                let collector = top.order_by((
+                    (SortByStaticFastValue::<i64>::for_field("date"), Order::Desc),
+                    by_offset(),
+                ));
                 let (total, docs) = searcher.search(&*tantivy_query, &(Count, collector))?;
                 let hits = docs
                     .into_iter()
@@ -261,11 +270,11 @@ impl MboxIndex {
                 (total, hits)
             }
             Sort::Relevance => {
-                let collector = top.order_by_score();
+                let collector = top.order_by((SortBySimilarityScore, by_offset()));
                 let (total, docs) = searcher.search(&*tantivy_query, &(Count, collector))?;
                 let hits = docs
                     .into_iter()
-                    .map(|(score, address)| {
+                    .map(|((score, _), address)| {
                         hit_from_address(&self.fields, &searcher, address, Some(score))
                     })
                     .collect::<Result<Vec<_>>>()?;
@@ -386,6 +395,11 @@ impl MboxIndex {
         };
         combined
     }
+}
+
+/// The tie-breaking sort key of [`MboxIndex::search`]: the lower offset first.
+fn by_offset() -> (SortByStaticFastValue<u64>, Order) {
+    (SortByStaticFastValue::for_field("offset"), Order::Asc)
 }
 
 /// Assembles a [`Hit`] from the stored fields of one document.
