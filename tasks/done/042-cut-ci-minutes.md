@@ -3,6 +3,7 @@ size: S
 origin: session 2026-10-19
 created: 2026-10-19
 started: 2026-10-19
+closed: 2026-10-19
 plan: C:\Users\peter\.claude\plans\peaceful-jumping-adleman.md
 milestone: M4 macOS
 ---
@@ -31,7 +32,7 @@ pull request that touches macOS code gets a manual run on its branch before the 
 4. [x] `commit-rules` job moves to `.github/workflows/commit-rules.yml` (no paths filter)
 5. [x] docs: `docs/development.md` (CI and releases, the macOS bundle), `CONTRIBUTING.md`, `scripts/check-commit.sh`
 6. [x] local checks: `uvx zizmor .github`, darwin clippy, fmt, clippy, test, `cargo deny check`
-7. [ ] pull request run without `macos-*`; one manual run on the branch with `test (macos-latest)` and `bundle-macos`
+7. [x] pull request run without `macos-*`; one manual run on the branch with `test (macos-latest)` and `bundle-macos`
 
 ## Log
 
@@ -57,11 +58,18 @@ pull request that touches macOS code gets a manual run on its branch before the 
 
 ## Verification
 
-- 
+- 2026-10-19 — PR #66, `ci` run 39251322792 (pull_request): `test (windows-latest)` 175 s, `lint` (ubuntu) 163 s,
+  `deny` 55 s, `workflow-lint` 7 s, mind success; macOS job nem futott (a `bundle-macos` skipped — a skipped job
+  is viseli a `macos-latest` labelt, de nem fut és nem számláz). `commit-rules` run 39251322878 külön
+  workflow-ként: success, 5 s.
+- 2026-10-19 — kézi futtatás a branchen, `ci` run 39251320450 (workflow_dispatch): `test (macos-latest)` 68 s,
+  `bundle-macos` 675 s, `test (windows-latest)` 176 s, `lint` 175 s, mind success — a tag / dispatch ág
+  visszahozza a macOS lábat.
+- Új darabszám PR-futásonként: ubuntu ~5 számlázott perc + Windows 3 × 2 = 6, macOS 0 (előtte +30–40).
 
 ## Closing checklist
 
-- [ ] every follow-up is a `backlog/` file (`/tasks add`) or deleted with a reason in the Log
-- [ ] Verification written, dated
-- [ ] `tasks_check` green, README index regenerated
-- [ ] moved to `done/` with `closed: YYYY-MM-DD`
+- [x] every follow-up is a `backlog/` file (`/tasks add`) or deleted with a reason in the Log
+- [x] Verification written, dated
+- [x] `tasks_check` green, README index regenerated
+- [x] moved to `done/` with `closed: 2026-10-19`
