@@ -5,7 +5,7 @@ created: 2026-10-17
 started: 2026-10-18
 closed: 2026-10-18
 milestone: M3 Comfort
-plan: task-016-glimmering-meadow.md
+plan: none
 ---
 
 # 016 — Open multiple mbox files

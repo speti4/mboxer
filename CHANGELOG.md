@@ -27,6 +27,7 @@ not the list. The summary under a heading is written by hand and kept by the gen
 - CONTRIBUTING's pre-commit list matches CI, and the private-era wording goes ([057](https://github.com/speti4/mboxer/blob/main/tasks/done/057-contributing-checks-match-ci-and-private-era-leftovers.md))
 - Task files: dead `origin` paths, plan slugs, and who closes a milestone ([058](https://github.com/speti4/mboxer/blob/main/tasks/done/058-dead-task-references-plan-slugs-and-milestone-closing.md))
 - The commit-rule wording names the scope form, the CI header gives the runner-time reason, the lint entry is complete ([062](https://github.com/speti4/mboxer/blob/main/tasks/done/062-commit-rule-wording-ci-header-and-lint-entry.md))
+- The `plan:` field is `none` in every task file, the rule is written down ([066](https://github.com/speti4/mboxer/blob/main/tasks/done/066-plan-field-policy-for-prompt-derived-names.md))
 
 ## 0.2.0 — 2026-10-19
 

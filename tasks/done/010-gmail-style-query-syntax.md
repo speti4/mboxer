@@ -5,7 +5,7 @@ created: 2026-10-17
 started: 2026-10-17
 closed: 2026-10-17
 milestone: M3 Comfort
-plan: j-backlog-tletek-expressive-breeze.md
+plan: none
 ---
 
 # 010 — Gmail-style query syntax in the search field

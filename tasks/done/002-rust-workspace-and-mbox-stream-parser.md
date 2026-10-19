@@ -5,7 +5,7 @@ created: 2026-10-17
 started: 2026-10-17
 closed: 2026-10-17
 milestone: M1 Index core
-plan: folytassuk-a-002-task-wise-starfish.md
+plan: none
 ---
 
 # 002 — Rust workspace and streaming mbox parser

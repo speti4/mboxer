@@ -4,7 +4,7 @@ origin: session 2026-10-17
 created: 2026-10-17
 started: 2026-10-17
 closed: 2026-10-17
-plan: olvasd-el-a-draft-md-sharded-teapot.md
+plan: none
 changelog: housekeeping
 ---
 

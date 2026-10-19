@@ -4,7 +4,7 @@ origin: session 2026-10-18
 created: 2026-10-18
 started: 2026-10-19
 closed: 2026-10-19
-plan: iterative-gliding-bentley.md
+plan: none
 milestone: M5 Public release
 changelog: housekeeping
 ---

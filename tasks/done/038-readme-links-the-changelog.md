@@ -3,7 +3,7 @@ size: S
 origin: done/025-release-notes-changelog-and-checksums.md
 created: 2026-10-18
 started: 2026-10-19
-plan: n-zz-k-t-a-backlogot-gentle-goose.md
+plan: none
 milestone: M5 Public release
 closed: 2026-10-19
 changelog: housekeeping

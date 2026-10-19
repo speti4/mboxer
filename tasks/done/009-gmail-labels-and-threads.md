@@ -5,7 +5,7 @@ created: 2026-10-17
 started: 2026-10-17
 closed: 2026-10-17
 milestone: M3 Comfort
-plan: folytassuk-a-009-taskkal-peaceful-sunbeam.md
+plan: none
 ---
 
 # 009 — Gmail labels and conversation threads

@@ -5,7 +5,7 @@ created: 2026-10-17
 started: 2026-10-17
 closed: 2026-10-17
 milestone: M2 Viewer MVP
-plan: folytassuk-a-backlog-k-vetkez-quirky-summit.md
+plan: none
 ---
 
 # 005 — Tauri 2 shell with the three-pane layout

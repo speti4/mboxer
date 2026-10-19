@@ -5,7 +5,7 @@ created: 2026-10-18
 started: 2026-10-18
 closed: 2026-10-18
 milestone: M5 Public release
-plan: peppy-imagining-pony.md
+plan: none
 ---
 
 # 026 — README as a front page, the reference moved into docs

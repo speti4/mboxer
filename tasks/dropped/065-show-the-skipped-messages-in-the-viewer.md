@@ -1,8 +1,10 @@
 ---
-status: idea
 size: S
 origin: done/052-atomic-index-swap-build-lock-and-skipped-messages.md
 created: 2026-10-19
+closed: 2026-10-19
+reason: Gmail caps a message near 50 MB, so a Takeout export never reaches the 256 MB skip limit; the skip of task 052 is a safeguard that no real archive triggers, and a list of skipped messages would stay empty
+reopen-when: a real archive reports a skipped message in the status line
 milestone: M6 Hardening
 ---
 

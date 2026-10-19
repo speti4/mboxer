@@ -5,7 +5,7 @@ created: 2026-10-18
 started: 2026-10-18
 closed: 2026-10-18
 milestone: M5 Public release
-plan: steady-baking-kurzweil.md
+plan: none
 changelog: housekeeping
 ---
 

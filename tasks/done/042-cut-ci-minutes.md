@@ -4,7 +4,7 @@ origin: session 2026-10-19
 created: 2026-10-19
 started: 2026-10-19
 closed: 2026-10-19
-plan: peaceful-jumping-adleman.md
+plan: none
 milestone: M4 macOS
 changelog: housekeeping
 ---
