@@ -13,7 +13,7 @@ edit the file, never the issue. Everything here is English.
 <!-- tasks:index:start -->
 _Generated 2026-10-19 — edit the files, not this section._
 
-**State:** 12 backlog (8 ready · 0 blocked · 2 waiting · 2 ideas) · 0 in progress · 49 done · 1 dropped · 13 decisions
+**State:** 12 backlog (7 ready · 0 blocked · 2 waiting · 3 ideas) · 0 in progress · 50 done · 1 dropped · 13 decisions
 
 ### Ready
 
@@ -21,7 +21,6 @@ _Generated 2026-10-19 — edit the files, not this section._
 
 | # | Task | Size | Created |
 |---|---|---|---|
-| 050 | [A colon in free text is read as a field name, so Re: számla finds nothing](backlog/050-colon-in-free-text-reaches-the-query-parser.md) | M | 2026-10-19 |
 | 051 | [set_query takes its generation before the files lock, and the sync commands blo…](backlog/051-query-generation-race-and-sync-commands-on-the-files-lock.md) | M | 2026-10-19 |
 | 052 | [Swap the index atomically, lock the build, and skip a bad message instead of fa…](backlog/052-atomic-index-swap-build-lock-and-skipped-messages.md) | M | 2026-10-19 |
 | 054 | [Keep the attachment copies and the index's last-resort home in separate temp fo…](backlog/054-temp-folder-split-between-attachments-and-the-index-fallback.md) | S | 2026-10-19 |
@@ -56,6 +55,7 @@ _none_
 |---|---|---|---|
 | 060 | [Index quality follow-ups: token length, completions, nested parts, limits, mult…](backlog/060-index-quality-follow-ups-from-the-review.md) | M | 2026-10-19 |
 | 061 | [Small hygiene follow-ups: toolchain pin, ignores, arguments, cancel, logs, dupl…](backlog/061-small-hygiene-follow-ups-from-the-review.md) | S | 2026-10-19 |
+| 063 | [Free-text follow-ups: the tantivy exclusion assertion, the empty warnings, the …](backlog/063-free-text-follow-ups-tantivy-assertion-warnings-and-highlight.md) | S | 2026-10-19 |
 
 ### In progress
 
@@ -74,15 +74,15 @@ _none_
 | 057 | [CONTRIBUTING's pre-commit list matches CI, and the private-era wording goes](done/057-contributing-checks-match-ci-and-private-era-leftovers.md) | 2026-10-19 |
 | 056 | [The commit hook checks the type prefix, and the required checks hold after a re…](done/056-commit-hook-checks-the-type-and-ci-re-checks-edited-pull-requests.md) | 2026-10-19 |
 | 053 | [Attachment and reader hardening: blocked extensions, reserved names, referrer, …](done/053-attachment-and-reader-hardening.md) | 2026-10-19 |
+| 050 | [A colon in free text is read as a field name, so Re: számla finds nothing](done/050-colon-in-free-text-reaches-the-query-parser.md) | 2026-10-19 |
 | 049 | [The label tree panics on a label whose ninth byte is inside a multibyte charact…](done/049-label-tree-panics-on-a-multibyte-boundary.md) | 2026-10-19 |
 | 048 | [The usage guide in the zips in a format that opens with a double-click](done/048-usage-guide-readable-in-the-zip.md) | 2026-10-19 |
 | 047 | [Keep project housekeeping apart from user-facing changes in the changelog](done/047-housekeeping-tasks-in-the-changelog.md) | 2026-10-19 |
 | 046 | [CI extras once the minutes are free: MSRV, changelog check, fork guard](done/046-ci-extras-after-publication.md) | 2026-10-19 |
 | 045 | [Polish the code comments, UI strings and crate metadata](done/045-code-comments-and-ui-strings-polish.md) | 2026-10-19 |
 | 044 | [macOS in the user docs, the security policy and the bug report form](done/044-macos-in-the-user-docs.md) | 2026-10-19 |
-| 043 | [Pad the decision ids to three digits before the repo goes public](done/043-pad-decision-ids-to-three-digits.md) | 2026-10-19 |
 
-_39 more in `done/`._
+_40 more in `done/`._
 
 ### Decisions
 
