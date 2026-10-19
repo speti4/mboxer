@@ -13,7 +13,7 @@ edit the file, never the issue. Everything here is English.
 <!-- tasks:index:start -->
 _Generated 2026-10-19 — edit the files, not this section._
 
-**State:** 3 backlog (0 ready · 0 blocked · 2 waiting · 1 idea) · 1 in progress · 43 done · 1 dropped · 12 decisions
+**State:** 3 backlog (0 ready · 0 blocked · 2 waiting · 1 idea) · 0 in progress · 44 done · 1 dropped · 13 decisions
 
 ### Ready
 
@@ -35,7 +35,7 @@ _none_
 
 | # | Task | Waits for | Size | Created |
 |---|---|---|---|---|
-| 029 | [Authenticode signing of the release exe](backlog/029-windows-code-signing.md) | 028 (SignPath Foundation takes public repos only; decision 2026-10-19) | M | 2026-10-18 |
+| 029 | [Authenticode signing of the release exe](backlog/029-windows-code-signing.md) | SignPath Foundation accepts the project (D-013) | M | 2026-10-18 |
 
 ### Ideas
 
@@ -47,11 +47,7 @@ _none_
 
 ### In progress
 
-#### M5 Public release
-
-| # | Task | Started | Plan |
-|---|---|---|---|
-| 028 | [Publication day: visibility switch and the public-only repo settings](wip/028-publication-day-repo-settings.md) | 2026-10-19 | `iterative-gliding-bentley.md` |
+_none_
 
 ### Closed – do not reopen
 
@@ -74,12 +70,13 @@ _none_
 | 038 | [README links the changelog next to the releases](done/038-readme-links-the-changelog.md) | 2026-10-19 |
 | 037 | [Refresh the README screenshot after the date column fix](done/037-refresh-the-viewer-screenshot.md) | 2026-10-19 |
 
-_33 more in `done/`._
+_34 more in `done/`._
 
 ### Decisions
 
 | # | Decision | Status | Date |
 |---|---|---|---|
+| D-013 | [The Windows exe is signed through SignPath Foundation once it accepts the project; until then it ships unsigned](decisions/D-013-windows-signing-through-signpath-foundation.md) | decided | 2026-10-19 |
 | D-012 | [Release notes and the changelog come from the done task files, the licence page from cargo-about](decisions/D-012-release-notes-from-task-files-licences-by-cargo-about.md) | decided | 2026-10-18 |
 | D-011 | [Crates come from crates.io only, under a fixed licence allowlist that includes MPL-2.0, and an advisory fails CI](decisions/D-011-dependency-licence-and-source-policy.md) | decided | 2026-10-18 |
 | D-010 | [The repo goes public scrubbed, with the history rewritten once and pushed into a recreated GitHub repo](decisions/D-010-publish-scrubbed-rewritten-history-in-a-recreated-repo.md) | decided | 2026-10-18 |
