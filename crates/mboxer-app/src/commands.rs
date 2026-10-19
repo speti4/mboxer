@@ -4,9 +4,10 @@
 //! copies what it needs, unlocks, then does the slow part.
 
 use std::path::PathBuf;
+use std::sync::Arc;
 use std::sync::atomic::Ordering;
 
-use mboxer_core::{IndexStatus, SearchQuery, eml_bytes, parse, read_at, status, summarize};
+use mboxer_core::{IndexStatus, MboxIndex, SearchQuery, eml_bytes, parse, status, summarize};
 use tauri::ipc::{Channel, Response};
 use tauri::{AppHandle, Manager, State};
 use tauri_plugin_dialog::{DialogExt, FileDialogBuilder};
@@ -287,9 +288,11 @@ pub fn list_rows(
     })
 }
 
-/// The path of open file `file`, copied out from under the lock.
-fn file_path(state: &AppState, file: u32) -> Result<PathBuf, String> {
-    Ok(state.files().by_id(file)?.path.clone())
+/// The index of open file `file`, shared out from under the lock. Every read
+/// of a message goes through [`MboxIndex::read_message`], so the size limit of
+/// the build that listed the message holds (task 069).
+fn file_index(state: &AppState, file: u32) -> Result<Arc<MboxIndex>, String> {
+    Ok(Arc::clone(&state.files().by_id(file)?.index))
 }
 
 /// Runs `work` off the runtime threads and flattens the join error.
@@ -309,9 +312,9 @@ pub async fn read_message(
     offset: u64,
     len: u64,
 ) -> Result<MessageView, String> {
-    let path = file_path(&state, file)?;
+    let index = file_index(&state, file)?;
     blocking(move || {
-        let mut view = read_message_view(&path, offset, len).map_err(|err| err.to_string())?;
+        let mut view = read_message_view(&index, offset, len).map_err(|err| err.to_string())?;
         view.file = file;
         Ok(view)
     })
@@ -327,9 +330,10 @@ pub async fn read_source(
     offset: u64,
     len: u64,
 ) -> Result<String, String> {
-    let path = file_path(&state, file)?;
+    let index = file_index(&state, file)?;
     blocking(move || {
-        read_at(&path, offset, len)
+        index
+            .read_message(offset, len)
             .map(|raw| {
                 let mut source = raw.envelope;
                 source.push('\n');
@@ -398,8 +402,8 @@ pub async fn read_part(
     len: u64,
     index: usize,
 ) -> Result<Response, String> {
-    let path = file_path(&state, file)?;
-    let attachment = blocking(move || read_attachment(&path, offset, len, index)).await?;
+    let mbox_index = file_index(&state, file)?;
+    let attachment = blocking(move || read_attachment(&mbox_index, offset, len, index)).await?;
     Ok(Response::new(attachment.bytes))
 }
 
@@ -414,9 +418,9 @@ pub async fn open_attachment(
     len: u64,
     index: usize,
 ) -> Result<(), String> {
-    let path = file_path(&state, file)?;
+    let mbox_index = file_index(&state, file)?;
     blocking(move || {
-        let attachment = read_attachment(&path, offset, len, index)?;
+        let attachment = read_attachment(&mbox_index, offset, len, index)?;
         if open_blocked(&attachment.file_name) {
             return Err(format!(
                 "{} is an executable file: save it instead of opening it",
@@ -443,9 +447,9 @@ pub async fn save_attachment(
     len: u64,
     index: usize,
 ) -> Result<Option<String>, String> {
-    let path = file_path(&state, file)?;
+    let mbox_index = file_index(&state, file)?;
     blocking(move || {
-        let attachment = read_attachment(&path, offset, len, index)?;
+        let attachment = read_attachment(&mbox_index, offset, len, index)?;
         let mut dialog = save_dialog(&app, "Save attachment").set_file_name(&attachment.file_name);
         if let Some(ext) = extension_of(&attachment.file_name) {
             dialog = dialog.add_filter(format!("{} files", ext.to_ascii_uppercase()), &[&ext]);
@@ -474,9 +478,9 @@ pub async fn save_all_attachments(
     offset: u64,
     len: u64,
 ) -> Result<Option<SaveAllReport>, String> {
-    let path = file_path(&state, file)?;
+    let index = file_index(&state, file)?;
     blocking(move || {
-        let attachments = read_listed_attachments(&path, offset, len)?;
+        let attachments = read_listed_attachments(&index, offset, len)?;
         if attachments.is_empty() {
             return Err("the message has no attachments".to_owned());
         }
@@ -513,9 +517,11 @@ pub async fn save_message_eml(
     offset: u64,
     len: u64,
 ) -> Result<Option<String>, String> {
-    let path = file_path(&state, file)?;
+    let index = file_index(&state, file)?;
     blocking(move || {
-        let raw = read_at(&path, offset, len).map_err(|err| err.to_string())?;
+        let raw = index
+            .read_message(offset, len)
+            .map_err(|err| err.to_string())?;
         let subject = parse(&raw).and_then(|message| summarize(&raw, &message).subject);
         let file_name = eml_file_name(subject.as_deref(), offset);
         let Some(picked) = save_dialog(&app, "Save message as .eml")

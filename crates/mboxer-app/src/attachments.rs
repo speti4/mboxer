@@ -8,7 +8,7 @@ use std::io;
 use std::path::{Path, PathBuf};
 use std::sync::{Mutex, PoisonError};
 
-use mboxer_core::{Attachment, attachments, parse, part_at, part_bytes, read_at};
+use mboxer_core::{Attachment, MboxIndex, attachments, parse, part_at, part_bytes};
 
 /// The longest file name written, in characters: Windows allows 255 UTF-16 units per name and, by
 /// default, 260 per path, and the folder takes its share.
@@ -68,15 +68,18 @@ pub struct AttachmentBytes {
     pub bytes: Vec<u8>,
 }
 
-/// Reads the message at `offset`/`len` of `mbox` and decodes the attachment at
-/// part `index`. A part that is not an attachment (a body) is refused.
+/// Reads the message at `offset`/`len` through `mbox_index`, under the size
+/// limit of its build (task 069), and decodes the attachment at part `index`.
+/// A part that is not an attachment (a body) is refused.
 pub fn read_attachment(
-    mbox: &Path,
+    mbox_index: &MboxIndex,
     offset: u64,
     len: u64,
     index: usize,
 ) -> Result<AttachmentBytes, String> {
-    let raw = read_at(mbox, offset, len).map_err(|err| err.to_string())?;
+    let raw = mbox_index
+        .read_message(offset, len)
+        .map_err(|err| err.to_string())?;
     let message = parse(&raw).ok_or("the message does not parse")?;
     let attachment = attachments(&message)
         .into_iter()
@@ -90,13 +93,16 @@ pub fn read_attachment(
     })
 }
 
-/// Every attachment the reader's strip lists (named, or a nested message), decoded.
+/// Every attachment the reader's strip lists (named, or a nested message),
+/// decoded; the message is read like [`read_attachment`] reads it.
 pub fn read_listed_attachments(
-    mbox: &Path,
+    mbox_index: &MboxIndex,
     offset: u64,
     len: u64,
 ) -> Result<Vec<AttachmentBytes>, String> {
-    let raw = read_at(mbox, offset, len).map_err(|err| err.to_string())?;
+    let raw = mbox_index
+        .read_message(offset, len)
+        .map_err(|err| err.to_string())?;
     let message = parse(&raw).ok_or("the message does not parse")?;
     Ok(attachments(&message)
         .into_iter()
@@ -459,12 +465,6 @@ fn is_old_copy_dir(name: &str) -> bool {
 mod tests {
     use super::*;
 
-    fn fixture(name: &str) -> PathBuf {
-        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("../mboxer-core/tests/fixtures")
-            .join(name)
-    }
-
     #[test]
     fn file_names_are_made_safe_for_windows() {
         assert_eq!(
@@ -638,13 +638,14 @@ mod tests {
 
     #[test]
     fn attachments_are_read_from_the_fixture() {
-        let mbox = fixture("attachments.mbox");
+        let (_dir, mbox, mbox_index) =
+            crate::test_support::indexed_fixture("attachments.mbox", None);
         let raw = mboxer_core::MboxReader::open(&mbox)
             .unwrap()
             .next()
             .unwrap()
             .unwrap();
-        let listed = read_listed_attachments(&mbox, raw.offset, raw.len).unwrap();
+        let listed = read_listed_attachments(&mbox_index, raw.offset, raw.len).unwrap();
         let names: Vec<&str> = listed.iter().map(|a| a.file_name.as_str()).collect();
         assert_eq!(
             names,
@@ -662,13 +663,13 @@ mod tests {
             .into_iter()
             .find(|a| a.name.as_deref() == Some("osszesito.csv"))
             .unwrap();
-        let one = read_attachment(&mbox, raw.offset, raw.len, csv.index).unwrap();
+        let one = read_attachment(&mbox_index, raw.offset, raw.len, csv.index).unwrap();
         assert_eq!(one.content_type, "text/csv");
         assert!(one.bytes.starts_with(b"N\xe9v;"));
         // The body parts are not attachments.
-        let err = read_attachment(&mbox, raw.offset, raw.len, 0).unwrap_err();
+        let err = read_attachment(&mbox_index, raw.offset, raw.len, 0).unwrap_err();
         assert!(err.contains("not an attachment"), "{err}");
-        let err = read_attachment(&mbox, raw.offset, raw.len, 999).unwrap_err();
+        let err = read_attachment(&mbox_index, raw.offset, raw.len, 999).unwrap_err();
         assert!(err.contains("not an attachment"), "{err}");
     }
 
