@@ -43,6 +43,7 @@ The first public release, and the first with a macOS build: `mboxer-<version>-ma
 - The commit hook's error messages cite D-010, not D-009 ([039](https://github.com/speti4/mboxer/blob/main/tasks/done/039-check-commit-messages-cite-d-10.md))
 - Cut the CI minutes: macOS tests on tags and manual runs ([042](https://github.com/speti4/mboxer/blob/main/tasks/done/042-cut-ci-minutes.md))
 - Pad the decision ids to three digits before the repo goes public ([043](https://github.com/speti4/mboxer/blob/main/tasks/done/043-pad-decision-ids-to-three-digits.md))
+- CI extras once the minutes are free: MSRV, changelog check, fork guard ([046](https://github.com/speti4/mboxer/blob/main/tasks/done/046-ci-extras-after-publication.md))
 - Keep project housekeeping apart from user-facing changes in the changelog ([047](https://github.com/speti4/mboxer/blob/main/tasks/done/047-housekeeping-tasks-in-the-changelog.md))
 
 ## 0.1.0 — 2026-10-18

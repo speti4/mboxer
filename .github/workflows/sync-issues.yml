@@ -16,6 +16,8 @@ concurrency:
 
 jobs:
   sync:
+    # Only in this repo: a fork that turns Actions on would otherwise try to mirror into its own issues.
+    if: github.repository == 'speti4/mboxer'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:

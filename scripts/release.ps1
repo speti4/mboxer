@@ -40,7 +40,7 @@ if ($Tag -and $Tag -ne "v$version") {
     throw "tag '$Tag' does not match the Cargo.toml version 'v$version'"
 }
 
-# A tool from PATH, else from ~\.cargo\bin (the tool shells here may run with a PATH that lacks it).
+# A tool from PATH, else from ~\.cargo\bin (a shell started before rustup's installer changed PATH lacks it).
 function Find-Tool([string] $Name) {
     $tool = Get-Command $Name -ErrorAction SilentlyContinue
     if (-not $tool) {
@@ -53,13 +53,19 @@ function Find-Tool([string] $Name) {
 # What can fail fast runs before the build: the tools and the release notes.
 $cargo = Find-Tool "cargo"
 $cargoAbout = Find-Tool "cargo-about"
+# Python as `python`, else through the `py` launcher, which is all some Windows installs put on PATH.
 $python = (Get-Command python -ErrorAction SilentlyContinue).Source
-if (-not $python) { throw "python not found" }
+$pythonArgs = @()
+if (-not $python) {
+    $python = (Get-Command py -ErrorAction SilentlyContinue).Source
+    $pythonArgs = @("-3")
+}
+if (-not $python) { throw "python not found (neither python nor py on PATH)" }
 
 New-Item -ItemType Directory -Force $Out | Out-Null
 $outDir = (Resolve-Path $Out).Path
 $notes = Join-Path $outDir "release-notes-$version.md"
-& $python -I (Join-Path $root "scripts\changelog.py") --notes $version --out $notes
+& $python @pythonArgs -I (Join-Path $root "scripts\changelog.py") --notes $version --out $notes
 if ($LASTEXITCODE -ne 0) { throw "release notes failed ($LASTEXITCODE)" }
 
 if (-not $SkipBuild) {

@@ -1,3 +1,6 @@
+# Text files are stored with LF whatever the contributor's core.autocrlf says (task 046); the lines below
+# override this for the files that need something else.
+* text=auto eol=lf
 # Test fixtures carry their own line endings (LF or CRLF); git must never convert them.
 *.mbox -text
 crates/*/tests/fixtures/* -text

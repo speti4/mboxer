@@ -11,8 +11,9 @@ param(
 )
 
 $exe, $rest = $Command
-# Start-Process joins the arguments with spaces and does not quote them itself.
-$quoted = $rest | ForEach-Object { if ($_ -match '\s') { '"' + $_ + '"' } else { $_ } }
+# Start-Process joins the arguments with spaces and does not quote them itself: wrap arguments with whitespace or
+# quotes, escape embedded quotes so a phrase stays a phrase (the quoting of benchmark.ps1).
+$quoted = $rest | ForEach-Object { if ($_ -match '[\s"]') { '"' + $_.Replace('"', '\"') + '"' } else { $_ } }
 $process = Start-Process -FilePath $exe -ArgumentList $quoted -PassThru -NoNewWindow
 $peak = 0
 while (-not $process.HasExited) {
