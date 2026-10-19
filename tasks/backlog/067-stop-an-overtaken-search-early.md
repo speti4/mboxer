@@ -1,5 +1,5 @@
 ---
-status: idea
+status: ready
 size: S
 origin: done/051-query-generation-race-and-sync-commands-on-the-files-lock.md
 created: 2026-10-19

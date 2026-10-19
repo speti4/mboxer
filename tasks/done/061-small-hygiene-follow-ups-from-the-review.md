@@ -100,7 +100,8 @@ bump it, so the bump is a conscious `chore:`; the warnings fields are removed, n
   version) and `docs/development.md` (layout, CI, the toolchain, cargo-about, the advisories run) follow.
 - 2026-10-20 — follow-ups, in the pull request description: a scaled scroll position for listings above
   1 198 372 rows, if a report shows one; a test of the open batch's cancel handling, which needs the loop out of
-  the Tauri command.
+  the Tauri command. Filed at the merge: the cancel test is backlog 070; the scaled scroll position is not filed,
+  because the limit is documented in `docs/reference.md` and no Takeout export comes near 1.2 million rows.
 
 ## Deviations from the plan
 
