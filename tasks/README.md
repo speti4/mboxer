@@ -13,7 +13,7 @@ edit the file, never the issue. Everything here is English.
 <!-- tasks:index:start -->
 _Generated 2026-10-20 — edit the files, not this section._
 
-**State:** 3 backlog (0 ready · 0 blocked · 2 waiting · 1 idea) · 0 in progress · 65 done · 2 dropped · 13 decisions
+**State:** 2 backlog (0 ready · 0 blocked · 2 waiting · 0 ideas) · 0 in progress · 66 done · 2 dropped · 13 decisions
 
 ### Ready
 
@@ -39,11 +39,7 @@ _none_
 
 ### Ideas
 
-#### M6 Hardening
-
-| # | Task | Size | Created |
-|---|---|---|---|
-| 069 | [The viewer reads a message through the index's limit, and the CLI's paging brea…](backlog/069-viewer-reads-through-the-index-and-cli-ties-by-offset.md) | S | 2026-10-19 |
+_none_
 
 ### In progress
 
@@ -61,6 +57,7 @@ _none_
 | # | Task | Closed |
 |---|---|---|
 | 070 | [A test for the Cancel between two files of a batch](done/070-a-test-for-the-batch-cancel.md) | 2026-10-20 |
+| 069 | [The viewer reads a message through the index's limit, and the CLI's paging brea…](done/069-viewer-reads-through-the-index-and-cli-ties-by-offset.md) | 2026-10-20 |
 | 068 | [The highlight folds the same letters the index folds](done/068-highlight-folds-the-letters-the-index-folds.md) | 2026-10-20 |
 | 067 | [Stop an overtaken search early instead of letting it run to its end](done/067-stop-an-overtaken-search-early.md) | 2026-10-20 |
 | 064 | [Manual round over a large archive after the hardening wave: rebuild under an op…](done/064-manual-round-over-a-large-archive-after-the-hardening-wave.md) | 2026-10-20 |
@@ -69,9 +66,8 @@ _none_
 | 063 | [Free-text follow-ups: the highlight split and the tantivy exclusion assertion](done/063-free-text-follow-ups-tantivy-assertion-warnings-and-highlight.md) | 2026-10-19 |
 | 062 | [The commit-rule wording names the scope form, the CI header gives the runner-ti…](done/062-commit-rule-wording-ci-header-and-lint-entry.md) | 2026-10-19 |
 | 060 | [Index quality follow-ups: token length, completions, nested parts, limits, mult…](done/060-index-quality-follow-ups-from-the-review.md) | 2026-10-19 |
-| 059 | [Refresh the README screenshot and the social preview over the demo mbox](done/059-refresh-the-screenshots-over-the-demo-mbox.md) | 2026-10-19 |
 
-_55 more in `done/`._
+_56 more in `done/`._
 
 ### Decisions
 

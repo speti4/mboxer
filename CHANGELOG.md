@@ -26,6 +26,7 @@ not the list. The summary under a heading is written by hand and kept by the gen
 - Free-text follow-ups: the highlight split and the tantivy exclusion assertion ([063](https://github.com/speti4/mboxer/blob/main/tasks/done/063-free-text-follow-ups-tantivy-assertion-warnings-and-highlight.md))
 - Stop an overtaken search early instead of letting it run to its end ([067](https://github.com/speti4/mboxer/blob/main/tasks/done/067-stop-an-overtaken-search-early.md))
 - The highlight folds the same letters the index folds ([068](https://github.com/speti4/mboxer/blob/main/tasks/done/068-highlight-folds-the-letters-the-index-folds.md))
+- The viewer reads a message through the index's limit, and the CLI's paging breaks ties by offset ([069](https://github.com/speti4/mboxer/blob/main/tasks/done/069-viewer-reads-through-the-index-and-cli-ties-by-offset.md))
 - A test for the Cancel between two files of a batch ([070](https://github.com/speti4/mboxer/blob/main/tasks/done/070-a-test-for-the-batch-cancel.md))
 
 ### Project housekeeping
