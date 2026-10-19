@@ -1,6 +1,7 @@
 //! Attachments on disk: the decoded bytes of a part, a file name Windows
-//! accepts, the temporary folder behind "open", Mark-of-the-Web on every file
-//! written. No Tauri here; the dialogs and the opener live in `commands`.
+//! accepts, the temporary folder behind "open", Mark-of-the-Web (Windows) or
+//! the quarantine attribute (macOS) on every file written. No Tauri here; the
+//! dialogs and the opener live in `commands`.
 
 use std::fs;
 use std::io;
@@ -12,12 +13,27 @@ use mboxer_core::{Attachment, attachments, parse, part_at, part_bytes, read_at};
 /// path; the folder takes its share).
 const MAX_NAME_CHARS: usize = 150;
 
-/// Extensions Windows runs when "opened": those attachments are saved, never opened.
+/// Extensions Windows or macOS runs when "opened": those attachments are saved,
+/// never opened. One list for both systems: an attachment is as dangerous on
+/// the machine it is forwarded to as on this one.
 #[rustfmt::skip]
 const BLOCKED_EXTENSIONS: &[&str] = &[
+    // Windows
     "exe", "bat", "cmd", "com", "scr", "pif", "msi", "msp", "ps1", "psm1", "vbs", "vbe", "js",
     "jse", "wsf", "wsh", "hta", "lnk", "reg", "jar", "cpl", "inf", "url", "application", "gadget",
     "msc", "appx",
+    // macOS: shell and Automator scripts, installers, disk images, bundles, Terminal
+    // settings and the internet-location files that open a URL on a double-click.
+    "command", "tool", "pkg", "mpkg", "dmg", "app", "sh", "scpt", "applescript", "workflow",
+    "terminal", "webloc", "inetloc", "fileloc",
+];
+
+/// The macOS half of [`BLOCKED_EXTENSIONS`], for the test that each is blocked.
+#[cfg(test)]
+#[rustfmt::skip]
+const MACOS_BLOCKED_EXTENSIONS: &[&str] = &[
+    "command", "tool", "pkg", "mpkg", "dmg", "app", "sh", "scpt", "applescript", "workflow",
+    "terminal", "webloc", "inetloc", "fileloc",
 ];
 
 /// Device names a file may not be called, whatever its extension.
@@ -212,9 +228,12 @@ pub fn unique_path(dir: &Path, file_name: &str) -> PathBuf {
     unreachable!("the counter has no end")
 }
 
-/// Writes `bytes` to `path` and marks the file as coming from the internet
-/// (zone 3), as mail clients do: Office opens it in Protected View. The mark
-/// is best effort; a file system without alternate streams gets none.
+/// Writes `bytes` to `path` and marks the file as coming from the internet,
+/// as mail clients do: the Mark of the Web (zone 3) on Windows, so Office
+/// opens it in Protected View; the `com.apple.quarantine` attribute on macOS,
+/// so Gatekeeper and the "downloaded from the internet" prompt see it. The
+/// mark is best effort; a file system without alternate streams or extended
+/// attributes gets none.
 pub fn write_with_motw(path: &Path, bytes: &[u8]) -> io::Result<()> {
     fs::write(path, bytes)?;
     mark_of_the_web(path);
@@ -227,7 +246,34 @@ fn mark_of_the_web(path: &Path) {
     let _ = fs::write(stream, "[ZoneTransfer]\r\nZoneId=3\r\n");
 }
 
-#[cfg(not(windows))]
+/// The quarantine attribute a browser download carries: `flags;time;agent;id`,
+/// written with the system's `xattr` tool rather than a crate or a libc
+/// binding, as the one call is not worth a dependency (D-02). The attribute
+/// value on its own is what LaunchServices reads; the id stays empty.
+#[cfg(target_os = "macos")]
+fn mark_of_the_web(path: &Path) {
+    use std::process::{Command, Stdio};
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    let seconds = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|since| since.as_secs())
+        .unwrap_or(0);
+    let _ = Command::new("xattr")
+        .arg("-w")
+        .arg(QUARANTINE_ATTR)
+        .arg(format!("0081;{seconds:08x};mboxer;"))
+        .arg(path)
+        .stdin(Stdio::null())
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .status();
+}
+
+#[cfg(any(target_os = "macos", test))]
+const QUARANTINE_ATTR: &str = "com.apple.quarantine";
+
+#[cfg(not(any(windows, target_os = "macos")))]
 fn mark_of_the_web(_path: &Path) {}
 
 /// The folder every temporary attachment copy goes under.
@@ -346,6 +392,22 @@ mod tests {
     }
 
     #[test]
+    fn macos_executable_types_are_blocked_from_opening() {
+        for ext in MACOS_BLOCKED_EXTENSIONS {
+            assert!(open_blocked(&format!("payload.{ext}")), "{ext}");
+            assert!(
+                open_blocked(&format!("PAYLOAD.{}", ext.to_uppercase())),
+                "{ext}"
+            );
+            assert!(BLOCKED_EXTENSIONS.contains(ext), "{ext}");
+        }
+        // The harmless neighbours stay openable.
+        assert!(!open_blocked("notes.txt"));
+        assert!(!open_blocked("photo.heic"));
+        assert!(!open_blocked("pages.zip"));
+    }
+
+    #[test]
     fn unique_paths_count_up_and_keep_the_extension() {
         let dir = tempfile::tempdir().unwrap();
         let first = unique_path(dir.path(), "report.pdf");
@@ -374,6 +436,16 @@ mod tests {
         if cfg!(windows) {
             let zone = fs::read_to_string(format!("{}:Zone.Identifier", path.display())).unwrap();
             assert!(zone.contains("ZoneId=3"), "{zone}");
+        }
+        if cfg!(target_os = "macos") {
+            let output = std::process::Command::new("xattr")
+                .arg("-p")
+                .arg(QUARANTINE_ATTR)
+                .arg(&path)
+                .output()
+                .unwrap();
+            let value = String::from_utf8_lossy(&output.stdout);
+            assert!(value.contains(";mboxer;"), "{value}");
         }
     }
 

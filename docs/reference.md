@@ -95,9 +95,11 @@ the result, and *Clear* or `Esc` in the field empties the whole query, label inc
 | `Enter` in the list | focus the reader; `Esc` returns |
 | `Ctrl+S`, `Ctrl+P` | save the message as `.eml`, print it |
 
+On a Mac `⌘` stands for `Ctrl` (the handler takes either key; the tooltips say `⌘`).
+
 ### Theme
 
-The viewer follows the Windows colour mode; the button at the right end of the toolbar overrides it (*Auto*,
+The viewer follows the system colour mode; the button at the right end of the toolbar overrides it (*Auto*,
 *Light*, *Dark*) and the choice is remembered. An HTML message body stays on a white page in dark mode, because
 HTML mail is designed for one.
 
@@ -105,8 +107,8 @@ HTML mail is designed for one.
 
 The index is a cache in `.mboxer\<file name>\` next to the mbox; delete it any time. It is rebuilt whole when
 it no longer matches the file (D-04). When that folder is not writable (a read-only share, a DVD), the index
-goes under `%LOCALAPPDATA%\mboxer\index\` (D-05); `MBOXER_INDEX_HOME` overrides that root, and every open looks
-in both places. Accents and case are folded on both the index and the query side, so `szamla` finds `Számla`.
+goes under `%LOCALAPPDATA%\mboxer\index\` (on a Mac `~/Library/Application Support/mboxer/index/`; D-05);
+`MBOXER_INDEX_HOME` overrides that root, and every open looks in both places. Accents and case are folded on both the index and the query side, so `szamla` finds `Számla`.
 
 ## The command line
 

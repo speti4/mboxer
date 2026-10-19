@@ -102,6 +102,7 @@
     labelKeys: new Map(), // label name or container path → node key
     errorPath: null, // the path behind the error screen's Retry
     batch: false, // an open_mbox call is in flight (until its `done`)
+    systemOpens: [], // paths the system handed the app during a batch; opened after it
     opening: null, // { path, startedAt, position, count } of the file being opened
     overlayTimer: 0,
     readTimer: 0,
@@ -271,7 +272,7 @@
     ".mboxer-print-header dd{margin:0}",
     ".mboxer-print-note{margin:0 0 8px;color:#666;font-style:italic}",
     "pre.mboxer-print-body{margin:0;font:inherit;white-space:pre-wrap;overflow-wrap:anywhere}",
-    "pre.mboxer-print-body.source{font-family:Consolas,monospace;font-size:12px}",
+    "pre.mboxer-print-body.source{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px}",
     "img{max-width:100%;height:auto}",
   ].join("");
 
@@ -461,6 +462,16 @@
     } finally {
       state.batch = false;
     }
+    if (state.systemOpens.length > 0) openMbox(state.systemOpens.splice(0));
+  }
+
+  // Files the system asks the running app to open (macOS: Finder "Open with",
+  // a Dock drop), sent by the backend as an event with the paths. They open
+  // like a dialog pick; during a batch they wait for its end.
+  function openFromSystem(paths) {
+    if (!Array.isArray(paths) || paths.length === 0) return;
+    if (state.batch) state.systemOpens.push(...paths);
+    else openMbox(paths);
   }
 
   function handleOpenEvent(message) {
@@ -575,9 +586,10 @@
     Files.write(state.remembered);
   }
 
-  // The key `fileQueries` uses for a file; two spellings of one path share it.
+  // The key `fileQueries` uses for a file; two spellings of one path share it
+  // (the OS's rules, as in files.js).
   function queryKey(path) {
-    return path.replace(/\//g, "\\").toLowerCase();
+    return Files.pathKey(path);
   }
 
   // Makes `summary` the file the list, the search and the reader show. The
@@ -2205,9 +2217,9 @@
     });
   });
 
-  // Ctrl+O / Ctrl+F / Ctrl+K / Ctrl+Shift+F / Ctrl+P / Ctrl+S, from the document or the
-  // body iframe. Ctrl+P is taken over even without a message: the webview's own
-  // default would print the whole window.
+  // Ctrl+O / Ctrl+F / Ctrl+K / Ctrl+Shift+F / Ctrl+P / Ctrl+S (⌘ on a Mac), from the
+  // document or the body iframe. Ctrl+P is taken over even without a message: the
+  // webview's own default would print the whole window.
   function globalShortcut(event) {
     if (!(event.ctrlKey || event.metaKey)) return;
     const key = event.key.toLowerCase();
@@ -2234,6 +2246,16 @@
 
   document.addEventListener("keydown", globalShortcut);
 
+  // The markup names the shortcuts the Windows way; on a Mac the tooltips, the
+  // search placeholder and the empty screen's button say ⌘ (and ⇧⌘ for Shift).
+  function nameShortcutsForMac() {
+    if (Files.os !== "mac") return;
+    const mac = (text) => text.replace(/Ctrl\+Shift\+/g, "⇧⌘").replace(/Ctrl\+/g, "⌘");
+    for (const node of document.querySelectorAll("[title*='Ctrl+']")) node.title = mac(node.title);
+    for (const node of document.querySelectorAll("[placeholder*='Ctrl+']")) node.placeholder = mac(node.placeholder);
+    el.emptyOpenBtn.textContent = mac(el.emptyOpenBtn.textContent);
+  }
+
   // The exe's version at the right end of the status bar (task 012).
   async function showVersion() {
     try {
@@ -2248,7 +2270,8 @@
   // The remembered files come back at start-up: those whose index is fresh are
   // reopened (the one that was active first, so it is active again), a file
   // whose index needs a build waits in the pane until clicked, a file that is
-  // gone leaves the list. The command-line path comes last and takes over.
+  // gone leaves the list. The start-up paths (the command line, a Finder open)
+  // come last and take over.
   async function restoreFiles(initial) {
     const remembered = state.remembered;
     const statuses = await Promise.all(
@@ -2267,7 +2290,7 @@
     });
     if (gone > 0) persistFiles();
     if (fresh.length > 0) await openMbox(fresh);
-    if (initial) await openMbox([initial]);
+    if (initial.length > 0) await openMbox(initial);
     renderReopenList();
     if (state.file) {
       renderFolders();
@@ -2289,11 +2312,19 @@
     if (storageGet(STORAGE_BODY_MODE) === "text") state.bodyMode = "text";
     state.remembered = Files.read();
     renderReopenList();
-    let initial = null;
+    nameShortcutsForMac();
+    // Files the system hands the running app from here on (macOS); the ones it
+    // handed before this point come back with the start-up paths.
     try {
-      initial = await invoke("initial_path");
+      await window.__TAURI__.event.listen("open-files", (event) => openFromSystem(event.payload));
     } catch (_) {
-      initial = null;
+      /* no event API: the start-up paths still arrive */
+    }
+    let initial = [];
+    try {
+      initial = await invoke("initial_paths");
+    } catch (_) {
+      initial = [];
     }
     await restoreFiles(initial);
   }

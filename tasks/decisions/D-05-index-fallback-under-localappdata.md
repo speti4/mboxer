@@ -34,6 +34,10 @@ has a lasting effect on where mboxer writes on a user's machine, so it is record
 
 Proposed by the session on 2026-10-17 (task 014); confirmed by the user on 2026-10-18 ("Megerősítem").
 
+Amended 2026-10-19: the index home is the platform's per-user data folder plus `mboxer/index` —
+`%LOCALAPPDATA%\mboxer\index` on Windows, `~/Library/Application Support/mboxer/index` on macOS,
+`$XDG_DATA_HOME/mboxer/index` (default `~/.local/share`) elsewhere — before the temp fallback (task 019).
+
 ## Not chosen
 
 - Keying the fallback by the content fingerprint (the backlog wording): a moved mbox would keep

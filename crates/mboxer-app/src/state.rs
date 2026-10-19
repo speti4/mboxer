@@ -34,12 +34,31 @@ pub struct AppState {
     pub generation: AtomicU64,
     /// Where the last attachment was saved; the next save dialog starts there.
     pub last_save_dir: Mutex<Option<PathBuf>>,
+    /// Files the system asked the app to open before the webview was ready for them.
+    pub system_opens: Mutex<SystemOpens>,
+}
+
+/// The files macOS hands the app through Finder "Open with", a Dock drop or
+/// `open -a` (task 019). They arrive as an event on the main thread, possibly
+/// before the webview has loaded: until the webview asks for its start-up
+/// paths they wait here, from then on they go straight to it as an event.
+#[derive(Debug, Default)]
+pub struct SystemOpens {
+    pub paths: Vec<String>,
+    /// The webview has asked for the start-up paths and listens for the rest.
+    pub webview_ready: bool,
 }
 
 impl AppState {
     /// The open files; a poisoned lock is recovered, the data is plain values.
     pub fn files(&self) -> MutexGuard<'_, OpenFiles> {
         self.files.lock().unwrap_or_else(PoisonError::into_inner)
+    }
+
+    pub fn system_opens(&self) -> MutexGuard<'_, SystemOpens> {
+        self.system_opens
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
     }
 
     pub fn last_save_dir(&self) -> Option<PathBuf> {
