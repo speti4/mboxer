@@ -34,6 +34,7 @@ not the list. The summary under a heading is written by hand and kept by the gen
 - Refresh the README screenshot and the social preview over the demo mbox ([059](https://github.com/speti4/mboxer/blob/main/tasks/done/059-refresh-the-screenshots-over-the-demo-mbox.md))
 - Small hygiene follow-ups: toolchain pin, ignores, arguments, cancel, logs, duplicates ([061](https://github.com/speti4/mboxer/blob/main/tasks/done/061-small-hygiene-follow-ups-from-the-review.md))
 - The commit-rule wording names the scope form, the CI header gives the runner-time reason, the lint entry is complete ([062](https://github.com/speti4/mboxer/blob/main/tasks/done/062-commit-rule-wording-ci-header-and-lint-entry.md))
+- Manual round over a large archive after the hardening wave: rebuild under an open viewer, accented labels, free text ([064](https://github.com/speti4/mboxer/blob/main/tasks/done/064-manual-round-over-a-large-archive-after-the-hardening-wave.md))
 - The `plan:` field is `none` in every task file, the rule is written down ([066](https://github.com/speti4/mboxer/blob/main/tasks/done/066-plan-field-policy-for-prompt-derived-names.md))
 
 ## 0.2.0 — 2026-10-19
