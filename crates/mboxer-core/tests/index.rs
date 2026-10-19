@@ -119,7 +119,6 @@ fn accent_and_case_insensitive_body_search() {
         let result = index.search(&SearchQuery::text(query)).unwrap();
         assert_eq!(result.total, 1, "query {query:?}");
         assert_eq!(result.hits[0].offset, 0);
-        assert!(result.warnings.is_empty());
     }
     // Only in the body of message one (accented in the fixture).
     assert_eq!(total(&index, "konyveles"), 1);
@@ -570,7 +569,6 @@ fn listing_holds_every_match_in_date_order_and_pages_by_slice() {
     assert_eq!(listing.len() as u64, index.message_count());
     assert_eq!(listing.message_count(), listing.len());
     assert_eq!(listing.group_count(), listing.len());
-    assert!(listing.warnings().is_empty());
     let count_only = index
         .search(&SearchQuery {
             limit: 0,
@@ -752,7 +750,6 @@ fn the_word_being_typed_matches_as_a_prefix_when_asked() {
     );
     assert_eq!(hits(&typing("nincsilyen szaml")), 0);
     assert_eq!(hits(&typing("s")), 0, "one letter is not a prefix");
-    assert!(index.search(&typing("szaml")).unwrap().warnings.is_empty());
 
     // The same for the sender filter, which also refreshes while typing.
     let from = |from: &str, prefix: bool| SearchQuery {
@@ -779,7 +776,6 @@ fn subjects(index: &MboxIndex, query: SearchQuery) -> Vec<String> {
             ..query
         })
         .unwrap();
-    assert!(result.warnings.is_empty(), "{:?}", result.warnings);
     let mut subjects: Vec<_> = result
         .hits
         .into_iter()
@@ -972,7 +968,6 @@ fn a_grouped_listing_orders_conversations_by_their_newest_message() {
     assert_eq!(rows[0].hit.thread_id, Some(222));
     assert_eq!(rows[1].hit.thread_id, None);
     assert_eq!(rows[2].hit.thread_id, Some(111));
-    assert!(listing.warnings().is_empty());
 }
 
 #[test]

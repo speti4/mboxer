@@ -78,9 +78,40 @@ pub(crate) fn trim_line_break(line: &[u8]) -> &[u8] {
     line.strip_suffix(b"\r").unwrap_or(line)
 }
 
+/// Undoes the mboxrd quoting of body lines that look like envelopes: one `>`
+/// comes off every line that is `>`s followed by `From `. Line endings and
+/// everything else stay as written. mboxo and mboxrd cannot be told apart, so
+/// this is the inverse of the quoting Gmail Takeout applies; the one place
+/// for it, behind both [`eml_bytes`](crate::eml_bytes) and the viewer's text
+/// body. Only an ASCII `>` is removed, so valid UTF-8 stays valid UTF-8.
+pub fn unquote_from_lines(bytes: &[u8]) -> Vec<u8> {
+    let mut out = Vec::with_capacity(bytes.len());
+    for line in bytes.split_inclusive(|&b| b == b'\n') {
+        let quoted = line.iter().take_while(|&&b| b == b'>').count();
+        if quoted > 0 && line[quoted..].starts_with(b"From ") {
+            out.extend_from_slice(&line[1..]);
+        } else {
+            out.extend_from_slice(line);
+        }
+    }
+    out
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn one_quote_level_comes_off_from_lines_only() {
+        assert_eq!(
+            unquote_from_lines(
+                b">From one\r\n>>From two\nFrom plain\n>Frome not\n> From spaced\n>From"
+            ),
+            b"From one\r\n>From two\nFrom plain\n>Frome not\n> From spaced\n>From"
+        );
+        assert!(unquote_from_lines(b"").is_empty());
+        assert_eq!(unquote_from_lines(b">From tail"), b"From tail");
+    }
 
     #[test]
     fn gmail_takeout_envelope() {

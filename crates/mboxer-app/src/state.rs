@@ -30,7 +30,8 @@ pub struct AppState {
     /// Held by the running search: one search at a time, outside the files
     /// lock. Taken before `files`, never while holding it.
     search: Mutex<()>,
-    /// Set by `cancel_open`, read by the running index build.
+    /// Set by `cancel_open`, read by the running index build and before each
+    /// file of an open batch; cleared once when a batch starts.
     pub cancel: Arc<AtomicBool>,
     /// True while an open is in flight; a second open is refused.
     pub busy: AtomicBool,
@@ -351,7 +352,6 @@ impl OpenMbox {
             total: self.listing.len(),
             messages: self.listing.message_count(),
             conversations: self.listing.group_count(),
-            warnings: self.listing.warnings().to_vec(),
             superseded: false,
         }
     }

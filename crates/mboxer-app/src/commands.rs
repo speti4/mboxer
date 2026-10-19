@@ -35,7 +35,13 @@ const MAX_ROWS: usize = 500;
 /// reaches the webview as an [`OPEN_FILES_EVENT`] instead.
 #[tauri::command]
 pub fn initial_paths(state: State<'_, AppState>) -> Vec<String> {
-    let mut paths: Vec<String> = std::env::args().skip(1).take(1).collect();
+    // `args_os`: `args` panics on an argument that is not valid Unicode; a
+    // lossy path fails to open instead, with the reason on screen.
+    let mut paths: Vec<String> = std::env::args_os()
+        .skip(1)
+        .take(1)
+        .map(|arg| arg.to_string_lossy().into_owned())
+        .collect();
     let mut pending = state.system_opens();
     pending.webview_ready = true;
     paths.append(&mut pending.paths);
@@ -133,7 +139,14 @@ async fn open_mbox_inner(
     let count = paths.len();
     let mut activate = activate;
 
+    // Reset once per batch, not per file: a Cancel that lands between two
+    // files (after one is loaded, before the next starts) stops the next.
+    state.cancel.store(false, Ordering::Release);
     for (at, path) in paths.into_iter().enumerate() {
+        if state.cancel.load(Ordering::Acquire) {
+            let _ = on_event.send(OpenEvent::Cancelled);
+            break;
+        }
         let _ = on_event.send(OpenEvent::Opening {
             path: path.display().to_string(),
             position: at + 1,
@@ -188,8 +201,6 @@ async fn open_one(
     }
 
     let cancel = Arc::clone(&state.cancel);
-    cancel.store(false, Ordering::Release);
-    let started = std::time::Instant::now();
     let progress = on_event.clone();
     let owned = path.to_path_buf();
     let loaded = tauri::async_runtime::spawn_blocking(move || {
@@ -205,13 +216,6 @@ async fn open_one(
 
     match loaded {
         Ok(Ok(open)) => {
-            eprintln!(
-                "opened {}: {} messages, {:?}, {} ms",
-                open.path.display(),
-                open.index.message_count(),
-                open.index_state,
-                started.elapsed().as_millis()
-            );
             let mut files = state.files();
             let id = files.insert(open);
             if activate {
@@ -222,14 +226,8 @@ async fn open_one(
                 Err(err) => Outcome::Failed(err),
             }
         }
-        Ok(Err(Error::Cancelled)) => {
-            eprintln!("open cancelled");
-            Outcome::Cancelled
-        }
-        Ok(Err(err)) => {
-            eprintln!("open failed: {err}");
-            Outcome::Failed(err.to_string())
-        }
+        Ok(Err(Error::Cancelled)) => Outcome::Cancelled,
+        Ok(Err(err)) => Outcome::Failed(err.to_string()),
         Err(err) => Outcome::Failed(format!("the open task failed: {err}")),
     }
 }
@@ -321,19 +319,8 @@ pub fn close_file(state: State<'_, AppState>, file: u32) -> Result<Option<OpenSu
 pub async fn set_query(app: AppHandle, file: u32, query: QueryInput) -> Result<ListInfo, String> {
     tauri::async_runtime::spawn_blocking(move || {
         let state = app.state::<AppState>();
-        let started = std::time::Instant::now();
         let query: SearchQuery = query.into();
-        let info = state.set_query(file, query)?;
-        if info.superseded {
-            eprintln!("query: superseded, {} ms", started.elapsed().as_millis());
-        } else {
-            eprintln!(
-                "query: {} hits, {} ms",
-                info.total,
-                started.elapsed().as_millis()
-            );
-        }
-        Ok(info)
+        state.set_query(file, query)
     })
     .await
     .map_err(|err| format!("the query task failed: {err}"))?

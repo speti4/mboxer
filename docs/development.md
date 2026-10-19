@@ -19,8 +19,10 @@ checks before a commit and the project rules are in [CONTRIBUTING.md](../CONTRIB
   dated benchmarks and the README screenshot.
 - `tasks/` — the backlog, the work in flight, the history and the decisions (the task standard).
 - `.github/workflows/` — CI (fmt, clippy, test, the oldest supported Rust, the changelog and usage-guide
-  checks, the dependency policy, the workflow lint, the commit rules), the tagged release and the issue sync;
-  `.github/dependabot.yml` — the weekly dependency updates.
+  checks, the dependency policy, the workflow lint, the commit rules), the tagged release, the weekly advisory
+  check and the issue sync; `.github/actions/install-rust-toolchain/` — the toolchain install step the CI jobs
+  share; `.github/dependabot.yml` — the weekly dependency updates.
+- `rust-toolchain.toml` — the pinned Rust version (see [The Rust toolchain](#the-rust-toolchain)).
 - `.githooks/` — the `commit-msg` hook over `scripts/check-commit.sh`, enabled per clone with
   `git config core.hooksPath .githooks` ([git-workflow.md](git-workflow.md)).
 - `deny.toml` — the dependency policy `cargo deny` checks: licences, advisories, bans, sources (D-011);
@@ -55,13 +57,16 @@ code without a Mac, `scripts/changelog.py --check`, skipped on a tag (see [The c
 so nothing newer than the declared minimum slips in), `deny` (`cargo deny check` against
 `deny.toml` for the Windows and the two macOS targets: licences from the allowlist, no RustSec advisory or yanked
 crate, crates.io as the only source, D-011; and `about.toml` accepts the same licences) and `workflow-lint`
-(zizmor over the workflows and `dependabot.yml`; a finding accepted on purpose is listed with its reason in
-`.github/zizmor.yml`, scoped to the lines it covers). The `test` job adds macos-latest only on a tag and on a
+(zizmor over the workflows, the local action and `dependabot.yml`; a finding accepted on purpose carries
+`# zizmor: ignore[<audit>]` on the name line of its step and its reason in the comment above, so the acceptance
+moves with the step and covers nothing else). The `test` job adds macos-latest only on a tag and on a
 manual run (task 042): macOS runners are slower and scarcer, and a macOS test run on every pull request and
 again on its merge would hold one twice per change and lengthen every wait for CI, while the macOS-target clippy
 in `lint` already compiles the macOS code of every change. `.github/workflows/commit-rules.yml` runs
 `commit-rules` (`scripts/check-commit.sh` over every pushed commit and the pull request text, the rules of [git-workflow.md](git-workflow.md)) on the same
-pushes and pull requests. The workflows run with a read-only token by default; only the release job may write
+pushes and pull requests. `.github/workflows/advisories.yml` runs `cargo deny check advisories` every Monday and
+by hand (`gh workflow run advisories.yml`), so a RustSec advisory for a crate already in `Cargo.lock` shows up
+between pull requests; it is not a required check. The workflows run with a read-only token by default; only the release job may write
 contents and only the issue sync may write issues, and the sync runs only in `speti4/mboxer`, never in a fork.
 Cargo runs with `--locked` in CI and in the release scripts, so a `Cargo.lock` out of step with the manifests
 fails the build instead of being rewritten.
@@ -71,8 +76,6 @@ settings, not as a workflow file. A ruleset protects `main`: changes arrive thro
 the checks `test (windows-latest)`, `lint`, `msrv`, `deny`, `workflow-lint` and `commit-rules` must pass, the history
 stays linear, and force pushes and deletion are blocked. Another ruleset keeps `v*` tags from being moved or
 deleted.
-The Rust toolchain comes from the runner's own rustup, which installs the channel and the components that
-`rust-toolchain.toml` names, so no action is involved.
 
 Every action is pinned by commit SHA with the version in a comment. Dependabot proposes the updates for the
 actions and for `Cargo.lock` once a week, a release only after it is a week old; a pin is changed through such a
@@ -84,6 +87,23 @@ cargo install cargo-deny --locked   # once
 cargo deny check
 uvx zizmor .github
 ```
+
+### The Rust toolchain
+
+`rust-toolchain.toml` pins one stable version with `rustfmt` and `clippy`, and every build uses it: rustup installs
+it on the first `cargo` call in the repo, and in CI the local action `.github/actions/install-rust-toolchain`
+installs it with the runner's own rustup (no third-party action), plus the darwin targets a job names. The pin
+keeps a new Rust release and its new clippy lints from turning CI red without a code change; dependabot does not
+watch the file, so the bump is a deliberate pull request of its own:
+
+1. Set `channel` to the new stable version (`rustup check` names it) and run the checks of CONTRIBUTING.md,
+   "Checks before a commit"; the darwin clippy needs `rustup target add aarch64-apple-darwin` once per toolchain.
+2. Fix what the new lints find in the same pull request, titled `chore: bump the Rust toolchain to <version>`.
+
+`rust-version` in `Cargo.toml` (the oldest supported Rust, which the `msrv` job checks) is a separate number and
+does not move with the pin.
+
+### The release
 
 `scripts\release.ps1` builds the release profile (fat LTO, stripped) and packs `target\release\mboxer.exe`,
 `usage.html` and `THIRD-PARTY-LICENSES.html` into `dist\mboxer-<version>.zip`. `usage.html` is `docs\usage.md`
@@ -99,10 +119,13 @@ graph through `cargo metadata`, which wants the sources of every platform's crat
 fetch` first and cargo-about offline after it): `about.toml`
 accepts the same licences as `deny.toml` (a licence added to one is added to the other; the `deny` job compares
 the two), `scripts/third-party-licenses.hbs` is the page, and every crate links to its source, which the MPL-2.0
-crates ask for (D-011). cargo-about is a build-time tool, never part of the exe:
+crates ask for (D-011). cargo-about is a build-time tool, never part of the exe. Its version is written in one
+place, `scripts/cargo-about-version.txt`: CI installs that version, and `release.ps1` and `bundle-macos.sh` stop
+when the cargo-about on `PATH` is another one, so a page rendered by hand is the page a release renders.
+Dependabot does not see that file; a new cargo-about is a hand edit of its one line:
 
 ```powershell
-cargo install cargo-about --version 0.9.2 --locked --features cli   # once; the version ci.yml pins
+cargo install cargo-about --version (Get-Content scripts\cargo-about-version.txt -Raw).Trim() --locked --features cli
 scripts\release.ps1                     # dist\: the zip, SHA256SUMS.txt, release-notes-<version>.md
 ```
 
@@ -146,7 +169,7 @@ shellcheck (`uvx --from shellcheck-py shellcheck -s bash scripts/bundle-macos.sh
 
 ```bash
 rustup target add aarch64-apple-darwin x86_64-apple-darwin   # once
-cargo install cargo-about --version 0.9.2 --locked --features cli   # once
+cargo install cargo-about --version "$(cat scripts/cargo-about-version.txt)" --locked --features cli   # once
 scripts/bundle-macos.sh                 # dist/: the zip and SHA256SUMS.txt
 scripts/bundle-macos.sh --skip-build    # pack what target/<target>/release already holds
 scripts/bundle-macos.sh --licences-only page.html   # the macOS licence page alone, on any OS (Git Bash too)

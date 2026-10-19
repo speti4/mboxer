@@ -54,7 +54,6 @@ pub enum RowKind {
 pub struct Listing {
     searcher: Searcher,
     fields: Fields,
-    warnings: Vec<String>,
     /// Document addresses in row order: group by group, oldest member first.
     members: Vec<DocAddress>,
     layout: Layout,
@@ -66,7 +65,6 @@ impl std::fmt::Debug for Listing {
             .field("len", &self.len())
             .field("messages", &self.members.len())
             .field("expanded", &self.layout.expanded.len())
-            .field("warnings", &self.warnings)
             .finish_non_exhaustive()
     }
 }
@@ -90,12 +88,6 @@ impl Listing {
     /// [`message_count`](Self::message_count) when threads are not grouped.
     pub fn group_count(&self) -> usize {
         self.layout.group_count()
-    }
-
-    /// Problems with the query text for the viewer's status bar; none are
-    /// reported at present (see [`SearchResult::warnings`](crate::SearchResult::warnings)).
-    pub fn warnings(&self) -> &[String] {
-        &self.warnings
     }
 
     /// The rows `start..start + count`, clamped to the end; empty when `start`
@@ -190,7 +182,6 @@ impl MboxIndex {
         Ok(Listing {
             searcher,
             fields: *self.fields(),
-            warnings: Vec::new(),
             layout: Layout::new(members.len(), starts),
             members,
         })

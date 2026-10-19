@@ -13,6 +13,9 @@ the search processes are too short-lived to sample, so only the in-process timin
 .EXAMPLE
 scripts\benchmark.ps1 -Mbox "D:\mail\all.mbox" -Out docs\benchmarks\2026-10-17-14gb-takeout.md
 #>
+# PowerShell 7 reads this file as UTF-8 without a BOM; Windows PowerShell 5.1 would misread the accented
+# benchmark queries below, so it stops with a clear message instead (#Requires applies wherever it stands).
+#Requires -Version 7
 param(
     [Parameter(Mandatory)] [string] $Mbox,
     [string] $Exe = (Join-Path $PSScriptRoot '..\target\release\mboxer-cli.exe'),

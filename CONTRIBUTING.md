@@ -24,7 +24,9 @@ with the fixtures as the only exception.
 
 On Windows 11 you need:
 
-- Rust stable via rustup, with the `x86_64-pc-windows-msvc` target. `rust-toolchain.toml` pins the channel.
+- Rust via rustup, with the `x86_64-pc-windows-msvc` target. `rust-toolchain.toml` pins a stable version,
+  which rustup installs on the first `cargo` call in the repo
+  ([docs/development.md](docs/development.md#the-rust-toolchain)).
 - The Visual Studio 2022 C++ build tools and a Windows 11 SDK, which the MSVC linker needs.
 - Node.js (optional). `cargo test` runs the UI's Node tests when `node` is on `PATH` and skips them
   otherwise.
@@ -36,7 +38,7 @@ cargo build --release
 cargo run -p mboxer-app -- [file.mbox]      # the viewer, during development
 ```
 
-On a Mac you need Rust stable via rustup and the Xcode command line tools (`xcode-select --install`); `cargo
+On a Mac you need Rust via rustup and the Xcode command line tools (`xcode-select --install`); `cargo
 run -p mboxer-app -- [file.mbox]` starts the viewer, and `scripts/bundle-macos.sh` builds the universal
 `mboxer.app` and its zip (see [docs/development.md](docs/development.md#the-macos-bundle)).
 
@@ -65,7 +67,7 @@ cargo fmt --check
 cargo clippy --all-targets --locked -- -D warnings
 cargo test --locked
 # The macOS-only code, compiled for the Apple Silicon target on Windows (rustup target add aarch64-apple-darwin,
-# once); DOCS_RS skips the one build script that needs Apple's compiler (docs/development.md, "The macOS bundle").
+# once per pinned version); DOCS_RS skips the one build script that needs Apple's compiler (docs/development.md, "The macOS bundle").
 $env:DOCS_RS = "1"
 cargo clippy --target aarch64-apple-darwin --all-targets --locked -- -D warnings
 # The oldest supported Rust, the rust-version of Cargo.toml

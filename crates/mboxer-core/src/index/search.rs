@@ -153,9 +153,6 @@ pub struct SearchResult {
     /// Number of matching messages, independent of `limit`/`offset`.
     pub total: usize,
     pub hits: Vec<Hit>,
-    /// Problems with the query text for the viewer's status bar. The free-text
-    /// grammar takes any text as words, so none are reported at present.
-    pub warnings: Vec<String>,
 }
 
 impl MboxIndex {
@@ -242,7 +239,6 @@ impl MboxIndex {
     /// sizes its collector by them, so `usize::MAX` would overflow (task 060).
     pub fn search(&self, query: &SearchQuery) -> Result<SearchResult> {
         let tantivy_query = self.to_tantivy_query(query);
-        let warnings = Vec::new();
         let searcher = self.reader.searcher();
         let documents = usize::try_from(searcher.num_docs()).unwrap_or(usize::MAX);
         let limit = query.limit.min(documents);
@@ -251,7 +247,6 @@ impl MboxIndex {
             return Ok(SearchResult {
                 total,
                 hits: Vec::new(),
-                warnings,
             });
         }
         let top = TopDocs::with_limit(limit).and_offset(query.offset);
@@ -277,11 +272,7 @@ impl MboxIndex {
                 (total, hits)
             }
         };
-        Ok(SearchResult {
-            total,
-            hits,
-            warnings,
-        })
+        Ok(SearchResult { total, hits })
     }
 
     /// Fetches one message by its D-003 identity.

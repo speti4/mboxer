@@ -13,7 +13,7 @@ use std::fs::File;
 use std::io::{self, BufRead, BufReader, Read, Seek, SeekFrom};
 use std::path::Path;
 
-use crate::envelope::{is_envelope, trim_line_break};
+use crate::envelope::{is_envelope, trim_line_break, unquote_from_lines};
 use crate::error::{Error, Result};
 
 /// Read buffer size used by [`MboxReader::open`].
@@ -300,21 +300,10 @@ pub fn read_at_from_with_limit<R: Read + Seek>(
 }
 
 /// The message as an `.eml` file: the bytes after the envelope line with the
-/// mboxrd quoting undone — one `>` comes off every line that is `>`s followed
-/// by `From `. Line endings and everything else stay as written (task 011; the
-/// text-only variant for display is task 013). mboxo and mboxrd cannot be told
-/// apart, so this is the inverse of the quoting Gmail Takeout applies.
+/// mboxrd quoting undone by [`unquote_from_lines`](crate::unquote_from_lines)
+/// (task 011); the viewer's text body goes through the same function.
 pub fn eml_bytes(raw: &RawMessage) -> Vec<u8> {
-    let mut out = Vec::with_capacity(raw.bytes.len());
-    for line in raw.bytes.split_inclusive(|&b| b == b'\n') {
-        let quoted = line.iter().take_while(|&&b| b == b'>').count();
-        if quoted > 0 && line[quoted..].starts_with(b"From ") {
-            out.extend_from_slice(&line[1..]);
-        } else {
-            out.extend_from_slice(line);
-        }
-    }
-    out
+    unquote_from_lines(&raw.bytes)
 }
 
 #[cfg(test)]

@@ -95,7 +95,6 @@
     blobUrls: [], // every blob URL made for this message, revoked when it changes
     cidBlobs: new Map(), // blob URL -> Blob of the cid images, inlined for the print window (macOS)
     printing: false, // a print document is loading into the print frame or going to the print window
-    warnings: [], // the query warnings behind the status bar
     statusTimer: 0,
     query: defaultQuery(), // the one source of truth behind the listing
     queryToken: 0, // only the newest set_query response lands
@@ -572,7 +571,7 @@
     document.title = `${summary.fileName} – mboxer`;
     el.statusLeft.textContent = summary.path;
     el.statusLeft.title = summary.path;
-    showWarnings([]);
+    showWarnings();
     indexLabelTree();
     resetQueryModel();
     const saved = state.fileQueries.get(queryKey(summary.path));
@@ -673,7 +672,7 @@
     el.search.value = "";
     el.search.disabled = true;
     el.filtersBtn.disabled = true;
-    showWarnings([]);
+    showWarnings();
     renderFolders();
     renderReopenList();
     setView("empty");
@@ -840,7 +839,7 @@
       state.highlightTerms = terms;
       state.messages = info.messages;
       state.conversations = info.conversations;
-      showWarnings(info.warnings);
+      showWarnings();
       await resetListing(info.generation, info.total, { keepSelection: true });
     } catch (err) {
       if (token !== state.queryToken) return;
@@ -849,14 +848,13 @@
     }
   }
 
-  // Shows the backend's query warnings after the syntax ones of the field.
-  function showWarnings(warnings) {
-    state.warnings = warnings || [];
+  // Shows the field's query warnings (query.js), else the index state.
+  function showWarnings() {
     clearTimeout(state.statusTimer);
     el.statusRight.title = "";
-    const all = state.parsed.warnings.concat(state.warnings);
-    if (all.length > 0) {
-      el.statusRight.textContent = `Query: ${all.join("; ")}`;
+    const warnings = state.parsed.warnings;
+    if (warnings.length > 0) {
+      el.statusRight.textContent = `Query: ${warnings.join("; ")}`;
       el.statusRight.className = "warn";
     } else {
       el.statusRight.textContent = state.file ? indexStateText(state.file.index) : "";
@@ -871,7 +869,7 @@
     el.statusRight.title = text;
     el.statusRight.className = className;
     clearTimeout(state.statusTimer);
-    state.statusTimer = setTimeout(() => showWarnings(state.warnings), duration);
+    state.statusTimer = setTimeout(showWarnings, duration);
   }
 
   function clearQuery() {

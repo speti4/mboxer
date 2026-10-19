@@ -6,8 +6,9 @@
 # clippy of the lint job already compiles the macOS code of every change. A tag also packs and publishes the portable
 # Windows zip and the macOS app zip, their checksums, their build provenance attestations and the notes from the
 # changelog (tasks 012, 025, 018, 028), each zip with the guide as HTML and the licence page (025, 041, 048). The
-# toolchain is the one `rust-toolchain.toml` names (stable), installed by the runner's own rustup, not by an
-# action (task 033); every cargo build runs `--locked`, so a stale `Cargo.lock` fails instead of being rewritten.
+# toolchain is the stable version `rust-toolchain.toml` pins (task 061), installed by the runner's own rustup through
+# the local action .github/actions/install-rust-toolchain, not by a third-party action (task 033); every cargo build
+# runs `--locked`, so a stale `Cargo.lock` fails instead of being rewritten.
 # A manual run on a branch also builds the macOS zip and keeps it as an artifact for a day: the way to test a
 # macOS change before its merge, try the bundle without a tag, or hand it to someone with a Mac.
 # Actions are pinned by commit SHA and bumped by dependabot (task 024).
@@ -24,13 +25,13 @@ permissions:
   contents: read
 
 # No incremental build in CI (it only grows the target cache, and the Rust cache keys on it) and coloured cargo
-# output in the log. The cargo-about of the two licence
-# pages (tasks 025, 041), built from crates.io with its own lock file; dependabot does not see this pin, so it is
-# bumped by hand, here and in the commands of docs/development.md and the two release scripts.
+# output in the log. The cargo-about of the two licence pages (tasks 025, 041) is built from crates.io with its own
+# lock file, in the version scripts/cargo-about-version.txt names: the one place it is written, read here, by the two
+# release scripts and by the commands of docs/development.md (task 061). Dependabot does not see that pin, so it is
+# bumped by hand.
 env:
   CARGO_INCREMENTAL: 0
   CARGO_TERM_COLOR: always
-  CARGO_ABOUT_VERSION: 0.9.2
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -52,19 +53,13 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      # The runner's preinstalled rustup installs what rust-toolchain.toml names: without an argument (rustup
-      # 1.28+) the toolchain and its components, then by name to bring an older preinstalled stable up to date,
-      # which the argumentless install leaves as it is. The last two lines put the result in the log.
-      - name: Install the Rust toolchain from rust-toolchain.toml
-        shell: bash
-        run: |
-          rustup toolchain install --no-self-update
-          rustup toolchain install --no-self-update "$(rustup show active-toolchain | cut -d' ' -f1)"
-          rustup show
-          rustup component list --installed
-      # The cache only speeds up the tests; the release job builds without it, so nothing it holds is
-      # published (the zizmor cache-poisoning finding is ignored in .github/zizmor.yml).
-      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+      # The toolchain and components rust-toolchain.toml pins, with the runner's own rustup.
+      - uses: $/.github/actions/install-rust-toolchain
+      # The cache only speeds up the tests; the release jobs build without it, so nothing it holds is published.
+      # zizmor's cache-poisoning finding is accepted on this step by the comment on its name line (not on the
+      # `uses:` line, whose version comment dependabot rewrites), so a cache added anywhere else is flagged.
+      - name: Rust cache # zizmor: ignore[cache-poisoning]
+        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
       - run: cargo clippy --all-targets --locked -- -D warnings
       - run: cargo test --locked
 
@@ -82,13 +77,12 @@ jobs:
           # The whole history with the tags: scripts/changelog.py tells the tasks of a release by the tag trees.
           fetch-depth: 0
       # The toolchain of the test job plus the Apple Silicon target.
-      - name: Install the Rust toolchain from rust-toolchain.toml
-        run: |
-          rustup toolchain install --no-self-update
-          rustup toolchain install --no-self-update "$(rustup show active-toolchain | cut -d' ' -f1)"
-          rustup target add aarch64-apple-darwin
-          rustup show
-      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+      - uses: $/.github/actions/install-rust-toolchain
+        with:
+          targets: aarch64-apple-darwin
+      # As in the test job: only speeds up the checks, the cache-poisoning finding accepted on this step.
+      - name: Rust cache # zizmor: ignore[cache-poisoning]
+        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
       - run: cargo fmt --check
       - name: clippy for aarch64-apple-darwin
         env:
@@ -111,7 +105,7 @@ jobs:
   # as the lint job does: the Windows target pulls in tauri-build's resource compiler, which a Linux runner lacks,
   # and the language features do not differ between the targets. The ruleset on `main` requires it, as it
   # requires `test (windows-latest)`, lint, deny, workflow-lint and commit-rules. No Rust cache, so the
-  # cache-poisoning ignore in .github/zizmor.yml stays limited to the two cache lines.
+  # cache-poisoning finding stays accepted on the two cache steps only.
   msrv:
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -180,13 +174,9 @@ jobs:
         with:
           persist-credentials: false
       # The toolchain of the test job; no darwin target, since nothing is compiled for it here.
-      - name: Install the Rust toolchain from rust-toolchain.toml
-        run: |
-          rustup toolchain install --no-self-update
-          rustup toolchain install --no-self-update "$(rustup show active-toolchain | cut -d' ' -f1)"
-          rustup show
+      - uses: $/.github/actions/install-rust-toolchain
       - name: Install cargo-about
-        run: cargo install cargo-about --version "$CARGO_ABOUT_VERSION" --locked --features cli
+        run: cargo install cargo-about --version "$(cat scripts/cargo-about-version.txt)" --locked --features cli
       # Fetches the darwin crates' sources, then renders the page from them offline (scripts/bundle-macos.sh).
       - name: Render the licence page for the darwin targets
         run: scripts/bundle-macos.sh --licences-only dist/THIRD-PARTY-LICENSES.html
@@ -211,12 +201,9 @@ jobs:
         with:
           persist-credentials: false
       # The toolchain of the test job plus the second darwin target: the Apple Silicon runner only has its own.
-      - name: Install the Rust toolchain from rust-toolchain.toml
-        run: |
-          rustup toolchain install --no-self-update
-          rustup toolchain install --no-self-update "$(rustup show active-toolchain | cut -d' ' -f1)"
-          rustup target add aarch64-apple-darwin x86_64-apple-darwin
-          rustup show
+      - uses: $/.github/actions/install-rust-toolchain
+        with:
+          targets: aarch64-apple-darwin x86_64-apple-darwin
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: macos-licences
@@ -256,17 +243,12 @@ jobs:
         run: |
           git merge-base --is-ancestor "$GITHUB_SHA" origin/main ||
             { echo "::error::$GITHUB_REF_NAME ($GITHUB_SHA) is not on main"; exit 1; }
-      # The same toolchain as the test job, from rust-toolchain.toml (see the comment there).
-      - name: Install the Rust toolchain from rust-toolchain.toml
-        shell: bash
-        run: |
-          rustup toolchain install --no-self-update
-          rustup toolchain install --no-self-update "$(rustup show active-toolchain | cut -d' ' -f1)"
-          rustup show
-      # The licence page of the zip (task 025), with the cargo-about the workflow pins.
+      # The same toolchain as the test job, from rust-toolchain.toml.
+      - uses: $/.github/actions/install-rust-toolchain
+      # The licence page of the zip (task 025), with the cargo-about of scripts/cargo-about-version.txt.
       - name: Install cargo-about
         shell: pwsh
-        run: cargo install cargo-about --version $env:CARGO_ABOUT_VERSION --locked --features cli
+        run: cargo install cargo-about --version (Get-Content scripts/cargo-about-version.txt -Raw).Trim() --locked --features cli
       # No rust-cache here: a release is built from a clean target, never from a cache a pull request wrote.
       - name: Build and pack
         shell: pwsh
