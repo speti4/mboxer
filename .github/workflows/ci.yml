@@ -1,7 +1,9 @@
-# Tests, the dependency policy, the workflow lint and the commit rules (task 034) on every push and pull
-# request; a `v<version>` tag also packs and publishes the portable zip, its checksum and its notes from the
-# changelog (tasks 012, 025). The toolchain is the one `rust-toolchain.toml` names (stable), installed by the
-# runner's own rustup, not by an action (task 033).
+# Tests on Windows and macOS (task 018), the dependency policy, the workflow lint and the commit rules (task
+# 034) on every push and pull request; a `v<version>` tag also packs and publishes the portable Windows zip and
+# the macOS app zip, their checksums and the notes from the changelog (tasks 012, 025, 018). The toolchain is
+# the one `rust-toolchain.toml` names (stable), installed by the runner's own rustup, not by an action (task
+# 033). A manual run on a branch also builds the macOS zip and keeps it as an artifact for a day: the way to
+# try the bundle without a tag, or to hand it to a Mac tester.
 # Actions are pinned by commit SHA and bumped by dependabot (task 024).
 name: ci
 
@@ -10,6 +12,7 @@ on:
     branches: [main]
     tags: ["v*"]
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -26,8 +29,14 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  # The two shipped platforms; one runner's failure does not cancel the other's run, so a platform-only
+  # problem shows up as exactly one red job.
   test:
-    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -89,7 +98,7 @@ jobs:
   # The commit rules of docs/git-workflow.md (scripts/check-commit.sh) for every pushed or proposed commit and
   # the pull request text, which a squash merge turns into the commit message; the local hook can be skipped.
   commit-rules:
-    if: github.ref_type != 'tag'
+    if: github.ref_type != 'tag' && github.event_name != 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -126,13 +135,47 @@ jobs:
           done
           exit "$failed"
 
-  release:
+  # The macOS zip (task 018, D-07): the universal, ad-hoc signed mboxer.app packed by scripts/bundle-macos.sh
+  # on the macOS runner and handed to the release job as a short-lived artifact, so one job publishes both
+  # zips and one SHA256SUMS.txt. On a manual run the artifact is the result. No rust-cache here either (see
+  # the release job).
+  bundle-macos:
     needs: [test, deny, workflow-lint]
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+    runs-on: macos-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # The toolchain of the test job plus the second darwin target: the Apple Silicon runner only has its own.
+      - name: Install the Rust toolchain from rust-toolchain.toml
+        run: |
+          rustup toolchain install --no-self-update
+          rustup toolchain install --no-self-update "$(rustup show active-toolchain | cut -d' ' -f1)"
+          rustup target add aarch64-apple-darwin x86_64-apple-darwin
+          rustup show
+      # The script checks the tag against the Cargo.toml version; a manual run has no tag to check.
+      - name: Build and bundle
+        env:
+          TAG: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
+        run: scripts/bundle-macos.sh ${TAG:+--tag "$TAG"}
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: macos-zip
+          path: |
+            dist/mboxer-*-macos.zip
+            dist/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 1
+
+  release:
+    needs: [test, deny, workflow-lint, bundle-macos]
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: windows-latest
     timeout-minutes: 45
     permissions:
-      contents: write # creates the release and uploads the zip
+      contents: write # creates the release and uploads the zips
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -159,6 +202,26 @@ jobs:
         env:
           TAG: ${{ github.ref_name }}
         run: scripts/release.ps1 -Tag $env:TAG
+      # The macOS zip and its checksum line from the bundle-macos job: the zip goes next to the Windows one,
+      # the line into the SHA256SUMS.txt release.ps1 wrote, once the download is verified against it.
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: macos-zip
+          path: dist/macos
+      - name: Join the macOS zip and its checksum
+        shell: pwsh
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          $version = $env:TAG.Substring(1)
+          $zip = "dist/macos/mboxer-$version-macos.zip"
+          $line = Get-Content dist/macos/SHA256SUMS.txt -Raw
+          $hash = (Get-FileHash -Algorithm SHA256 $zip).Hash.ToLowerInvariant()
+          if (-not $line.StartsWith("$hash  mboxer-$version-macos.zip")) { throw "the macOS zip does not match its checksum: $line" }
+          Move-Item $zip dist/
+          $sums = (Resolve-Path dist/SHA256SUMS.txt).Path
+          [System.IO.File]::AppendAllText($sums, $line, (New-Object System.Text.UTF8Encoding $false))
+          Get-Content $sums
       # The runner's own gh CLI publishes the release: no third-party action holds the write token. The notes
       # are the tag's section of the changelog, written by release.ps1 (scripts/changelog.py --notes).
       - name: Publish the release
@@ -168,5 +231,5 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $version = $env:TAG.Substring(1)
-          gh release create $env:TAG "dist/mboxer-$version.zip" dist/SHA256SUMS.txt --verify-tag `
-            --title "mboxer $version" --notes-file "dist/release-notes-$version.md"
+          gh release create $env:TAG "dist/mboxer-$version.zip" "dist/mboxer-$version-macos.zip" dist/SHA256SUMS.txt `
+            --verify-tag --title "mboxer $version" --notes-file "dist/release-notes-$version.md"

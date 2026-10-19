@@ -2,8 +2,8 @@
 # the exe. CI runs `cargo deny check` on every push and pull request; locally the same command.
 
 [graph]
-# The shipped target only; task 018 adds the macOS one.
-targets = ["x86_64-pc-windows-msvc"]
+# The shipped targets: the Windows exe and the two halves of the universal macOS binary (task 018).
+targets = ["x86_64-pc-windows-msvc", "aarch64-apple-darwin", "x86_64-apple-darwin"]
 all-features = false
 
 [advisories]

@@ -224,12 +224,16 @@ def render_notes(sections: list[Section], version: str, url: str) -> str:
     tagged = {s.version: s for s in sections}
     section = tagged.get(version) or Section(version=version, date=None, tasks=sections[0].tasks, summary=sections[0].summary)
     zip_name = f"mboxer-{version}.zip"
+    macos_zip = f"mboxer-{version}-macos.zip"
     lines = section_body(section, url, marker=False) + [
         "### Verify the download",
         "",
-        f"`SHA256SUMS.txt` holds the SHA-256 of `{zip_name}`; in PowerShell, `(Get-FileHash {zip_name}).Hash` prints",
-        "the same value in capitals. `THIRD-PARTY-LICENSES.html` in the zip lists the open-source crates compiled",
-        f"into `mboxer.exe` and their licences. The full history is in [CHANGELOG.md]({url}/blob/main/CHANGELOG.md).",
+        f"`{zip_name}` holds the Windows exe, `{macos_zip}` the macOS app (universal, not notarized: macOS blocks the",
+        "first start, *System Settings → Privacy & Security → Open Anyway* allows it once). `SHA256SUMS.txt` holds the",
+        f"SHA-256 of both zips; in PowerShell, `(Get-FileHash {zip_name}).Hash` prints the same value in capitals, on a",
+        "Mac `shasum -a 256 -c SHA256SUMS.txt` checks the download. `THIRD-PARTY-LICENSES.html` in the Windows zip",
+        "lists the open-source crates compiled into `mboxer.exe` and their licences. The full history is in",
+        f"[CHANGELOG.md]({url}/blob/main/CHANGELOG.md).",
     ]
     return sync_issues._trim(lines) + "\n"
 
