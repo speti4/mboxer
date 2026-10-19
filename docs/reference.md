@@ -127,9 +127,9 @@ The field in the toolbar (`Ctrl+F` or `Ctrl+K`) narrows the list while you type.
 are still typing counts as a prefix until you type a space, `"quotes"` make a phrase, `OR` and `-word` work,
 and accents and case do not matter. A prefix (from two letters on) stands for the 200 indexed words that start
 with it and occur in the most messages, the shorter word first on a tie, so a short prefix finds the common
-words and not the one-off codes that sort first. The field also takes Gmail-style operators, and it is the one source of
-truth: the *Filters* panel (`Ctrl+Shift+F`) and a click on a label in the folder pane write their operator into
-the field, and an operator you type shows up in the panel and in the folder selection.
+words and not the one-off codes that sort first. The field also takes Gmail-style operators, and it is the one
+source of truth: the *Filters* panel (`Ctrl+Shift+F`) and a click on a label in the folder pane write their
+operator into the field, and an operator you type shows up in the panel and in the folder selection.
 
 | Operator | Meaning |
 |---|---|
