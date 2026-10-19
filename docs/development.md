@@ -45,22 +45,26 @@ capability: it runs no script.
 
 ## CI and releases
 
-`.github/workflows/ci.yml` runs four jobs on every push to `main` and every pull request: `test` (windows-latest:
-`cargo clippy --all-targets --locked -- -D warnings`, `cargo test --locked`), `lint` (ubuntu: `cargo fmt --check` and `cargo clippy --target aarch64-apple-darwin --all-targets -- -D
-warnings`, which compiles the macOS-only code without a Mac), `deny` (`cargo deny check` against `deny.toml` for
-the Windows and the two macOS targets: licences from the allowlist, no RustSec advisory or yanked crate,
-crates.io as the only source, D-011; and `about.toml` accepts the same licences) and `workflow-lint` (zizmor over
-the workflows and `dependabot.yml`; a finding accepted on purpose is listed with its reason in
-`.github/zizmor.yml`). The `test` job adds macos-latest only on a tag and on a manual run: macOS runners are
-slower and scarcer, so the macOS tests run on tags and manual runs (task 042, set while the repo was private).
-`.github/workflows/commit-rules.yml` runs `commit-rules` (`scripts/check-commit.sh` over every pushed commit and
-the pull request text, the rules of [git-workflow.md](git-workflow.md)) on the same pushes and pull requests. The
-workflows run with a read-only token by default; only the release job may write contents and only the issue sync
-may write issues. Cargo runs with `--locked` in CI and in the release scripts, so a `Cargo.lock` out of step with
-the manifests fails the build instead of being rewritten.
+`.github/workflows/ci.yml` runs five jobs on every push to `main` and every pull request: `test` (windows-latest:
+`cargo clippy --all-targets --locked -- -D warnings`, `cargo test --locked`), `lint` (ubuntu: `cargo fmt --check`,
+`cargo clippy --target aarch64-apple-darwin --all-targets --locked -- -D warnings`, which compiles the macOS-only
+code without a Mac, and `scripts/changelog.py --check`, skipped on a tag; see [The changelog](#the-changelog)),
+`msrv` (ubuntu: `cargo check` for the macOS target with the toolchain that `rust-version` in `Cargo.toml` names,
+so nothing newer than the declared minimum slips in; not a required check), `deny` (`cargo deny check` against
+`deny.toml` for the Windows and the two macOS targets: licences from the allowlist, no RustSec advisory or yanked
+crate, crates.io as the only source, D-011; and `about.toml` accepts the same licences) and `workflow-lint`
+(zizmor over the workflows and `dependabot.yml`; a finding accepted on purpose is listed with its reason in
+`.github/zizmor.yml`, scoped to the lines it covers). The `test` job adds macos-latest only on a tag and on a
+manual run: macOS runners are slower and scarcer, so the macOS tests run on tags and manual runs (task 042, set
+while the repo was private). `.github/workflows/commit-rules.yml` runs `commit-rules` (`scripts/check-commit.sh`
+over every pushed commit and the pull request text, the rules of [git-workflow.md](git-workflow.md)) on the same
+pushes and pull requests. The workflows run with a read-only token by default; only the release job may write
+contents and only the issue sync may write issues, and the sync runs only in `speti4/mboxer`, never in a fork.
+Cargo runs with `--locked` in CI and in the release scripts, so a `Cargo.lock` out of step with the manifests
+fails the build instead of being rewritten.
 
-CodeQL runs as GitHub's default setup (Rust, JavaScript/TypeScript, Actions), managed in the repository settings,
-not as a workflow file. A ruleset protects `main`: changes arrive through a pull request with squash merge only,
+CodeQL runs as GitHub's default setup (Rust, JavaScript/TypeScript, Python, Actions), managed in the repository
+settings, not as a workflow file. A ruleset protects `main`: changes arrive through a pull request with squash merge only,
 the checks `test (windows-latest)`, `lint`, `deny`, `workflow-lint` and `commit-rules` must pass, the history
 stays linear, and force pushes and deletion are blocked. Another ruleset keeps `v*` tags from being moved or
 deleted.
