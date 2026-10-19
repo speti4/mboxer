@@ -20,6 +20,7 @@ not the list. The summary under a heading is written by hand and kept by the gen
 ### Project housekeeping
 
 - Publication day: visibility switch and the public-only repo settings ([028](https://github.com/speti4/mboxer/blob/main/tasks/done/028-publication-day-repo-settings.md))
+- The commit hook checks the type prefix, and the required checks hold after a release and a PR edit ([056](https://github.com/speti4/mboxer/blob/main/tasks/done/056-commit-hook-checks-the-type-and-ci-re-checks-edited-pull-requests.md))
 
 ## 0.2.0 — 2026-10-19
 
