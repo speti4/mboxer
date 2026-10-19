@@ -6,6 +6,7 @@ started: 2026-10-18
 closed: 2026-10-18
 plan: folytassuk-a-030-task-replicated-fairy.md
 milestone: M5 Public release
+changelog: housekeeping
 ---
 
 # 030 — Scrub the repo and rewrite the history per D-009 / D-010

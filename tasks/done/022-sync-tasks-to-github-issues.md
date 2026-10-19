@@ -6,6 +6,7 @@ started: 2026-10-18
 closed: 2026-10-18
 plan: local-repoban-profi-a-clever-pie.md
 milestone: M5 Public release
+changelog: housekeeping
 ---
 
 # 022 — One-way sync of tasks/ to GitHub issues and milestones

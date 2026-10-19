@@ -6,6 +6,7 @@ started: 2026-10-19
 closed: 2026-10-19
 plan: peaceful-jumping-adleman.md
 milestone: M4 macOS
+changelog: housekeeping
 ---
 
 # 042 — Cut the CI minutes: macOS tests on tags and manual runs

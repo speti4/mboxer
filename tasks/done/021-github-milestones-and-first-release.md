@@ -6,6 +6,7 @@ started: 2026-10-18
 closed: 2026-10-18
 plan: local-repoban-profi-a-clever-pie.md
 milestone: M5 Public release
+changelog: housekeeping
 ---
 
 # 021 — GitHub milestones from the roadmap and the first release v0.1.0

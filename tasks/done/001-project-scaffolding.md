@@ -5,6 +5,7 @@ created: 2026-10-17
 started: 2026-10-17
 closed: 2026-10-17
 plan: olvasd-el-a-draft-md-sharded-teapot.md
+changelog: housekeeping
 ---
 
 # 001 — Project scaffolding: repo structure and task standard

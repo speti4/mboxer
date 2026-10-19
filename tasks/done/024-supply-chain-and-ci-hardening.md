@@ -6,6 +6,7 @@ started: 2026-10-18
 closed: 2026-10-18
 milestone: M5 Public release
 plan: steady-baking-kurzweil.md
+changelog: housekeeping
 ---
 
 # 024 — Supply chain and CI hardening: dependabot, cargo-deny, pinned actions

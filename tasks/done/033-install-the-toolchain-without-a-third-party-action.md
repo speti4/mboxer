@@ -6,6 +6,7 @@ started: 2026-10-18
 closed: 2026-10-18
 plan: none
 milestone: M5 Public release
+changelog: housekeeping
 ---
 
 # 033 — Install the Rust toolchain in CI without a third-party action

@@ -6,6 +6,10 @@ in roadmap order ("Other" for a task without one). A task belongs to the first `
 whose tree holds it under tasks/done/; a task no tag holds yet is Unreleased. The tag trees decide, not the
 `closed` date: on the day of a tag, tasks close both before and after it (0.1.0: 017 before, 021 after).
 
+A task whose frontmatter says `changelog: housekeeping` changed the project rather than the app (the repo, CI,
+the process); it is listed last, under "Project housekeeping", and left out of the release notes, which only
+count it and point to CHANGELOG.md (task 047).
+
 A section's summary, the prose between its `## ` heading and the generated list, is written by hand and kept by
 every run; when a new tag appears, the Unreleased summary moves to that tag's section. So before a release, write
 the summary under Unreleased; after the tag, a run stamps the section with the version and the tag's date.
@@ -37,6 +41,7 @@ RELEASE_TAG = re.compile(r"^v(\d+)\.(\d+)\.(\d+)$")
 VERSION = re.compile(r"^\d+\.\d+\.\d+$")
 MARKER = "<!-- The summary above is written by hand; the list below is generated from tasks/done/ by scripts/changelog.py. -->"
 OTHER = "Other"
+HOUSEKEEPING = "Project housekeeping"
 
 
 def _load_sync_issues():
@@ -62,6 +67,7 @@ class Task:
     name: str  # "021-slug.md"
     title: str  # the H1 without the id
     milestone: str | None
+    housekeeping: bool = False
 
 
 @dataclass
@@ -94,7 +100,16 @@ def load_done() -> dict[str, Task]:
         data, body = sync_issues.parse_frontmatter(path.read_text(encoding="utf-8"), rel)
         heading = sync_issues._heading(body, rel)
         title = re.sub(r"^\d{2,4}[a-z]?\s*[—–-]\s*", "", heading)
-        tasks[key] = Task(key=key, name=path.name, title=title, milestone=sync_issues.scalar(data, "milestone"))
+        kind = sync_issues.scalar(data, "changelog")
+        if kind not in (None, "housekeeping"):
+            raise SystemExit(f"{rel}: `changelog: {kind}` is not known (only `housekeeping`)")
+        tasks[key] = Task(
+            key=key,
+            name=path.name,
+            title=title,
+            milestone=sync_issues.scalar(data, "milestone"),
+            housekeeping=kind == "housekeeping",
+        )
     return tasks
 
 
@@ -176,13 +191,23 @@ def attach_summaries(sections: list[Section], summaries: dict[str, str]) -> None
     sections[0].summary = unreleased
 
 
-def task_lines(section: Section, url: str) -> list[str]:
+def task_lines(section: Section, url: str, housekeeping: bool = True) -> list[str]:
+    """The milestone groups in roadmap order, "Other", then "Project housekeeping" (left out with
+    `housekeeping=False`)."""
     order = list(sync_issues.load_roadmap())
     groups: dict[str, list[Task]] = {}
+    chores: list[Task] = []
     for task in section.tasks:
-        groups.setdefault(task.milestone or OTHER, []).append(task)
+        if task.housekeeping:
+            chores.append(task)
+        else:
+            groups.setdefault(task.milestone or OTHER, []).append(task)
+    named = sorted(groups, key=lambda m: (m == OTHER, order.index(m) if m in order else len(order), m))
+    if housekeeping and chores:
+        named.append(HOUSEKEEPING)
+        groups[HOUSEKEEPING] = chores
     lines: list[str] = []
-    for name in sorted(groups, key=lambda m: (m == OTHER, order.index(m) if m in order else len(order), m)):
+    for name in named:
         lines += [f"### {name}", ""]
         for task in groups[name]:
             lines.append(f"- {task.title} ([{task.key}]({url}/blob/main/tasks/done/{task.name}))")
@@ -192,13 +217,13 @@ def task_lines(section: Section, url: str) -> list[str]:
     return lines
 
 
-def section_body(section: Section, url: str, marker: bool = True) -> list[str]:
+def section_body(section: Section, url: str, marker: bool = True, housekeeping: bool = True) -> list[str]:
     lines: list[str] = []
     if section.summary:
         lines += [section.summary, ""]
     if marker:
         lines += [MARKER, ""]
-    return lines + task_lines(section, url)
+    return lines + task_lines(section, url, housekeeping)
 
 
 def heading(section: Section) -> str:
@@ -225,7 +250,15 @@ def render_notes(sections: list[Section], version: str, url: str) -> str:
     section = tagged.get(version) or Section(version=version, date=None, tasks=sections[0].tasks, summary=sections[0].summary)
     zip_name = f"mboxer-{version}.zip"
     macos_zip = f"mboxer-{version}-macos.zip"
-    lines = section_body(section, url, marker=False) + [
+    chores = sum(task.housekeeping for task in section.tasks)
+    lines = section_body(section, url, marker=False, housekeeping=False)
+    if chores:
+        listed = "task (repository, CI or process) is" if chores == 1 else "tasks (repository, CI and process) are"
+        lines += [
+            f"{chores} project housekeeping {listed} listed in [CHANGELOG.md]({url}/blob/main/CHANGELOG.md).",
+            "",
+        ]
+    lines += [
         "### Verify the download",
         "",
         f"`{zip_name}` holds the Windows exe, `{macos_zip}` the macOS app (universal, not notarized: macOS blocks the",

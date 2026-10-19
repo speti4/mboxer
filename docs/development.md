@@ -156,8 +156,11 @@ $env:DOCS_RS = "1"; cargo check --target aarch64-apple-darwin -p mboxer-app -p m
 line (its H1, linked to the file) under its milestone, in the section of the first release tag whose tree holds
 it under `tasks/done/`, or under *Unreleased* when no tag holds it yet. The tag trees decide rather than the
 `closed` date, because tasks close both before and after a tag on the same day. The summary under a heading is
-written by hand and kept by every run; the lists are never edited by hand. The release notes are one section of
-it, with a footer on the checksum and the licence page. A release goes like this:
+written by hand and kept by every run; the lists are never edited by hand. A task that changed the project rather
+than the app (the repo, CI, the process) carries `changelog: housekeeping` in its frontmatter and is listed last,
+under *Project housekeeping*. The release notes are one section of the changelog without that group (one line
+counts it and links the changelog), with a footer on the checksum, the attestation and the licence page. A
+release goes like this:
 
 1. In a pull request: bump the version in `Cargo.toml`, write the summary under *Unreleased* in
    `CHANGELOG.md`, run `python -I scripts/changelog.py` and merge.
