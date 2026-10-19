@@ -128,6 +128,15 @@ a Mac `~/Library/Application Support/mboxer/index/`;
 [D-005](../tasks/decisions/D-005-index-fallback-under-localappdata.md));
 `MBOXER_INDEX_HOME` overrides that root, and every open looks in both places. Accents and case are folded on both the index and the query side, so `szamla` finds `Számla`.
 
+A build writes into `<file name>.building\` beside the index and puts it in place only when it is complete; a
+viewer may keep the old index open meanwhile. The old index's files are moved aside into `<file name>.old\` first
+and deleted last, so a failed swap leaves the old index whole; a `.old` folder that a viewer still holds is deleted
+by the next build. One build of a file runs at a time: a second one, from the viewer or `mboxer-cli`, stops at once
+with "another build holds `<lock file>`". The lock file is `<file name>-<hash>.lock` in the index home above;
+the system releases the lock when the build ends or its process dies, so a stale lock does not exist. A message
+larger than the size limit (256 MB, which only a corrupt file reaches) is left out of the index and counted as
+skipped, and the build goes on with the next message; a file of nothing but such text is still an error.
+
 ## The command line
 
 `mboxer-cli` (`mboxer-cli.exe` on Windows) works on the same file and the same index, without a window. It is a
@@ -144,7 +153,8 @@ mboxer-cli search <file.mbox> [query words] [--from WORDS] [--to WORDS]
 `scan` streams the whole file once with a bounded buffer, prints the headers and MIME tree of the first
 messages, then a summary: message count, throughput, largest message, labels, parse failures.
 
-`index` builds the sidecar index and skips the build when the index already matches the file.
+`index` builds the sidecar index and skips the build when the index already matches the file. Its summary counts
+the skipped messages and lists the byte offsets of the first ten.
 
 `search` needs that index. The query words follow the viewer's free-text syntax (AND-ed, `"quotes"`, `OR`,
 `-word`, a trailing `*`, a colon is plain text; a query that starts with `-` goes after `--`), accents and

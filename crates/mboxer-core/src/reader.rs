@@ -4,7 +4,10 @@
 //! buffer plus the largest single message, never the file. Each message carries
 //! the byte offset of its envelope line and its length up to the next envelope
 //! line, which is the identity every later layer stores (decision D-003);
-//! [`read_at`] turns that pair back into the same bytes.
+//! [`read_at`] turns that pair back into the same bytes. A message over the
+//! size limit is an [`Error::MessageTooLarge`] item, and the stream goes on at
+//! the next envelope line; an oversized first line, a file that does not start
+//! with an envelope and an I/O error end it.
 
 use std::fs::File;
 use std::io::{self, BufRead, BufReader, Read, Seek, SeekFrom};
@@ -160,7 +163,7 @@ impl<R: BufRead> MboxReader<R> {
             if used > self.max_message_bytes
                 || (!self.line_is_complete() && n as u64 == self.max_message_bytes)
             {
-                self.state = State::Done;
+                self.skip_to_next_envelope()?;
                 return Err(Error::MessageTooLarge {
                     offset,
                     limit: self.max_message_bytes,
@@ -175,6 +178,34 @@ impl<R: BufRead> MboxReader<R> {
             envelope: String::from_utf8_lossy(trim_line_break(&envelope_line)).into_owned(),
             bytes: std::mem::take(&mut self.body),
         }))
+    }
+
+    /// Drops the rest of an oversized message: reads on, one bounded line at a
+    /// time, until the next envelope line (kept as the pending one) or the end
+    /// of the file, so the stream goes on after the error (task 052). Only a
+    /// line that starts at a line break can be an envelope.
+    fn skip_to_next_envelope(&mut self) -> Result<()> {
+        self.body.clear();
+        let mut at_line_start = self.line_is_complete();
+        loop {
+            let line_start = self.pos;
+            let n = match self.read_line_bounded(self.max_message_bytes) {
+                Ok(n) => n,
+                Err(err) => {
+                    self.state = State::Done;
+                    return Err(err.into());
+                }
+            };
+            if n == 0 {
+                self.state = State::Done;
+                return Ok(());
+            }
+            if at_line_start && is_envelope(&self.line) {
+                self.pending = Some((line_start, std::mem::take(&mut self.line)));
+                return Ok(());
+            }
+            at_line_start = self.line_is_complete();
+        }
     }
 }
 
@@ -317,6 +348,37 @@ mod tests {
         assert!(reader.next().unwrap().is_ok());
         let err = reader.next().unwrap().unwrap_err();
         assert!(matches!(err, Error::MessageTooLarge { offset, .. } if offset == first_len));
+        // It was the last one: the stream ends after it.
+        assert!(reader.next().is_none());
+    }
+
+    #[test]
+    fn the_stream_goes_on_after_an_oversized_message() {
+        let mut data = Vec::new();
+        data.extend_from_slice(
+            b"From a@example.com Mon Jan  5 09:00:00 2026\nSubject: one\n\nshort\n",
+        );
+        let big_at = data.len() as u64;
+        data.extend_from_slice(b"From b@example.com Tue Jan  6 10:00:00 2026\nSubject: two\n\n");
+        // One line longer than the limit: the bounded reads cut it after 300
+        // bytes, right before text that would be an envelope at a line start.
+        data.extend_from_slice(&[b'x'; 300]);
+        data.extend_from_slice(b"From x@example.com Thu Jan  8 12:00:00 2026\n\n");
+        let last_at = data.len() as u64;
+        data.extend_from_slice(
+            b"From c@example.com Wed Jan  7 11:00:00 2026\nSubject: three\n\nend\n",
+        );
+
+        let mut reader = MboxReader::new(Cursor::new(&data)).with_max_message_bytes(100);
+        assert_eq!(reader.next().unwrap().unwrap().offset, 0);
+        let err = reader.next().unwrap().unwrap_err();
+        assert!(
+            matches!(err, Error::MessageTooLarge { offset, limit: 100 } if offset == big_at),
+            "{err}"
+        );
+        let last = reader.next().unwrap().unwrap();
+        assert_eq!(last.offset, last_at);
+        assert_eq!(last.end(), data.len() as u64);
         assert!(reader.next().is_none());
     }
 

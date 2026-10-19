@@ -314,6 +314,14 @@ fn index(args: &IndexArgs) -> Result<(), Box<dyn Error>> {
     )?;
     writeln!(out, "messages:          {}", report.messages)?;
     writeln!(out, "parse failures:    {}", report.parse_failures)?;
+    writeln!(out, "skipped:           {}", report.skipped)?;
+    for offset in &report.skipped_offsets {
+        writeln!(
+            out,
+            "  message at offset {offset} is over the {}-byte limit, not indexed",
+            options.max_message_bytes
+        )?;
+    }
     writeln!(
         out,
         "elapsed:           {:.1} s",

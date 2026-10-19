@@ -55,6 +55,7 @@ fn indexed() -> (TempDir, PathBuf) {
     let output = mboxer(&["index", mbox.to_str().unwrap(), "--quiet"]);
     assert!(output.status.success(), "{output:?}");
     assert_eq!(field(&stdout(&output), "messages:"), "2");
+    assert_eq!(field(&stdout(&output), "skipped:"), "0");
     (dir, mbox)
 }
 

@@ -311,6 +311,7 @@ pub fn open_or_build(
             IndexState::Built {
                 build_secs: report.elapsed.as_secs(),
                 parse_failures: report.parse_failures,
+                skipped: report.skipped,
             },
         )),
         Opened::Missing => Err(Error::IndexMeta(
