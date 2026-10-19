@@ -6,7 +6,7 @@ full-text index), Tauri 2 UI (WebView2 / WKWebView), one portable exe or app, no
 ## Layout
 - `crates/mboxer-core` (streaming reader, message model, sidecar index), `crates/mboxer-app` (the `mboxer`
   exe: Tauri 2 window, static UI under `ui/`), `crates/mboxer-cli` (the `mboxer-cli` exe: scan / index / search)
-- `docs/` (`usage.md` ships in the release zip; `images/` holds screenshots over the demo mbox only), `tasks/`,
+- `docs/` (`usage.md` ships in the release zips as `usage.html`; `images/` holds screenshots over the demo mbox only), `tasks/`,
   the community files at the root and under `.github/`; the full layout is in `docs/development.md`
 
 ## Commands

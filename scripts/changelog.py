@@ -266,8 +266,8 @@ def render_notes(sections: list[Section], version: str, url: str) -> str:
         f"SHA-256 of both zips; in PowerShell, `(Get-FileHash {zip_name}).Hash` prints the same value in capitals, on a",
         f"Mac `shasum -a 256 {macos_zip}` prints it in lower case. Each zip also has a build provenance attestation:",
         f"`gh attestation verify {zip_name} --repo speti4/mboxer` shows that this repository's release workflow built",
-        "it. `THIRD-PARTY-LICENSES.html` in each zip lists the open-source crates compiled into that platform's app",
-        "and their licences. The full history is in",
+        "it. Each zip holds the user guide as `usage.html`, which opens in a browser, and `THIRD-PARTY-LICENSES.html`,",
+        "the open-source crates compiled into that platform's app and their licences. The full history is in",
         f"[CHANGELOG.md]({url}/blob/main/CHANGELOG.md).",
     ]
     return sync_issues._trim(lines) + "\n"

@@ -15,8 +15,8 @@ https://github.com/speti4/mboxer/blob/main/docs/reference.md
 ## Getting the program
 
 The project's GitHub releases page (https://github.com/speti4/mboxer/releases) has one zip per platform. Each
-zip holds the program, this guide and `THIRD-PARTY-LICENSES.html`, the licences of the open-source parts
-compiled into it.
+zip holds the program, this guide as `usage.html` (it opens in your browser) and `THIRD-PARTY-LICENSES.html`,
+the licences of the open-source parts compiled into it.
 
 On Windows:
 

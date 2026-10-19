@@ -13,7 +13,7 @@ edit the file, never the issue. Everything here is English.
 <!-- tasks:index:start -->
 _Generated 2026-10-19 — edit the files, not this section._
 
-**State:** 3 backlog (0 ready · 0 blocked · 2 waiting · 1 idea) · 0 in progress · 44 done · 1 dropped · 13 decisions
+**State:** 2 backlog (0 ready · 0 blocked · 2 waiting · 0 ideas) · 0 in progress · 45 done · 1 dropped · 13 decisions
 
 ### Ready
 
@@ -39,11 +39,7 @@ _none_
 
 ### Ideas
 
-#### (no milestone)
-
-| # | Task | Size | Created |
-|---|---|---|---|
-| 048 | [The usage guide in the zips in a format that opens with a double-click](backlog/048-usage-guide-readable-in-the-zip.md) | S | 2026-10-19 |
+_none_
 
 ### In progress
 
@@ -59,6 +55,7 @@ _none_
 
 | # | Task | Closed |
 |---|---|---|
+| 048 | [The usage guide in the zips in a format that opens with a double-click](done/048-usage-guide-readable-in-the-zip.md) | 2026-10-19 |
 | 047 | [Keep project housekeeping apart from user-facing changes in the changelog](done/047-housekeeping-tasks-in-the-changelog.md) | 2026-10-19 |
 | 046 | [CI extras once the minutes are free: MSRV, changelog check, fork guard](done/046-ci-extras-after-publication.md) | 2026-10-19 |
 | 045 | [Polish the code comments, UI strings and crate metadata](done/045-code-comments-and-ui-strings-polish.md) | 2026-10-19 |
@@ -68,9 +65,8 @@ _none_
 | 041 | [THIRD-PARTY-LICENSES.html in the macOS zip](done/041-third-party-licences-in-the-macos-zip.md) | 2026-10-19 |
 | 039 | [The commit hook's error messages cite D-010, not D-009](done/039-check-commit-messages-cite-d-10.md) | 2026-10-19 |
 | 038 | [README links the changelog next to the releases](done/038-readme-links-the-changelog.md) | 2026-10-19 |
-| 037 | [Refresh the README screenshot after the date column fix](done/037-refresh-the-viewer-screenshot.md) | 2026-10-19 |
 
-_34 more in `done/`._
+_35 more in `done/`._
 
 ### Decisions
 

@@ -5,7 +5,7 @@
 # `v<version>` tag and on a manual run only: macOS runners are slower and scarcer (task 042, set while the repo
 # was private and macOS minutes billed ten times the Linux rate). A tag also packs and publishes the portable
 # Windows zip and the macOS app zip, their checksums, their build provenance attestations and the notes from the
-# changelog (tasks 012, 025, 018, 028), each zip with its third-party licence page (tasks 025, 041). The
+# changelog (tasks 012, 025, 018, 028), each zip with the guide as HTML and the licence page (025, 041, 048). The
 # toolchain is the one `rust-toolchain.toml` names (stable), installed by the runner's own rustup, not by an
 # action (task 033); every cargo build runs `--locked`, so a stale `Cargo.lock` fails instead of being rewritten.
 # A manual run on a branch also builds the macOS zip and keeps it as an artifact for a day: the way to test a
@@ -100,6 +100,10 @@ jobs:
       - name: CHANGELOG.md is up to date
         if: github.ref_type != 'tag'
         run: python3 -I scripts/changelog.py --check
+      # Both zips carry docs/usage.md as HTML (task 048); the renderer stops on Markdown it does not support, so
+      # a guide edit it cannot render fails here, not in a release run.
+      - name: The usage guide renders
+        run: python3 -I scripts/render-usage-guide.py --check
 
   # The oldest Rust the workspace declares (`rust-version` in Cargo.toml), so a newer language or library feature
   # cannot slip in unnoticed while every other job follows the latest stable. It checks the macOS target on Linux,

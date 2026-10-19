@@ -9,6 +9,10 @@ not the list. The summary under a heading is written by hand and kept by the gen
 
 <!-- The summary above is written by hand; the list below is generated from tasks/done/ by scripts/changelog.py. -->
 
+### M5 Public release
+
+- The usage guide in the zips in a format that opens with a double-click ([048](https://github.com/speti4/mboxer/blob/main/tasks/done/048-usage-guide-readable-in-the-zip.md))
+
 ### Project housekeeping
 
 - Publication day: visibility switch and the public-only repo settings ([028](https://github.com/speti4/mboxer/blob/main/tasks/done/028-publication-day-repo-settings.md))
