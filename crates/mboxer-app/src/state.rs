@@ -951,29 +951,43 @@ mod tests {
         assert_eq!(index.list(&slow).unwrap().len(), MANY);
         let whole = started.elapsed();
 
+        // The slow query pauses on its turn, before its search starts; the
+        // newer one takes its generation meanwhile and queues behind it. So
+        // the slow search is stale from its first document on, whatever the
+        // machine's speed (a sleep-based overlap missed on a fast runner).
         let state = &state;
         let (slow_info, slow_took, newer_info, waited) = thread::scope(|scope| {
-            let (searching, searching_rx) = mpsc::channel();
+            let (slow_searching, slow_searching_rx) = mpsc::channel();
+            let (slow_go, slow_go_rx) = mpsc::channel::<()>();
+            let (newer_queued, newer_queued_rx) = mpsc::channel();
             let slow_query = scope.spawn(move || {
                 let info = state.set_query_with(file, slow, |stage| {
                     if stage == QueryStage::Searching {
-                        let _ = searching.send(Instant::now());
+                        let _ = slow_searching.send(());
+                        let _ = slow_go_rx.recv_timeout(PAUSE);
                     }
                 });
                 (info, Instant::now())
             });
-            let search_started = searching_rx.recv().unwrap();
-            // The newer query comes in a fifth of the way into the search.
-            thread::sleep(whole / 5);
-            let started = Instant::now();
-            let newer_info = state.set_query(file, newer).unwrap();
-            let waited = started.elapsed();
+            slow_searching_rx.recv().unwrap();
+            let newer_query = scope.spawn(move || {
+                let info = state.set_query_with(file, newer, |stage| {
+                    if stage == QueryStage::Queued {
+                        let _ = newer_queued.send(());
+                    }
+                });
+                (info, Instant::now())
+            });
+            newer_queued_rx.recv().unwrap();
+            let released = Instant::now();
+            let _ = slow_go.send(());
             let (slow_info, slow_ended) = slow_query.join().unwrap();
+            let (newer_info, newer_ended) = newer_query.join().unwrap();
             (
                 slow_info.unwrap(),
-                slow_ended - search_started,
-                newer_info,
-                waited,
+                slow_ended - released,
+                newer_info.unwrap(),
+                newer_ended - released,
             )
         });
 
