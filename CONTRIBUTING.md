@@ -88,7 +88,8 @@ overwrites the change. The maintainer turns an accepted issue into a task file.
 - Code, comments, commit messages, docs and UI strings are in English.
 - File, folder, branch and crate names are kebab-case and descriptive, without ambiguous abbreviations.
 - User-facing changes update `docs/usage.md` (it ships in the release zip) and `docs/reference.md`.
-- Commit subjects are imperative and start with a type: `feat:`, `fix:`, `docs:`, `ci:`, `chore:`, `tasks:`.
+- Commit subjects are imperative and start with a type: `feat:`, `fix:`, `docs:`, `ci:`, `chore:`, `tasks:`,
+  `deps:` (dependabot).
 
 ## Licence
 

@@ -13,7 +13,7 @@ file, never the issue.
 <!-- tasks:index:start -->
 _Generated 2026-10-19 — edit the files, not this section._
 
-**State:** 8 backlog (5 ready · 0 blocked · 1 waiting · 2 ideas) · 0 in progress · 30 done · 0 dropped · 12 decisions
+**State:** 8 backlog (5 ready · 0 blocked · 1 waiting · 2 ideas) · 0 in progress · 31 done · 0 dropped · 12 decisions
 
 ### Ready
 
@@ -29,8 +29,8 @@ _Generated 2026-10-19 — edit the files, not this section._
 
 | # | Task | Size | Created |
 |---|---|---|---|
-| 036 | [Git workflow doc: current decision reference, the deps type, the expected index…](backlog/036-git-workflow-references-and-commit-types.md) | S | 2026-10-18 |
 | 037 | [Refresh the README screenshot after the date column fix](backlog/037-refresh-the-viewer-screenshot.md) | S | 2026-10-18 |
+| 039 | [The commit hook's error messages cite D-10, not D-09](backlog/039-check-commit-messages-cite-d-10.md) | S | 2026-10-19 |
 
 ### Needs decision
 
@@ -71,6 +71,7 @@ _none_
 | # | Task | Closed |
 |---|---|---|
 | 038 | [README links the changelog next to the releases](done/038-readme-links-the-changelog.md) | 2026-10-19 |
+| 036 | [Git workflow doc: current decision reference, the deps type, the expected index…](done/036-git-workflow-references-and-commit-types.md) | 2026-10-19 |
 | 035 | [CLAUDE.md fit for a public repo: no personal settings, no contradictions, a com…](done/035-claude-md-review-before-publication.md) | 2026-10-18 |
 | 034 | [Git workflow policy for contributors and parallel sessions, with the commit rul…](done/034-git-workflow-policy-and-commit-hooks.md) | 2026-10-18 |
 | 033 | [Install the Rust toolchain in CI without a third-party action](done/033-install-the-toolchain-without-a-third-party-action.md) | 2026-10-18 |
@@ -79,9 +80,8 @@ _none_
 | 027 | [Pre-publish audit of the history and the content](done/027-pre-publish-history-and-content-audit.md) | 2026-10-18 |
 | 026 | [README as a front page, the reference moved into docs](done/026-readme-front-page.md) | 2026-10-18 |
 | 025 | [Release notes and changelog from the task files, checksums and third-party lice…](done/025-release-notes-changelog-and-checksums.md) | 2026-10-18 |
-| 024 | [Supply chain and CI hardening: dependabot, cargo-deny, pinned actions](done/024-supply-chain-and-ci-hardening.md) | 2026-10-18 |
 
-_20 more in `done/`._
+_21 more in `done/`._
 
 ### Decisions
 

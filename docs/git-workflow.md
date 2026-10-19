@@ -12,8 +12,8 @@ CLAUDE.md imports this file, so every Claude Code session starts with it.
   `docs:`, `ci:`, `chore:`, `tasks:`, `deps:` (dependabot).
 - **Trailers.** `Co-Authored-By:` lines are fine, including `Co-Authored-By: Claude …`. A `Claude-Session:`
   trailer and a Claude Code session link are not allowed in a commit message or a pull request description
-  (D-09). A pull request written with Claude Code ends its description with `🤖 Generated with Claude Code`;
-  the squash merge appends the `Co-authored-by` lines of the branch's commits by itself.
+  (D-10, point 3). A pull request written with Claude Code ends its description with `🤖 Generated with Claude
+  Code`; the squash merge appends the `Co-authored-by` lines of the branch's commits by itself.
 - **Author address.** The maintainer commits with the GitHub noreply address (D-10); contributors choose their
   own.
 - **The hook.** Once per clone, `git config core.hooksPath .githooks` enables the `commit-msg` hook, which checks
@@ -33,10 +33,12 @@ The main session:
 - starts a task on its branch: `git switch -c task/NNN-slug`, `/tasks promote NNN` as the branch's first commit,
   `git switch main`, then `git worktree add .claude/worktrees/NNN-slug task/NNN-slug` (the folder is ignored by
   git). The task tools write only in the main checkout, which is why the promotion happens here;
-- prepares a finished pull request in the main checkout: `git switch --detach origin/task/NNN-slug`, `/tasks add`
-  for every follow-up the description lists, `tasks_check` with `write: true` for the index, one commit,
-  `git push origin HEAD:task/NNN-slug`, `git switch main`. If the branch conflicts with `main` (usually the
-  index), it rebases it in the worktree first and pushes with `--force-with-lease`;
+- prepares a finished pull request in the main checkout, and only once the previous merge is pulled:
+  `tasks_next_id` reads the checked-out tree, so an id filed on a branch that is not merged yet would be handed
+  out twice. Then `git switch --detach origin/task/NNN-slug`, `/tasks add` for every follow-up the description
+  lists, `tasks_check` with `write: true` for the index, one commit, `git push origin HEAD:task/NNN-slug`,
+  `git switch main`. If the branch conflicts with `main` (usually the index), it rebases it in the worktree
+  first and pushes with `--force-with-lease`;
 - merges the pull requests one at a time, on the user's go, once CI is green: `git worktree remove
   .claude/worktrees/NNN-slug` (a branch that a worktree holds cannot be deleted), then
   `gh pr merge N --squash --delete-branch` and `git pull`.
@@ -48,6 +50,10 @@ A task session:
   an id;
 - closes its task in its branch (the move to `done/`); a follow-up goes into the pull request description under
   `## Follow-ups`, one line each, and the main session files it before the merge;
+- runs `tasks_check` without `write` on the close commit: its report that the index in `tasks/README.md` is
+  stale is expected (the main session regenerates the index when it prepares the pull request); any other
+  finding is fixed. `git status` is clean before the session reports done, so the close commit carries the task
+  file's edits together with the move;
 - once the task's verification is done, pushes `task/NNN-slug` and opens the pull request with `gh pr create`,
   without asking again: this policy is the permission. It never pushes `main` and never merges;
 - ticks the description's checklist only for what it has seen pass, and edits it after CI with
