@@ -69,7 +69,7 @@ jobs:
       - run: cargo test --locked
 
   # The format check, which no platform changes, clippy for the Apple Silicon target, which compiles the
-  # macOS-only code on every change on a Linux runner, and the changelog check. DOCS_RS=1 is
+  # macOS-only code on every change on a Linux runner, the changelog check and the usage-guide check. DOCS_RS=1 is
   # objc2-exception-helper's own switch to skip its C build script, which needs Apple's compiler; a check does not
   # link, so nothing else needs it.
   lint:
