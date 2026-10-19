@@ -72,6 +72,7 @@ Everything below is a cache: deleting it costs a rebuild, never data.
 |---|---|---|
 | The search index | `.mboxer\<mbox file name>\` next to the mbox | `.mboxer/<mbox file name>/` next to the mbox |
 | The index when that folder is not writable (a read-only share, a DVD) | `%LOCALAPPDATA%\mboxer\index\` | `~/Library/Application Support/mboxer/index/` |
+| One small `.lock` file per mbox, so that two builds of it never run at once | `%LOCALAPPDATA%\mboxer\index\` | `~/Library/Application Support/mboxer/index/` |
 | Attachments you open from a message (cleaned at the next start) | `%TEMP%\mboxer\` | `$TMPDIR/mboxer/` |
 | The web view's own data (window state, cache) | `%LOCALAPPDATA%\io.github.speti4.mboxer\` | the folders named `io.github.speti4.mboxer` under `~/Library/` |
 
@@ -131,6 +132,10 @@ a dark one would make some messages unreadable. The *Text* and *Source* views fo
 - *Open failed* in red: the file is not an mbox (the message names the byte offset), or the path
   does not exist any more. Pick the file again with *Open*; a file that is gone can be removed from
   the pane with its `×`.
+- *Open failed* with "another build holds …": the same mbox is being indexed elsewhere (another
+  mboxer window, or `mboxer-cli`). Open it again when that build has finished.
+- The status bar says some messages were "too large to index": each is over 256 MB, which only a
+  damaged file reaches. They are left out of the list and the search; the rest is indexed.
 - The index rebuilds although nothing changed: the mbox was touched (copied with a new
   modification time, re-exported). A rebuild is safe, it only takes the time of the first open.
 - To force a rebuild, delete the `.mboxer\<mbox file name>\` folder next to the mbox (or the

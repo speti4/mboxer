@@ -84,6 +84,9 @@ file in the index home is acceptable.
   warnings` clean, `cargo test` green (mboxer-core 37 unit, 10 fixtures, 22 index, 6 index_build; mboxer-cli 4 +
   6; mboxer-app 42 + 1), `node --check` on `ui/main.js` clean. `Cargo.toml` and `Cargo.lock` unchanged, so no
   `cargo deny check`.
+- 2026-10-19 — `docs/usage.md`: the lock file in the table of what mboxer writes, and two entries under "When
+  something is off" (another build holds the file; messages too large to index);
+  `python -I scripts/render-usage-guide.py --check` passes.
 
 ## Deviations from the plan
 
