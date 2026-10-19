@@ -6,6 +6,7 @@ started: 2026-10-18
 closed: 2026-10-18
 milestone: M5 Public release
 plan: a-task-021-hez-kapcsol-d-an-mellow-hearth.md
+changelog: housekeeping
 ---
 
 # 027 — Pre-publish audit of the history and the content

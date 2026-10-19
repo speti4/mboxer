@@ -6,6 +6,7 @@ started: 2026-10-19
 plan: n-zz-k-t-a-backlogot-gentle-goose.md
 milestone: M5 Public release
 closed: 2026-10-19
+changelog: housekeeping
 ---
 
 # 036 — Git workflow doc: current decision reference, the deps type, the expected index failure

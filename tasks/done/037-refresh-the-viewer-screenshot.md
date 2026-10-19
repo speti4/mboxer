@@ -6,6 +6,7 @@ started: 2026-10-19
 closed: 2026-10-19
 plan: n-zz-k-t-a-backlogot-toasty-dove.md
 milestone: M5 Public release
+changelog: housekeeping
 ---
 
 # 037 — Refresh the README screenshot after the date column fix

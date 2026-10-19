@@ -6,6 +6,7 @@ started: 2026-10-18
 closed: 2026-10-18
 plan: cuddly-painting-trinket.md
 milestone: M5 Public release
+changelog: housekeeping
 ---
 
 # 034 — Git workflow policy for contributors and parallel work, with the commit rules enforced

@@ -6,6 +6,7 @@ started: 2026-10-18
 closed: 2026-10-18
 plan: none
 milestone: M5 Public release
+changelog: housekeeping
 ---
 
 # 035 — CLAUDE.md fit for a public repo: no personal settings, no contradictions, a commands block

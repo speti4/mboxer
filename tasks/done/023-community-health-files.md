@@ -6,6 +6,7 @@ started: 2026-10-18
 closed: 2026-10-18
 milestone: M5 Public release
 plan: peppy-imagining-pony.md
+changelog: housekeeping
 ---
 
 # 023 — Community health files: licence, security policy, contributing guide, issue and PR templates

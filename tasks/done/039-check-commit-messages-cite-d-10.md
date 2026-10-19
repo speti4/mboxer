@@ -6,6 +6,7 @@ started: 2026-10-19
 plan: n-zz-k-t-a-backlogot-toasty-dove.md
 milestone: M5 Public release
 closed: 2026-10-19
+changelog: housekeeping
 ---
 
 # 039 — The commit hook's error messages cite D-010, not D-009
