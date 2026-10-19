@@ -1,6 +1,6 @@
 ---
 status: waiting
-waits-for: every other open task done first (user decision 2026-10-19) — 041, 043, and 040 run by a colleague with a Mac; 029 follows 028
+waits-for: every other open task done first (user decision 2026-10-19) — 043, and 040 run by a colleague with a Mac; 029 follows 028
 size: S
 origin: session 2026-10-18
 created: 2026-10-18

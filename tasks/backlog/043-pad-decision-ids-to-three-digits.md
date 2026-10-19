@@ -1,6 +1,5 @@
 ---
-status: waiting
-waits-for: 041 merged (it edits the same docs and scripts)
+status: ready
 size: M
 origin: session 2026-10-19
 created: 2026-10-19
