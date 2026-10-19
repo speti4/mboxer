@@ -14,6 +14,8 @@
   const Files = window.MboxerFiles;
   // Printing on a Mac (print.js): the print window and the inlined cid images.
   const Print = window.MboxerPrint;
+  // The sanitized frame's URL kinds, CSS scrub and head metas (frame.js).
+  const Frame = window.MboxerFrame;
 
   const ROW_H = 28;
   const BLOCK = 200;
@@ -284,42 +286,8 @@
     "img{max-width:100%;height:auto}",
   ].join("");
 
-  // The kind of a URL by its scheme: "empty", "fragment", "data", "cid",
-  // "remote" (http, https, protocol-relative), "mailto", "relative" or "other".
-  // Control characters and spaces are ignored, as browsers ignore them.
-  function classifyUrl(value) {
-    const cleaned = String(value || "").replace(/[\u0000- ]+/g, "");
-    if (!cleaned) return "empty";
-    if (cleaned.startsWith("#")) return "fragment";
-    if (cleaned.startsWith("//")) return "remote";
-    const m = /^([a-z][a-z0-9+.-]*):/i.exec(cleaned);
-    if (!m) return "relative";
-    const scheme = m[1].toLowerCase();
-    if (scheme === "data") return "data";
-    if (scheme === "cid") return "cid";
-    if (scheme === "http" || scheme === "https") return "remote";
-    if (scheme === "mailto") return "mailto";
-    return "other";
-  }
-
-  // Scrubs a CSS text: `@import`, `expression()` and `behavior` are always
-  // dropped; `safe` keeps the remote `url()`s, `blocked` turns them into
-  // `none` (an empty `url()` would still resolve to the document itself);
-  // `remote` counts them.
-  function scrubCss(css) {
-    const safe = String(css || "")
-      .replace(/@import\b[^;]*;?/gi, "")
-      .replace(/expression\s*\(/gi, "expression-blocked(")
-      .replace(/-moz-binding|behavior\s*:/gi, "blocked:");
-    let remote = 0;
-    const blocked = safe.replace(/url\(\s*(['"]?)([^'")]*)\1\s*\)/gi, (whole, _quote, url) => {
-      const kind = classifyUrl(url);
-      if (kind === "data" || kind === "fragment") return whole;
-      if (kind === "remote") remote++;
-      return "none";
-    });
-    return { safe, blocked, remote };
-  }
+  // The kind of a URL and the CSS scrub live in frame.js.
+  const { classifyUrl, scrubCss } = Frame;
 
   // Parses `html` into an inert document and strips it: active content,
   // unsafe URLs and remote references. Returns the document and the number
@@ -423,25 +391,17 @@
     }
   }
 
-  // The srcdoc of the iframe: a copy of the sanitized document with our CSP,
-  // charset and base style in front, remote references restored on request,
-  // the search words marked.
+  // The srcdoc of the iframe: a copy of the sanitized document with our
+  // charset, referrer policy, CSP and base style in front, remote references
+  // restored on request, the search words marked.
   function htmlSrcdoc(sanitized, { allowRemote, terms }) {
     const doc = document.implementation.createHTMLDocument("");
     doc.replaceChild(doc.importNode(sanitized.doc.documentElement, true), doc.documentElement);
     if (allowRemote) restoreRemote(doc);
     if (sanitized.length <= MAX_HIGHLIGHT_CHARS) highlightDocument(doc, terms);
-    const charset = doc.createElement("meta");
-    charset.setAttribute("charset", "utf-8");
-    const csp = doc.createElement("meta");
-    csp.setAttribute("http-equiv", "Content-Security-Policy");
-    csp.setAttribute(
-      "content",
-      `default-src 'none'; img-src data: blob:${allowRemote ? " https: http:" : ""}; style-src 'unsafe-inline'`,
-    );
     const style = doc.createElement("style");
     style.textContent = IFRAME_STYLE;
-    doc.head.prepend(charset, csp, style);
+    doc.head.prepend(...Frame.headMetas(doc, allowRemote), style);
     return `<!doctype html>${doc.documentElement.outerHTML}`;
   }
 

@@ -31,7 +31,7 @@ checks before a commit and the project rules are in [CONTRIBUTING.md](../CONTRIB
 
 The UI is plain HTML, CSS and JavaScript embedded in the exe: no Node toolchain, no bundler, no Tauri CLI. A
 change under `crates/mboxer-app/ui/` takes effect on the next `cargo run`. The pure modules (`query.js`,
-`theme.js`, `files.js`, `print.js`) have Node tests under `crates/mboxer-app/tests/ui/`, which `cargo test`
+`theme.js`, `files.js`, `print.js`, `frame.js`) have Node tests under `crates/mboxer-app/tests/ui/`, which `cargo test`
 runs through `tests/ui_query.rs` when `node` is on `PATH`. The application icon is generated once by
 `scripts\make-icon.py` (Pillow) and committed: `icon.ico` for the Windows exe, `icon.png` for the window icon
 on the other targets and the `icon.iconset/` PNGs that the macOS bundle turns into `icon.icns`.

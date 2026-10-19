@@ -13,27 +13,42 @@ use mboxer_core::{Attachment, attachments, parse, part_at, part_bytes, read_at};
 /// default, 260 per path, and the folder takes its share.
 const MAX_NAME_CHARS: usize = 150;
 
-/// Extensions Windows or macOS runs when "opened": those attachments are saved,
-/// never opened. One list for both systems: an attachment is as dangerous on
-/// the machine it is forwarded to as on this one.
+/// Extensions Windows runs when "opened": those attachments are saved, never
+/// opened. Both this list and [`MACOS_BLOCKED_EXTENSIONS`] apply on both
+/// systems: an attachment is as dangerous on the machine it is forwarded to as
+/// on this one.
 #[rustfmt::skip]
 const BLOCKED_EXTENSIONS: &[&str] = &[
-    // Windows
+    // Programs, scripts, shortcuts and installers.
     "exe", "bat", "cmd", "com", "scr", "pif", "msi", "msp", "ps1", "psm1", "vbs", "vbe", "js",
     "jse", "wsf", "wsh", "hta", "lnk", "reg", "jar", "cpl", "inf", "url", "application", "gadget",
     "msc", "appx",
-    // macOS: shell and Automator scripts, installers, disk images, bundles, Terminal
+    // Script components that regsvr32 and scrobj run.
+    "wsc", "sct",
+    // Packages and their App Installer files, which install an app on a click.
+    "msix", "msixbundle", "appinstaller",
+    // Disk images and archives that Explorer mounts or opens as a folder: the
+    // files inside lose the Mark of the Web.
+    "iso", "img", "vhd", "vhdx", "cab",
+    // Compiled help, which runs script; Excel add-ins, which are native code.
+    "chm", "xll",
+    // Shell command, settings, library and search files, which run a command or
+    // point the shell at a remote location.
+    "scf", "settingcontent-ms", "library-ms", "search-ms",
+];
+
+/// Extensions macOS runs when "opened", blocked on both systems as well.
+#[rustfmt::skip]
+const MACOS_BLOCKED_EXTENSIONS: &[&str] = &[
+    // Shell and Automator scripts, installers, disk images, bundles, Terminal
     // settings and the internet-location files that open a URL on a double-click.
     "command", "tool", "pkg", "mpkg", "dmg", "app", "sh", "scpt", "applescript", "workflow",
     "terminal", "webloc", "inetloc", "fileloc",
-];
-
-/// The macOS half of [`BLOCKED_EXTENSIONS`], for the test that each is blocked.
-#[cfg(test)]
-#[rustfmt::skip]
-const MACOS_BLOCKED_EXTENSIONS: &[&str] = &[
-    "command", "tool", "pkg", "mpkg", "dmg", "app", "sh", "scpt", "applescript", "workflow",
-    "terminal", "webloc", "inetloc", "fileloc",
+    // Shell scripts of the other shells, which Terminal runs.
+    "zsh", "bash", "csh",
+    // Configuration profiles (they install certificates, proxies, VPNs),
+    // preference panes (native code) and Java Web Start launch files.
+    "mobileconfig", "prefpane", "jnlp",
 ];
 
 /// Device names a file may not be called, whatever its extension.
@@ -138,7 +153,9 @@ pub fn safe_file_name(name: Option<&str>, content_type: &str, index: usize) -> S
     }
     let (stem, ext) = split_extension(&cleaned);
     let mut stem = stem.to_owned();
-    if RESERVED_NAMES.contains(&stem.to_ascii_lowercase().as_str()) {
+    // Windows reads a device name up to the first dot: `CON.tar.gz` is `CON`.
+    let device = stem.split('.').next().unwrap_or_default();
+    if RESERVED_NAMES.contains(&device.to_ascii_lowercase().as_str()) {
         stem.insert(0, '_');
     }
     let ext_len = ext.map_or(0, |ext| ext.chars().count() + 1);
@@ -206,7 +223,10 @@ fn extension_for(content_type: &str) -> Option<&'static str> {
 
 /// Whether opening this file with its default application would run it.
 pub fn open_blocked(file_name: &str) -> bool {
-    extension_of(file_name).is_some_and(|ext| BLOCKED_EXTENSIONS.contains(&ext.as_str()))
+    extension_of(file_name).is_some_and(|ext| {
+        BLOCKED_EXTENSIONS.contains(&ext.as_str())
+            || MACOS_BLOCKED_EXTENSIONS.contains(&ext.as_str())
+    })
 }
 
 /// `dir/file_name`, or `dir/stem (2).ext`, `(3)`… when that exists already.
@@ -342,6 +362,23 @@ mod tests {
         );
         assert_eq!(safe_file_name(Some("CON.txt"), "text/plain", 0), "_CON.txt");
         assert_eq!(safe_file_name(Some("nul"), "text/plain", 0), "_nul");
+        // Windows reads the device name up to the first dot.
+        assert_eq!(
+            safe_file_name(Some("CON.tar.gz"), "application/gzip", 0),
+            "_CON.tar.gz"
+        );
+        assert_eq!(
+            safe_file_name(Some("lpt1.backup.zip"), "application/zip", 0),
+            "_lpt1.backup.zip"
+        );
+        assert_eq!(
+            safe_file_name(Some("console.tar.gz"), "application/gzip", 0),
+            "console.tar.gz"
+        );
+        assert_eq!(
+            safe_file_name(Some("report.con.txt"), "text/plain", 0),
+            "report.con.txt"
+        );
         assert_eq!(
             safe_file_name(Some("tab\there.txt"), "text/plain", 0),
             "tab_here.txt"
@@ -387,6 +424,28 @@ mod tests {
         assert!(!open_blocked("photo.jpg"));
         assert!(!open_blocked("README"));
         assert!(!open_blocked("archive.exe.zip"));
+        // Disk images and packages that bypass the Mark of the Web, help files,
+        // Excel add-ins and the shell's own link and search files.
+        assert!(open_blocked("setup.iso"));
+        assert!(open_blocked("Report.XLL"));
+        assert!(open_blocked("x.settingcontent-ms"));
+        for ext in [
+            "chm",
+            "msix",
+            "msixbundle",
+            "appinstaller",
+            "img",
+            "vhd",
+            "vhdx",
+            "scf",
+            "library-ms",
+            "search-ms",
+            "wsc",
+            "sct",
+            "cab",
+        ] {
+            assert!(open_blocked(&format!("payload.{ext}")), "{ext}");
+        }
         assert_eq!(extension_of("a.b.PDF").as_deref(), Some("pdf"));
         assert_eq!(extension_of("noext"), None);
     }
@@ -399,7 +458,12 @@ mod tests {
                 open_blocked(&format!("PAYLOAD.{}", ext.to_uppercase())),
                 "{ext}"
             );
-            assert!(BLOCKED_EXTENSIONS.contains(ext), "{ext}");
+            assert!(!BLOCKED_EXTENSIONS.contains(ext), "{ext} is in both lists");
+        }
+        // Configuration profiles, shell scripts, preference panes, Java Web Start.
+        assert!(open_blocked("Wi-Fi.mobileconfig"));
+        for ext in ["zsh", "bash", "csh", "prefpane", "jnlp"] {
+            assert!(MACOS_BLOCKED_EXTENSIONS.contains(&ext), "{ext}");
         }
         // The harmless neighbours stay openable.
         assert!(!open_blocked("notes.txt"));
