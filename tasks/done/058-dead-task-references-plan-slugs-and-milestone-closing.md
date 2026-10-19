@@ -71,8 +71,9 @@ their meaning or their Log.
 
 - D-008 gained one sentence beyond its `sources:` line: Step 3 asks it to say who closes a milestone, and the
   sentence states the mechanism without changing the decision (a release still closes the milestones it ships).
-- `backlog/062`'s dead `origin:` is not fixed here: the file is outside the exception of this task.
-- The `plan:` fields of the task files (42 of them name a plan file kept outside the repo, the standard's bare plan
+- The dead `origin:` of `backlog/062` and `backlog/063` is not fixed here: both files are outside the exception of
+  this task.
+- The `plan:` fields of the task files (43 of them after the rebase onto `main` name a plan file kept outside the repo, the standard's bare plan
   name, this file included) are not touched: the task covers D-001 to D-011 only; a follow-up in the pull request.
 
 ## Verification
@@ -86,6 +87,9 @@ their meaning or their Log.
   scripts/sync-issues.py` passes. `tasks_check` (without `write`): 0 errors, 0 warnings before the move to `done/`;
   after it, the one finding is the stale README index, which the main session regenerates. No workflow changed,
   so zizmor was not needed.
+- 2026-10-19 — after the rebase onto `main` (task 050 merged): the resolver checked 91 entries and reports two
+  dead `origin:` entries, both outside this task's exception and both of the same kind: `backlog/062` names
+  `wip/057-…` and `backlog/063` names `wip/050-…`, each now in `done/`. `changelog.py --check` passes.
 
 ## Closing checklist
 
