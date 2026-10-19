@@ -193,14 +193,14 @@
   // ---------- highlighting ----------
   //
   // Folding and the words worth highlighting live in query.js
-  // (`Query.foldWithMap`, `Query.highlightTerms`); the marks are made here.
+  // (`Query.foldWithMap`, `Query.highlightTerms`, `Query.textRange`); the marks are made here.
 
   // The nodes that show `text` with the occurrences of `terms` wrapped in
   // <mark>, or null when no term occurs.
   function highlightFragments(text, terms) {
     if (terms.length === 0 || !text) return null;
     const { folded, map } = Query.foldWithMap(text);
-    const ranges = Query.termRanges(folded, terms).map(([start, end]) => [map[start], map[end]]);
+    const ranges = Query.termRanges(folded, terms).map(([start, end]) => Query.textRange(map, start, end));
     if (ranges.length === 0) return null;
     ranges.sort((a, b) => a[0] - b[0]);
     // Overlapping and touching matches become one mark.

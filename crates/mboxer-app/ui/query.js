@@ -18,13 +18,38 @@
   //
   // Mirrors the index's tokenizer: lower-cased, accents folded (`Számla` and
   // `szamla` are the same word), so a highlighted word is one the index matched.
+  // The index folds with tantivy's `AsciiFoldingFilter` (`fold_analyzer` in
+  // `crates/mboxer-core/src/index/schema.rs`); here NFD and the combining
+  // accents dropped cover most of it, and `LETTER_FOLDS` holds the rest of
+  // what the filter does in Latin-1, Latin Extended-A, Latin Extended
+  // Additional and the Latin ligatures. `tests/ui_query.rs` checks every
+  // letter and digit of those blocks against the core's analyzer. Not
+  // mirrored: the filter's other blocks (Latin Extended-B, IPA, circled and
+  // full-width letters), and the accents it keeps outside the Latin letters
+  // (`й`, `ά`), which NFD drops here.
+
+  // A lower-cased letter the filter folds and NFD leaves whole, and its fold.
+  // `ẞ` lower-cases to `ß`; `İ` lower-cases to `i` and a combining dot, which
+  // the filter keeps; `ẛ` folds to `f`, the filter's choice.
+  const LETTER_FOLDS = new Map(
+    Object.entries({
+      "¹": "1", "²": "2", "³": "3",
+      æ: "ae", ð: "d", ø: "o", þ: "th", ß: "ss",
+      đ: "d", ħ: "h", ı: "i", "i\u0307": "i\u0307", ĳ: "ij", ĸ: "q", ŀ: "l", ł: "l",
+      ŉ: "n", ŋ: "n", œ: "oe", ŧ: "t", ſ: "s",
+      ẚ: "a", ẛ: "f", ẜ: "s", ẝ: "s", ỻ: "ll", ỿ: "y",
+      ﬀ: "ff", ﬁ: "fi", ﬂ: "fl", ﬃ: "ffi", ﬄ: "ffl", ﬆ: "st",
+    }),
+  );
 
   const foldCache = new Map();
 
+  // `ch` as the index folds it: one character may fold to several (`ß` → `ss`).
   function foldChar(ch) {
     let folded = foldCache.get(ch);
     if (folded === undefined) {
-      folded = ch.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+      const lower = ch.toLowerCase();
+      folded = LETTER_FOLDS.get(lower) ?? lower.normalize("NFD").replace(/[̀-ͯ]/g, "");
       foldCache.set(ch, folded);
     }
     return folded;
@@ -43,6 +68,15 @@
     }
     map.push(text.length);
     return { folded, map };
+  }
+
+  // The `[start, end)` range of the folded text's `[start, end)` in the text
+  // behind `map` (from `foldWithMap`): a range that ends inside a character
+  // folded to several (`stras` in `strasse` from `Straße`) takes all of it.
+  function textRange(map, start, end) {
+    let to = end;
+    while (to < map.length - 1 && map[to] === map[to - 1]) to++;
+    return [map[start], map[to]];
   }
 
   function foldText(text) {
@@ -327,6 +361,7 @@
     OPERATORS,
     foldChar,
     foldWithMap,
+    textRange,
     foldText,
     tokenize,
     classify,
