@@ -4,7 +4,7 @@
 //! Layout and freshness live in [`fingerprint`], the field set and the
 //! accent-folding tokenizer in [`schema`], the one-pass build in [`build`] and
 //! the query side in [`search`]. The index is a cache of the mbox: when the
-//! mbox changes (decision D-04) the whole index is rebuilt, never patched.
+//! mbox changes (decision D-004) the whole index is rebuilt, never patched.
 
 pub mod build;
 pub mod fingerprint;

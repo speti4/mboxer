@@ -126,7 +126,7 @@ impl Listing {
         }
     }
 
-    /// Row index of the message with this D-03 `offset`, when it is in the
+    /// Row index of the message with this D-003 `offset`, when it is in the
     /// listing. A member hidden inside a collapsed conversation gets the
     /// conversation expanded, so the row exists afterwards; the newest member
     /// of a collapsed conversation is the thread row itself.

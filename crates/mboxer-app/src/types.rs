@@ -42,7 +42,7 @@ pub enum OpenEvent {
 #[derive(Debug, Clone, Serialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct FileInfo {
-    /// The id the commands take; valid for this process only (D-06).
+    /// The id the commands take; valid for this process only (D-006).
     pub id: u32,
     pub path: String,
     pub file_name: String,

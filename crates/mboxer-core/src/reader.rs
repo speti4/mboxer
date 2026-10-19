@@ -3,7 +3,7 @@
 //! [`MboxReader`] yields one [`RawMessage`] at a time. Memory use is the read
 //! buffer plus the largest single message, never the file. Each message carries
 //! the byte offset of its envelope line and its length up to the next envelope
-//! line, which is the identity every later layer stores (decision D-03);
+//! line, which is the identity every later layer stores (decision D-003);
 //! [`read_at`] turns that pair back into the same bytes.
 
 use std::fs::File;

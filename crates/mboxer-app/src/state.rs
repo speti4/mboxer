@@ -1,5 +1,5 @@
 //! The application state: the open mbox files, each with its index and its
-//! own listing, and which of them is active (D-06).
+//! own listing, and which of them is active (D-006).
 //!
 //! No Tauri types here; [`OpenMbox::load`] is the whole open-or-build flow and
 //! runs against the fixtures in the tests, as does [`OpenFiles`].
@@ -288,7 +288,7 @@ impl OpenMbox {
     }
 }
 
-/// A fresh index is opened; a missing or stale one is rebuilt first (D-04).
+/// A fresh index is opened; a missing or stale one is rebuilt first (D-004).
 pub fn open_or_build(
     path: &Path,
     cancel: &AtomicBool,

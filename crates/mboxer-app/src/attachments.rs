@@ -248,7 +248,7 @@ fn mark_of_the_web(path: &Path) {
 
 /// The quarantine attribute a browser download carries: `flags;time;agent;id`,
 /// written with the system's `xattr` tool rather than a crate or a libc
-/// binding, as the one call is not worth a dependency (D-02). The attribute
+/// binding, as the one call is not worth a dependency (D-002). The attribute
 /// value on its own is what LaunchServices reads; the id stays empty.
 #[cfg(target_os = "macos")]
 fn mark_of_the_web(path: &Path) {

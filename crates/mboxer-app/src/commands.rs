@@ -267,7 +267,7 @@ pub fn cancel_open(state: State<'_, AppState>) {
 
 /// Whether the index of the mbox at `path` can be reused as it is: the
 /// webview reopens remembered files at start-up only when it can, and shows
-/// the others as not loaded (D-06). Cheap: a fingerprint sample, no build.
+/// the others as not loaded (D-006). Cheap: a fingerprint sample, no build.
 #[tauri::command]
 pub async fn index_status(path: String) -> Result<IndexStatusInfo, String> {
     blocking(move || {

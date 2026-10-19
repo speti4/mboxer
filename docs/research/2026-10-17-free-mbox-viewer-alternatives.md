@@ -1,7 +1,7 @@
 # Free mbox viewer alternatives — survey (2026-10-17)
 
 Question: is there a free Windows GUI that opens a 14–50 GB Gmail Takeout mbox and searches message
-bodies fast? Answer: no. Verdict recorded in `tasks/decisions/D-01-build-own-viewer-instead-of-buying.md`.
+bodies fast? Answer: no. Verdict recorded in `tasks/decisions/D-001-build-own-viewer-instead-of-buying.md`.
 
 | Tool | Type | Large files | Body search | Free? | Verdict |
 |---|---|---|---|---|---|
@@ -24,5 +24,5 @@ bodies fast? Answer: no. Verdict recorded in `tasks/decisions/D-01-build-own-vie
 ## Takeaways for the build
 
 - Streaming with a bounded buffer and a sidecar index is the proven pattern (mboxShell, Mbox Viewer).
-- Nobody free indexes bodies on this scale; that is the gap mboxer fills (D-02).
+- Nobody free indexes bodies on this scale; that is the gap mboxer fills (D-002).
 - mail-parser (Rust, 5 light deps) handles MIME, charsets, attachments; mbox splitting is ours.

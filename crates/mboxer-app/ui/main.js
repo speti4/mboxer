@@ -442,7 +442,7 @@
 
   // ---------- open flow ----------
   //
-  // Several files can be open at once; one is active (task 016, D-06). `paths`
+  // Several files can be open at once; one is active (task 016, D-006). `paths`
   // is a list, or null for the native dialog (several files allowed). The
   // backend adds the files to its set, one after the other, and reports each
   // on the channel; with `activate` the first of them becomes the active file.
