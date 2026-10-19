@@ -13,7 +13,7 @@ edit the file, never the issue. Everything here is English.
 <!-- tasks:index:start -->
 _Generated 2026-10-20 — edit the files, not this section._
 
-**State:** 7 backlog (2 ready · 0 blocked · 2 waiting · 3 ideas) · 0 in progress · 61 done · 2 dropped · 13 decisions
+**State:** 6 backlog (1 ready · 0 blocked · 2 waiting · 3 ideas) · 1 in progress · 61 done · 2 dropped · 13 decisions
 
 ### Ready
 
@@ -21,7 +21,6 @@ _Generated 2026-10-20 — edit the files, not this section._
 
 | # | Task | Size | Created |
 |---|---|---|---|
-| 064 | [Manual round over a large archive after the hardening wave: rebuild under an op…](backlog/064-manual-round-over-a-large-archive-after-the-hardening-wave.md) | S | 2026-10-19 |
 | 067 | [Stop an overtaken search early instead of letting it run to its end](backlog/067-stop-an-overtaken-search-early.md) | S | 2026-10-19 |
 
 ### Needs decision
@@ -54,7 +53,11 @@ _none_
 
 ### In progress
 
-_none_
+#### M6 Hardening
+
+| # | Task | Started | Plan |
+|---|---|---|---|
+| 064 | [Manual round over a large archive after the hardening wave: rebuild under an op…](wip/064-manual-round-over-a-large-archive-after-the-hardening-wave.md) | 2026-10-20 | `none` |
 
 ### Closed – do not reopen
 
