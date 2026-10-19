@@ -3,7 +3,7 @@
 # their own workflow, commit-rules.yml, which runs on every change). The macOS tests run on a `v<version>` tag
 # and on a manual run only, because macOS minutes bill ten times the Linux rate (task 042). A tag also packs and
 # publishes the portable Windows zip and the macOS app zip, their checksums and the notes from the changelog
-# (tasks 012, 025, 018). The toolchain is the one `rust-toolchain.toml` names (stable), installed by the
+# (tasks 012, 025, 018), each zip with its third-party licence page (tasks 025, 041). The toolchain is the one `rust-toolchain.toml` names (stable), installed by the
 # runner's own rustup, not by an action (task 033). A manual run on a branch also builds the macOS zip and keeps
 # it as an artifact for a day: the way to test a macOS change before its merge, try the bundle without a tag,
 # or hand it to a Mac tester.
@@ -24,10 +24,13 @@ permissions:
   contents: read
 
 # The cargo settings the former toolchain action exported: no incremental build in CI (it only grows the target
-# cache, and the Rust cache keys on it) and coloured cargo output in the log.
+# cache, and the Rust cache keys on it) and coloured cargo output in the log. The cargo-about of the two licence
+# pages (tasks 025, 041), built from crates.io with its own lock file; dependabot does not see this pin, so it is
+# bumped by hand, here and in the commands of docs/development.md and the two release scripts.
 env:
   CARGO_INCREMENTAL: 0
   CARGO_TERM_COLOR: always
+  CARGO_ABOUT_VERSION: 0.9.2
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -125,12 +128,42 @@ jobs:
         with:
           advanced-security: false
 
+  # The licence page of the macOS zip (task 041): cargo-about over the crates of the two darwin builds. The
+  # dependency graph of a target and the licence texts do not depend on the host, so the page renders here, at
+  # a tenth of the macOS minute rate (task 042), instead of building cargo-about on the macOS runner, and
+  # bundle-macos packs it. It starts with the checks, not after them, and is ready when bundle-macos starts.
+  licences-macos:
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # The toolchain of the test job; no darwin target, since nothing is compiled for it here.
+      - name: Install the Rust toolchain from rust-toolchain.toml
+        run: |
+          rustup toolchain install --no-self-update
+          rustup toolchain install --no-self-update "$(rustup show active-toolchain | cut -d' ' -f1)"
+          rustup show
+      - name: Install cargo-about
+        run: cargo install cargo-about --version "$CARGO_ABOUT_VERSION" --locked --features cli
+      # Fetches the darwin crates' sources, then renders the page from them offline (scripts/bundle-macos.sh).
+      - name: Render the licence page for the darwin targets
+        run: scripts/bundle-macos.sh --licences-only dist/THIRD-PARTY-LICENSES.html
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: macos-licences
+          path: dist/THIRD-PARTY-LICENSES.html
+          if-no-files-found: error
+          retention-days: 1
+
   # The macOS zip (task 018, D-07): the universal, ad-hoc signed mboxer.app packed by scripts/bundle-macos.sh
-  # on the macOS runner and handed to the release job as a short-lived artifact, so one job publishes both
-  # zips and one SHA256SUMS.txt. On a manual run the artifact is the result. No rust-cache here either (see
-  # the release job).
+  # on the macOS runner, with the licence page of licences-macos, and handed to the release job as a
+  # short-lived artifact, so one job publishes both zips and one SHA256SUMS.txt. On a manual run the artifact
+  # is the result. No rust-cache here either (see the release job).
   bundle-macos:
-    needs: [test, lint, deny, workflow-lint]
+    needs: [test, lint, deny, workflow-lint, licences-macos]
     if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
     runs-on: macos-latest
     timeout-minutes: 45
@@ -145,11 +178,15 @@ jobs:
           rustup toolchain install --no-self-update "$(rustup show active-toolchain | cut -d' ' -f1)"
           rustup target add aarch64-apple-darwin x86_64-apple-darwin
           rustup show
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: macos-licences
+          path: dist/licences
       # The script checks the tag against the Cargo.toml version; a manual run has no tag to check.
       - name: Build and bundle
         env:
           TAG: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
-        run: scripts/bundle-macos.sh ${TAG:+--tag "$TAG"}
+        run: scripts/bundle-macos.sh --licences dist/licences/THIRD-PARTY-LICENSES.html ${TAG:+--tag "$TAG"}
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: macos-zip
@@ -179,12 +216,9 @@ jobs:
           rustup toolchain install --no-self-update
           rustup toolchain install --no-self-update "$(rustup show active-toolchain | cut -d' ' -f1)"
           rustup show
-      # The licence page of the zip (task 025): a pinned cargo-about built from crates.io with its own lock
-      # file; dependabot does not see this pin, so it is bumped by hand.
+      # The licence page of the zip (task 025), with the cargo-about the workflow pins.
       - name: Install cargo-about
         shell: pwsh
-        env:
-          CARGO_ABOUT_VERSION: 0.9.2
         run: cargo install cargo-about --version $env:CARGO_ABOUT_VERSION --locked --features cli
       # No rust-cache here: a release is built from a clean target, never from a cache a pull request wrote.
       - name: Build and pack

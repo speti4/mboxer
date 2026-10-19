@@ -23,7 +23,7 @@ checks before a commit and the project rules are in [CONTRIBUTING.md](../CONTRIB
 - `.githooks/` — the `commit-msg` hook over `scripts/check-commit.sh`, enabled per clone with
   `git config core.hooksPath .githooks` ([git-workflow.md](git-workflow.md)).
 - `deny.toml` — the dependency policy `cargo deny` checks: licences, advisories, bans, sources (D-011);
-  `about.toml` — the same licences for the third-party licence page of the release zip.
+  `about.toml` — the same licences for the third-party licence page of the two release zips.
 - `CHANGELOG.md` — every release and the tasks it closed, generated from `tasks/done/` (see
   [The changelog](#the-changelog)).
 
@@ -83,13 +83,13 @@ the two), `scripts/third-party-licenses.hbs` is the page, and every crate links 
 crates ask for (D-011). cargo-about is a build-time tool, never part of the exe:
 
 ```powershell
-cargo install cargo-about --version 0.9.2 --locked --features cli   # once; the version the release job pins
+cargo install cargo-about --version 0.9.2 --locked --features cli   # once; the version ci.yml pins
 scripts\release.ps1                     # dist\: the zip, SHA256SUMS.txt, release-notes-<version>.md
 ```
 
-Pushing a tag `v<version>` runs the four jobs, `test` on both platforms, and, when they pass, two more:
-`bundle-macos` builds the macOS zip on a macOS runner (see [The macOS bundle](#the-macos-bundle)) and hands it
-over as a one-day artifact, and the `release` job installs the pinned cargo-about, runs `release.ps1`, verifies
+Pushing a tag `v<version>` runs the four jobs, `test` on both platforms, and `licences-macos`, which renders the
+licence page of the macOS zip on Linux; when they pass, two more: `bundle-macos` builds the macOS zip on a macOS
+runner (see [The macOS bundle](#the-macos-bundle)) and hands it over as a one-day artifact, and the `release` job installs the pinned cargo-about, runs `release.ps1`, verifies
 the macOS zip against its checksum line, appends that line to `SHA256SUMS.txt` and publishes the two zips and
 the checksum file as a GitHub release titled `mboxer <version>`, with the notes file as its text, through the
 runner's `gh` CLI. Both
@@ -105,19 +105,30 @@ one universal binary and lays out `mboxer.app`: `Contents/MacOS/mboxer`, `Conten
 `CFBundleVersion`, the `.mbox` document type, `LSMinimumSystemVersion` 10.13 as Tauri 2 defaults it) and
 `Contents/Resources/icon.icns`, which `iconutil` makes from the committed `icons/icon.iconset/`. The bundle is
 ad-hoc signed (`codesign -s -`) and not notarized (D-07): Apple Silicon loads it, Gatekeeper asks the user once.
-`ditto` packs `mboxer.app` and `docs/usage.md` into `dist/mboxer-<version>-macos.zip`, the way Finder's
-*Compress* does, and `SHA256SUMS.txt` next to it holds the zip's line in the `shasum -a 256 -c` format. No
-Tauri CLI is involved (D-02); the bundle is the script. The author has no Mac, so the script is verified by the
-CI job: a manual run of the workflow on a branch (`gh workflow run ci.yml --ref <branch>`) runs the macOS tests
-and `bundle-macos` without a tag and keeps the zip as the `macos-zip` artifact for a day, which is also how a Mac
+`ditto` packs `mboxer.app`, `docs/usage.md` and `THIRD-PARTY-LICENSES.html` into
+`dist/mboxer-<version>-macos.zip`, the way Finder's *Compress* does, and `SHA256SUMS.txt` next to it holds the
+zip's line in the `shasum -a 256 -c` format. No Tauri CLI is involved (D-02); the bundle is the script.
+
+The licence page is cargo-about with the `about.toml` and the template of `release.ps1`, over the crates of the
+two darwin builds instead of the Windows one (`--target aarch64-apple-darwin --target x86_64-apple-darwin`), so
+it lists `objc2` and the other macOS-only crates and none of the `windows-*` ones. A target's dependency graph
+and the licence texts do not depend on the host, so in CI the `licences-macos` job renders the page on Linux
+(`--licences-only`: `cargo fetch` for the two targets, then cargo-about offline), where a minute costs a tenth of
+a macOS one, and `bundle-macos` packs that page (`--licences`) instead of building cargo-about on the macOS
+runner. On a Mac without `--licences` the script renders the page itself, with cargo-about on `PATH`.
+
+The author has no Mac, so the script is verified by the CI job: a manual run of the workflow on a branch (`gh
+workflow run ci.yml --ref <branch>`) runs the macOS tests, `licences-macos` and `bundle-macos` without a tag and keeps the zip as the `macos-zip` artifact for a day, which is also how a Mac
 tester gets a build. A pull request that touches macOS code gets such a run before its merge, because its own
 runs test on Windows only. A change to the script is linted here with `bash -n scripts/bundle-macos.sh` and
 shellcheck (`uvx --from shellcheck-py shellcheck -s bash scripts/bundle-macos.sh`).
 
 ```bash
 rustup target add aarch64-apple-darwin x86_64-apple-darwin   # once
+cargo install cargo-about --version 0.9.2 --locked --features cli   # once
 scripts/bundle-macos.sh                 # dist/: the zip and SHA256SUMS.txt
 scripts/bundle-macos.sh --skip-build    # pack what target/<target>/release already holds
+scripts/bundle-macos.sh --licences-only page.html   # the macOS licence page alone, on any OS (Git Bash too)
 ```
 
 On Windows the darwin targets compile as far as `cargo check` goes, which catches a `cfg(windows)` gap before

@@ -22,22 +22,49 @@ the first release tag (028), which builds the macOS zip too.
 
 ## Steps
 
-1. [ ] how `scripts/release.ps1` and the `release` job render the page today (`about.toml`, the pinned
+1. [x] how `scripts/release.ps1` and the `release` job render the page today (`about.toml`, the pinned
    `CARGO_ABOUT_VERSION`, the template), so the macOS side reuses the same config and version
-2. [ ] the `bundle-macos` job installs the same cargo-about and renders the page for `aarch64-apple-darwin` and
-   `x86_64-apple-darwin`; `scripts/bundle-macos.sh` copies it into the zip root next to `usage.md`
-3. [ ] `deny.toml` / `about.toml` cover the darwin targets; `cargo deny check` passes with them
-4. [ ] docs: `docs/development.md` (the macOS bundle), the header comment of `scripts/bundle-macos.sh`
+2. [x] the `bundle-macos` job installs the same cargo-about and renders the page for `aarch64-apple-darwin` and
+   `x86_64-apple-darwin`; `scripts/bundle-macos.sh` copies it into the zip root next to `usage.md` (deviation:
+   a Linux job renders it, see below)
+3. [x] `deny.toml` / `about.toml` cover the darwin targets; `cargo deny check` passes with them
+4. [x] docs: `docs/development.md` (the macOS bundle), the header comment of `scripts/bundle-macos.sh`
 5. [ ] local checks (CONTRIBUTING.md), `uvx zizmor .github`; a manual `bundle-macos` run on the branch shows the
    page in the zip with the darwin-only crates (objc2 …)
 
 ## Log
 
 - 2026-10-19 — promoted on `task/041-third-party-licences-in-the-macos-zip`.
+- 2026-10-19 — Felmérés: a `release.ps1` `cargo about generate --frozen --fail` hívással, az `about.toml`-lal
+  (`targets = ["x86_64-pc-windows-msvc"]`) és a `scripts/third-party-licenses.hbs` sablonnal rendereli a
+  lapot; a `release` job a 0.9.2-es cargo-about-ot `cargo install --locked`-kal építi. A cargo-about 0.9.2
+  `generate --target` kapcsolója több targetet is elfogad és felülírja a config `targets` értékét, így a
+  macOS-lap ugyanazzal az `about.toml`-lal készül, második config nélkül. A `deny.toml` `[graph] targets`
+  már a 018 óta mindhárom targetet tartalmazza, ott nincs teendő.
+- 2026-10-19 — Helyi próba Windowson: `cargo about generate --frozen --fail --target aarch64-apple-darwin
+  --target x86_64-apple-darwin …` hibátlanul lefut, 272 crate (Windows: 278); csak a macOS-lapon: objc2,
+  objc2-app-kit, objc2-foundation, objc2-web-kit, objc2-core-foundation, objc2-quartz-core,
+  objc2-exception-helper, objc2-encode, block2, dispatch2, core-foundation(-sys), core-graphics(-types),
+  foreign-types*, swift-rs, embed_plist, rustix, errno, base64 0.21; csak a Windows-lapon a `windows-*`,
+  `webview2-com*`, `winapi*`, softbuffer, tracing*. A gráf tehát hosztfüggetlen.
+- 2026-10-19 — Döntés: hol fut a cargo-about. A macOS runneren a `cargo install cargo-about` pár perces
+  fordítás 10× áron (042), minden tagen és kézi futáson; a lap viszont csak a lock fájltól és a crate-forrásoktól
+  függ, nem a hoszttól. Ezért egy új `licences-macos` job ubuntu-latest-en rendereli (`cargo fetch --locked`
+  a két darwin targetre, majd `--frozen` offline generálás), egynapos artifactként adja át, a `bundle-macos`
+  letölti és becsomagolja. A job a checkekkel párhuzamosan indul (nem `needs`), így a `bundle-macos` nem vár rá
+  külön. A parancs egy helyen él: `scripts/bundle-macos.sh --licences-only <fájl>` (bármely OS-en, cargo és
+  cargo-about kell hozzá), a csomagolás `--licences <fájl>`-lal veszi át; kapcsoló nélkül egy Macen a script maga
+  rendereli. A `CARGO_ABOUT_VERSION` pin a workflow szintű `env`-be került, a `release` és a `licences-macos`
+  job ugyanazt használja.
+- 2026-10-19 — A sablon bevezetője eddig Windows-specifikus volt (`mboxer.exe`, „WebView2, part of Windows
+  11”); platformsemleges lett (exe vagy app, WebView2 vagy WKWebView). A release notes „Verify the download”
+  szövege (`scripts/changelog.py`) is mindkét zipre utal már.
 
 ## Deviations from the plan
 
-- none yet
+- 2. lépés: a cargo-about nem a `bundle-macos` jobban (macOS runner) fut, hanem egy Linux jobban, és a
+  `bundle-macos` csak becsomagolja a lapot — ugyanaz az eredmény a macOS-percek nélkül (indoklás a Logban).
+- A sablon és a release notes szövege is változott (a lap már nem csak az exe-ről szól).
 
 ## Verification
 
