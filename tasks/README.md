@@ -13,7 +13,7 @@ edit the file, never the issue. Everything here is English.
 <!-- tasks:index:start -->
 _Generated 2026-10-20 — edit the files, not this section._
 
-**State:** 6 backlog (1 ready · 0 blocked · 2 waiting · 3 ideas) · 1 in progress · 61 done · 2 dropped · 13 decisions
+**State:** 6 backlog (1 ready · 0 blocked · 2 waiting · 3 ideas) · 0 in progress · 62 done · 2 dropped · 13 decisions
 
 ### Ready
 
@@ -53,11 +53,7 @@ _none_
 
 ### In progress
 
-#### M6 Hardening
-
-| # | Task | Started | Plan |
-|---|---|---|---|
-| 064 | [Manual round over a large archive after the hardening wave: rebuild under an op…](wip/064-manual-round-over-a-large-archive-after-the-hardening-wave.md) | 2026-10-20 | `none` |
+_none_
 
 ### Closed – do not reopen
 
@@ -70,6 +66,7 @@ _none_
 
 | # | Task | Closed |
 |---|---|---|
+| 064 | [Manual round over a large archive after the hardening wave: rebuild under an op…](done/064-manual-round-over-a-large-archive-after-the-hardening-wave.md) | 2026-10-20 |
 | 061 | [Small hygiene follow-ups: toolchain pin, ignores, arguments, cancel, logs, dupl…](done/061-small-hygiene-follow-ups-from-the-review.md) | 2026-10-20 |
 | 066 | [The plan: field is none in every task file, the rule is written down](done/066-plan-field-policy-for-prompt-derived-names.md) | 2026-10-19 |
 | 063 | [Free-text follow-ups: the highlight split and the tantivy exclusion assertion](done/063-free-text-follow-ups-tantivy-assertion-warnings-and-highlight.md) | 2026-10-19 |
@@ -79,9 +76,8 @@ _none_
 | 058 | [Task files: dead origin paths, plan slugs, and who closes a milestone](done/058-dead-task-references-plan-slugs-and-milestone-closing.md) | 2026-10-19 |
 | 057 | [CONTRIBUTING's pre-commit list matches CI, and the private-era wording goes](done/057-contributing-checks-match-ci-and-private-era-leftovers.md) | 2026-10-19 |
 | 056 | [The commit hook checks the type prefix, and the required checks hold after a re…](done/056-commit-hook-checks-the-type-and-ci-re-checks-edited-pull-requests.md) | 2026-10-19 |
-| 055 | [The usage guide says what the viewer does](done/055-usage-guide-matches-the-viewer.md) | 2026-10-19 |
 
-_51 more in `done/`._
+_52 more in `done/`._
 
 ### Decisions
 
