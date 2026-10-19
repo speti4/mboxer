@@ -233,7 +233,8 @@ pub fn close_file(state: State<'_, AppState>, file: u32) -> Result<Option<OpenSu
 /// `toggle_thread`, `activate_file`, `close_file`) keep answering from the
 /// listing in place while a relevance query scores every message of a large
 /// archive. Only the newest query of a file swaps its listing in; an
-/// overtaken one answers `superseded`.
+/// overtaken one answers `superseded`, and stops its search where it is when
+/// the newer query comes in during it.
 #[tauri::command]
 pub async fn set_query(app: AppHandle, file: u32, query: QueryInput) -> Result<ListInfo, String> {
     tauri::async_runtime::spawn_blocking(move || {

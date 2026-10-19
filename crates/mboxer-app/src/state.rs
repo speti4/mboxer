@@ -98,7 +98,8 @@ impl AppState {
     /// index, and again to swap the finished listing in: the readers of the
     /// listing never wait for a search. The searches take turns on their own
     /// lock, and a query that a newer one overtook while it waited for its
-    /// turn does not search at all.
+    /// turn does not search at all; one overtaken during its search stops
+    /// there and hands the lock over (task 067).
     pub fn set_query(&self, file: u32, query: SearchQuery) -> Result<ListInfo, String> {
         self.set_query_with(file, query, |_| {})
     }
@@ -113,35 +114,42 @@ impl AppState {
     ) -> Result<ListInfo, String> {
         // The generation is taken under the lock, so the newest query of a
         // file is always the one with the highest generation.
-        let (generation, index) = {
+        let (generation, index, newest) = {
             let mut files = self.files();
             let generation = self.generation.fetch_add(1, Ordering::AcqRel) + 1;
             let open = files.by_id_mut(file)?;
-            open.newest_query = generation;
-            (generation, Arc::clone(&open.index))
+            open.newest_query.store(generation, Ordering::Release);
+            (
+                generation,
+                Arc::clone(&open.index),
+                Arc::clone(&open.newest_query),
+            )
         };
+        let stale = || newest.load(Ordering::Acquire) != generation;
         pause(QueryStage::Queued);
         let _turn = self.search.lock().unwrap_or_else(PoisonError::into_inner);
-        {
-            let files = self.files();
-            let open = files.by_id(file)?;
-            if open.newest_query != generation {
-                return Ok(open.list_info().superseded());
-            }
+        if stale() {
+            return Ok(self.files().by_id(file)?.list_info().superseded());
         }
         pause(QueryStage::Searching);
-        let listing = index.list(&query).map_err(|err| err.to_string())?;
+        // The search reads the file's newest query as it goes, without the
+        // files lock, and stops (`None`) once a newer one is there.
+        let listing = index
+            .list_unless(&query, &stale)
+            .map_err(|err| err.to_string())?;
         let mut files = self.files();
         let open = files.by_id_mut(file)?;
-        // A newer query, or a reload of the file (a new index), came in
-        // during the search: the listing in place stays.
-        if open.newest_query != generation {
-            return Ok(open.list_info().superseded());
+        match listing {
+            Some(listing) if !stale() => {
+                open.listing = listing;
+                open.query = query;
+                open.generation = generation;
+                Ok(open.list_info())
+            }
+            // A newer query, or a reload of the file (a new index), came in
+            // during the search: the listing in place stays.
+            _ => Ok(open.list_info().superseded()),
         }
-        open.listing = listing;
-        open.query = query;
-        open.generation = generation;
-        Ok(open.list_info())
     }
 }
 
@@ -150,7 +158,7 @@ impl AppState {
 pub(crate) enum QueryStage {
     /// It has its generation and waits for its turn.
     Queued,
-    /// It has its turn and searches.
+    /// It has its turn and is about to search.
     Searching,
 }
 
@@ -208,6 +216,11 @@ impl OpenFiles {
                 .iter_mut()
                 .find(|existing| existing.id == id)
                 .expect("id_of found it");
+            // The reload takes over the file's newest query: a search still
+            // running on the old index sees it overtaken and stops.
+            slot.newest_query
+                .store(open.newest_query.load(Ordering::Acquire), Ordering::Release);
+            open.newest_query = Arc::clone(&slot.newest_query);
             *slot = open;
             return id;
         }
@@ -238,7 +251,12 @@ impl OpenFiles {
             .iter()
             .position(|open| open.id == id)
             .ok_or_else(|| NOT_OPEN.to_owned())?;
-        self.files.remove(at);
+        // No query of a closed file is its newest (query generations start
+        // at 1): a search still running on it stops.
+        self.files
+            .remove(at)
+            .newest_query
+            .store(0, Ordering::Release);
         if self.active == Some(id) {
             self.active = self
                 .files
@@ -300,8 +318,10 @@ pub struct OpenMbox {
     /// The generation the listing is stamped with; every page of rows carries it.
     pub generation: u64,
     /// The generation of the newest query asked for this file; only that
-    /// query swaps its listing in.
-    newest_query: u64,
+    /// query swaps its listing in. Written under the files lock, read by the
+    /// running search without it, which stops once it is no longer the
+    /// newest (task 067).
+    newest_query: Arc<AtomicU64>,
 }
 
 impl OpenMbox {
@@ -332,7 +352,7 @@ impl OpenMbox {
             query,
             listing,
             generation,
-            newest_query: generation,
+            newest_query: Arc::new(AtomicU64::new(generation)),
         })
     }
 
@@ -343,7 +363,7 @@ impl OpenMbox {
         self.listing = self.index.list(&query)?;
         self.query = query;
         self.generation = generation;
-        self.newest_query = generation;
+        self.newest_query.store(generation, Ordering::Release);
         Ok(())
     }
 
@@ -540,6 +560,7 @@ pub fn open_or_build(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use mboxer_core::Sort;
     use std::fs;
     use std::sync::atomic::Ordering;
     use std::sync::mpsc;
@@ -869,9 +890,116 @@ mod tests {
         assert_eq!(open.query, sent());
         assert_eq!(open.listing.len(), 1);
         assert_eq!((c.generation, c.total, c.superseded), (3, 1, false));
-        // A searched but was overtaken before its swap; B never searched.
+        // A's search stopped at its first check, C being the newest query
+        // by then; B never searched.
         assert!(a.superseded && b.superseded);
         assert_eq!(b.generation, 3, "B describes the listing in place");
+    }
+
+    /// Messages in [`many_messages`]: enough for a relevance query over all
+    /// of them to take a while in a debug build.
+    const MANY: usize = 60_000;
+
+    /// An mbox of `count` short messages, every one with the word `common`
+    /// and one of 97 `topicN` words in its body, so a relevance query for
+    /// `common topic` (a prefix) scores every message; `themeN` is one
+    /// message in 89.
+    fn many_messages(count: usize) -> (tempfile::TempDir, PathBuf) {
+        let dir = tempfile::tempdir().unwrap();
+        let mbox = dir.path().join("many.mbox");
+        let mut text = String::new();
+        for n in 0..count {
+            text += &format!(
+                "From {n}@xxx Tue Jan 13 06:30:04 +0000 2026\n\
+                 From: Sender {n} <sender{n}@example.com>\n\
+                 Subject: Report {n}\n\
+                 Date: Tue, 13 Jan 2026 07:30:04 +0100\n\
+                 Message-ID: <many{n}@mail.example.com>\n\
+                 \n\
+                 The common text of report {n}, about topic{} topic{} topic{} topic{} and theme{}.\n\n",
+                n % 97,
+                n % 83,
+                n % 79,
+                n % 73,
+                n % 89
+            );
+        }
+        fs::write(&mbox, text).unwrap();
+        (dir, mbox)
+    }
+
+    #[test]
+    fn an_overtaken_search_stops_early() {
+        // Task 067: a relevance query over every message is overtaken in
+        // the middle of its search. It stops at its next check instead of
+        // running to its end, and the newer query, queued behind it, waits
+        // only for that.
+        let (_dir, mbox) = many_messages(MANY);
+        let state = AppState::default();
+        let file = state.files().insert(load(&mbox, 0));
+        let slow = SearchQuery {
+            text: Some("common topic".to_owned()),
+            prefix_last_word: true,
+            sort: Sort::Relevance,
+            ..SearchQuery::default()
+        };
+        let newer = SearchQuery::text("theme7");
+
+        // The whole search, alone, as the yardstick.
+        let index = Arc::clone(&state.files().by_id(file).unwrap().index);
+        let started = Instant::now();
+        assert_eq!(index.list(&slow).unwrap().len(), MANY);
+        let whole = started.elapsed();
+
+        let state = &state;
+        let (slow_info, slow_took, newer_info, waited) = thread::scope(|scope| {
+            let (searching, searching_rx) = mpsc::channel();
+            let slow_query = scope.spawn(move || {
+                let info = state.set_query_with(file, slow, |stage| {
+                    if stage == QueryStage::Searching {
+                        let _ = searching.send(Instant::now());
+                    }
+                });
+                (info, Instant::now())
+            });
+            let search_started = searching_rx.recv().unwrap();
+            // The newer query comes in a fifth of the way into the search.
+            thread::sleep(whole / 5);
+            let started = Instant::now();
+            let newer_info = state.set_query(file, newer).unwrap();
+            let waited = started.elapsed();
+            let (slow_info, slow_ended) = slow_query.join().unwrap();
+            (
+                slow_info.unwrap(),
+                slow_ended - search_started,
+                newer_info,
+                waited,
+            )
+        });
+
+        eprintln!(
+            "the whole search took {whole:?}; overtaken, it took {slow_took:?}, \
+             and the newer query waited {waited:?}"
+        );
+        assert!(
+            slow_info.superseded,
+            "the overtaken query answers superseded"
+        );
+        assert_eq!(slow_info.generation, 0, "it describes the listing in place");
+        assert!(!newer_info.superseded);
+        assert_eq!(newer_info.generation, 2);
+        assert_eq!(newer_info.total, (0..MANY).filter(|n| n % 89 == 7).count());
+        assert!(
+            slow_took < whole * 3 / 5,
+            "the overtaken search stopped early: {slow_took:?} of {whole:?}"
+        );
+        assert!(
+            waited < whole / 2,
+            "the newer query did not wait for the whole search: {waited:?} of {whole:?}"
+        );
+        let files = state.files();
+        let open = files.by_id(file).unwrap();
+        assert_eq!((open.generation, open.listing.len()), (2, newer_info.total));
     }
 
     #[test]

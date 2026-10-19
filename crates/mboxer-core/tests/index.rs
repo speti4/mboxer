@@ -5,7 +5,7 @@
 
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::sync::atomic::AtomicBool;
+use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 
 use mboxer_core::index::fingerprint::{FORMAT_VERSION, META_FILE};
 use mboxer_core::{
@@ -560,6 +560,33 @@ fn every_message_is_reachable_even_when_it_does_not_parse() {
     assert!(rows[0].date.is_some());
     assert_eq!(rows[1].date, None);
     assert_eq!(rows, all.hits);
+}
+
+#[test]
+fn a_stale_listing_stops_and_answers_none() {
+    // Task 067: the check is asked before the first document of every
+    // segment, so even a two-message index asks it, and a yes ends the search.
+    let (_dir, _mbox, index) = built("gmail-crlf.mbox");
+    let asked = AtomicUsize::new(0);
+    let fresh = || {
+        asked.fetch_add(1, Ordering::Relaxed);
+        false
+    };
+    let listing = index
+        .list_unless(&SearchQuery::default(), &fresh)
+        .unwrap()
+        .expect("a fresh search runs to its end");
+    assert_eq!(listing.len(), 2);
+    assert!(asked.load(Ordering::Relaxed) >= 1, "the check was asked");
+
+    let relevance = SearchQuery {
+        text: Some("szamla".to_owned()),
+        sort: Sort::Relevance,
+        ..SearchQuery::default()
+    };
+    for query in [SearchQuery::default(), relevance] {
+        assert!(index.list_unless(&query, &|| true).unwrap().is_none());
+    }
 }
 
 #[test]
