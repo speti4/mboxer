@@ -33,3 +33,5 @@ Before a commit: the checks in CONTRIBUTING.md, "Checks before a commit" (more o
 - `tasks/` follows the project-pal task standard (`tasks/README.md`); a task file's H1 and Context paragraph are
   English, because `scripts/sync-issues.py` mirrors them into GitHub issues (D-008), Log / Verification may be
   Hungarian; a decision stays `proposed` until the user confirms it
+- The repo is public: a task file's `plan:` field holds the plan file's bare name (`plan: some-plan.md`), never
+  its path, and no file carries a home folder path (`C:\Users\<name>\…`, `/Users/<name>/…`)

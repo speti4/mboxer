@@ -4,7 +4,7 @@ origin: wip/026-readme-front-page.md
 created: 2026-10-18
 started: 2026-10-19
 closed: 2026-10-19
-plan: C:\Users\peter\.claude\plans\n-zz-k-t-a-backlogot-toasty-dove.md
+plan: n-zz-k-t-a-backlogot-toasty-dove.md
 reason: rare and cosmetic; the next theme switch always draws the right title bar, so a fix is not worth its cost (user decision 2026-10-19)
 reopen-when: a user reports it, or tao changes how set_theme repaints the Windows title bar
 ---

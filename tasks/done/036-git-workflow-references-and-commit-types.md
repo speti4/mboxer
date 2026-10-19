@@ -3,7 +3,7 @@ size: S
 origin: done/035-claude-md-review-before-publication.md
 created: 2026-10-18
 started: 2026-10-19
-plan: C:\Users\peter\.claude\plans\n-zz-k-t-a-backlogot-gentle-goose.md
+plan: n-zz-k-t-a-backlogot-gentle-goose.md
 milestone: M5 Public release
 closed: 2026-10-19
 ---
