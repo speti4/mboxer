@@ -13,11 +13,25 @@ edit the file, never the issue. Everything here is English.
 <!-- tasks:index:start -->
 _Generated 2026-10-19 — edit the files, not this section._
 
-**State:** 2 backlog (0 ready · 0 blocked · 2 waiting · 0 ideas) · 0 in progress · 45 done · 1 dropped · 13 decisions
+**State:** 15 backlog (11 ready · 0 blocked · 2 waiting · 2 ideas) · 0 in progress · 45 done · 1 dropped · 13 decisions
 
 ### Ready
 
-_none_
+#### M6 Hardening
+
+| # | Task | Size | Created |
+|---|---|---|---|
+| 049 | [The label tree panics on a label whose ninth byte is inside a multibyte charact…](backlog/049-label-tree-panics-on-a-multibyte-boundary.md) | S | 2026-10-19 |
+| 050 | [A colon in free text is read as a field name, so Re: számla finds nothing](backlog/050-colon-in-free-text-reaches-the-query-parser.md) | M | 2026-10-19 |
+| 051 | [set_query takes its generation before the files lock, and the sync commands blo…](backlog/051-query-generation-race-and-sync-commands-on-the-files-lock.md) | M | 2026-10-19 |
+| 052 | [Swap the index atomically, lock the build, and skip a bad message instead of fa…](backlog/052-atomic-index-swap-build-lock-and-skipped-messages.md) | M | 2026-10-19 |
+| 053 | [Attachment and reader hardening: blocked extensions, reserved names, referrer, …](backlog/053-attachment-and-reader-hardening.md) | S | 2026-10-19 |
+| 054 | [Keep the attachment copies and the index's last-resort home in separate temp fo…](backlog/054-temp-folder-split-between-attachments-and-the-index-fallback.md) | S | 2026-10-19 |
+| 055 | [The usage guide says what the viewer does](backlog/055-usage-guide-matches-the-viewer.md) | S | 2026-10-19 |
+| 056 | [The commit hook checks the type prefix, and the required checks hold after a re…](backlog/056-commit-hook-checks-the-type-and-ci-re-checks-edited-pull-requests.md) | S | 2026-10-19 |
+| 057 | [CONTRIBUTING's pre-commit list matches CI, and the private-era wording goes](backlog/057-contributing-checks-match-ci-and-private-era-leftovers.md) | S | 2026-10-19 |
+| 058 | [Task files: dead origin paths, plan slugs, and who closes a milestone](backlog/058-dead-task-references-plan-slugs-and-milestone-closing.md) | S | 2026-10-19 |
+| 059 | [Refresh the README screenshot and the social preview over the demo mbox](backlog/059-refresh-the-screenshots-over-the-demo-mbox.md) | S | 2026-10-19 |
 
 ### Needs decision
 
@@ -39,7 +53,12 @@ _none_
 
 ### Ideas
 
-_none_
+#### M6 Hardening
+
+| # | Task | Size | Created |
+|---|---|---|---|
+| 060 | [Index quality follow-ups: token length, completions, nested parts, limits, mult…](backlog/060-index-quality-follow-ups-from-the-review.md) | M | 2026-10-19 |
+| 061 | [Small hygiene follow-ups: toolchain pin, ignores, arguments, cancel, logs, dupl…](backlog/061-small-hygiene-follow-ups-from-the-review.md) | S | 2026-10-19 |
 
 ### In progress
 

@@ -39,3 +39,10 @@ history, then the visibility switch and the settings GitHub only offers free on 
 when the repo is public, the audit is clean, and a release made after the switch carries checksums,
 third-party licences and generated notes. Ships before M4 is closed (028); M4 waits for the manual test on a
 Mac (040).
+
+## M6 Hardening
+
+The findings of the first review after the public release: the bugs a large archive or an accented label name
+brings out (a panic in the label tree, a colon in free text, a list stuck under fast typing, a non-atomic index
+swap), the layers behind the sanitizer, and the docs, hook and CI text that promise more than the machinery does.
+Done when every item of the review round is closed or dropped and a release carries the fixes.
