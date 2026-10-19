@@ -13,15 +13,11 @@ edit the file, never the issue. Everything here is English.
 <!-- tasks:index:start -->
 _Generated 2026-10-20 — edit the files, not this section._
 
-**State:** 4 backlog (1 ready · 0 blocked · 2 waiting · 1 idea) · 0 in progress · 64 done · 2 dropped · 13 decisions
+**State:** 3 backlog (0 ready · 0 blocked · 2 waiting · 1 idea) · 0 in progress · 65 done · 2 dropped · 13 decisions
 
 ### Ready
 
-#### M6 Hardening
-
-| # | Task | Size | Created |
-|---|---|---|---|
-| 067 | [Stop an overtaken search early instead of letting it run to its end](backlog/067-stop-an-overtaken-search-early.md) | S | 2026-10-19 |
+_none_
 
 ### Needs decision
 
@@ -66,6 +62,7 @@ _none_
 |---|---|---|
 | 070 | [A test for the Cancel between two files of a batch](done/070-a-test-for-the-batch-cancel.md) | 2026-10-20 |
 | 068 | [The highlight folds the same letters the index folds](done/068-highlight-folds-the-letters-the-index-folds.md) | 2026-10-20 |
+| 067 | [Stop an overtaken search early instead of letting it run to its end](done/067-stop-an-overtaken-search-early.md) | 2026-10-20 |
 | 064 | [Manual round over a large archive after the hardening wave: rebuild under an op…](done/064-manual-round-over-a-large-archive-after-the-hardening-wave.md) | 2026-10-20 |
 | 061 | [Small hygiene follow-ups: toolchain pin, ignores, arguments, cancel, logs, dupl…](done/061-small-hygiene-follow-ups-from-the-review.md) | 2026-10-20 |
 | 066 | [The plan: field is none in every task file, the rule is written down](done/066-plan-field-policy-for-prompt-derived-names.md) | 2026-10-19 |
@@ -73,9 +70,8 @@ _none_
 | 062 | [The commit-rule wording names the scope form, the CI header gives the runner-ti…](done/062-commit-rule-wording-ci-header-and-lint-entry.md) | 2026-10-19 |
 | 060 | [Index quality follow-ups: token length, completions, nested parts, limits, mult…](done/060-index-quality-follow-ups-from-the-review.md) | 2026-10-19 |
 | 059 | [Refresh the README screenshot and the social preview over the demo mbox](done/059-refresh-the-screenshots-over-the-demo-mbox.md) | 2026-10-19 |
-| 058 | [Task files: dead origin paths, plan slugs, and who closes a milestone](done/058-dead-task-references-plan-slugs-and-milestone-closing.md) | 2026-10-19 |
 
-_54 more in `done/`._
+_55 more in `done/`._
 
 ### Decisions
 
