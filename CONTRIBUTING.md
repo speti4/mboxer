@@ -47,9 +47,10 @@ the helper scripts are described in [docs/development.md](docs/development.md).
 ## Branches, pull requests and commits
 
 Work on a branch and open a pull request; it is squash-merged once CI is green, so its title and description
-become the commit message. Commit subjects and pull request titles are imperative and start with a type
-(`feat:`, `fix:`, `docs:` …); the hook below checks this. The full rules are in
-[docs/git-workflow.md](docs/git-workflow.md). Enable the hook once per clone:
+become the commit message. Commit subjects and pull request titles are imperative and start with a type in
+lower case, `type: subject` or `type(scope): subject`, the type one of `feat`, `fix`, `docs`, `ci`, `chore`,
+`tasks` and `deps`; a `Merge …` or `Revert "…"` subject passes as git writes it. The hook below checks this. The
+full rules are in [docs/git-workflow.md](docs/git-workflow.md). Enable the hook once per clone:
 
 ```powershell
 git config core.hooksPath .githooks
@@ -119,7 +120,7 @@ overwrites the change. The maintainer turns an accepted issue into a task file.
 - User-facing changes update `docs/usage.md` (it ships in the release zips as `usage.html`) and
   `docs/reference.md`.
 - Commit subjects are imperative and start with a type: `feat:`, `fix:`, `docs:`, `ci:`, `chore:`, `tasks:`,
-  `deps:` (dependabot).
+  `deps:` (dependabot), or the same with a scope, `fix(core):`.
 
 ## Licence
 

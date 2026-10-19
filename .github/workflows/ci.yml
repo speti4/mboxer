@@ -2,8 +2,8 @@
 # and the workflow lint on every push to main and every pull request; the ruleset on `main` requires them (task
 # 028), so no path filter skips them (the commit rules have their own workflow, commit-rules.yml). A check with
 # the oldest supported Rust (`rust-version`, task 046) runs next to them. The macOS tests run on a
-# `v<version>` tag and on a manual run only: macOS runners are slower and scarcer (task 042, set while the repo
-# was private and macOS minutes billed ten times the Linux rate). A tag also packs and publishes the portable
+# `v<version>` tag and on a manual run only (task 042): macOS runners are slower and scarcer, and the darwin
+# clippy of the lint job already compiles the macOS code of every change. A tag also packs and publishes the portable
 # Windows zip and the macOS app zip, their checksums, their build provenance attestations and the notes from the
 # changelog (tasks 012, 025, 018, 028), each zip with the guide as HTML and the licence page (025, 041, 048). The
 # toolchain is the one `rust-toolchain.toml` names (stable), installed by the runner's own rustup, not by an
@@ -69,7 +69,7 @@ jobs:
       - run: cargo test --locked
 
   # The format check, which no platform changes, clippy for the Apple Silicon target, which compiles the
-  # macOS-only code on every change on a Linux runner, and the changelog check. DOCS_RS=1 is
+  # macOS-only code on every change on a Linux runner, the changelog check and the usage-guide check. DOCS_RS=1 is
   # objc2-exception-helper's own switch to skip its C build script, which needs Apple's compiler; a check does not
   # link, so nothing else needs it.
   lint:
