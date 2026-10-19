@@ -45,19 +45,25 @@ capability: it runs no script.
 
 ## CI and releases
 
-`.github/workflows/ci.yml` runs four jobs on every push to `main` and every pull request that changes more than
-`docs/`, `tasks/` and Markdown files: `test` (windows-latest: `cargo clippy --all-targets -- -D warnings`, `cargo
-test`), `lint` (ubuntu: `cargo fmt --check` and `cargo clippy --target aarch64-apple-darwin --all-targets -- -D
+`.github/workflows/ci.yml` runs four jobs on every push to `main` and every pull request: `test` (windows-latest:
+`cargo clippy --all-targets --locked -- -D warnings`, `cargo test --locked`), `lint` (ubuntu: `cargo fmt --check` and `cargo clippy --target aarch64-apple-darwin --all-targets -- -D
 warnings`, which compiles the macOS-only code without a Mac), `deny` (`cargo deny check` against `deny.toml` for
 the Windows and the two macOS targets: licences from the allowlist, no RustSec advisory or yanked crate,
 crates.io as the only source, D-011; and `about.toml` accepts the same licences) and `workflow-lint` (zizmor over
 the workflows and `dependabot.yml`; a finding accepted on purpose is listed with its reason in
-`.github/zizmor.yml`). The `test` job adds macos-latest only on a tag and on a manual run: GitHub bills a macOS
-minute ten times, a Windows minute twice the Linux rate (task 042). `.github/workflows/commit-rules.yml` runs
-`commit-rules` (`scripts/check-commit.sh` over every pushed commit and the pull request text, the rules of
-[git-workflow.md](git-workflow.md)) on every push to `main` and every pull request, docs-only ones included. The
+`.github/zizmor.yml`). The `test` job adds macos-latest only on a tag and on a manual run: macOS runners are
+slower and scarcer, so the macOS tests run on tags and manual runs (task 042, set while the repo was private).
+`.github/workflows/commit-rules.yml` runs `commit-rules` (`scripts/check-commit.sh` over every pushed commit and
+the pull request text, the rules of [git-workflow.md](git-workflow.md)) on the same pushes and pull requests. The
 workflows run with a read-only token by default; only the release job may write contents and only the issue sync
-may write issues.
+may write issues. Cargo runs with `--locked` in CI and in the release scripts, so a `Cargo.lock` out of step with
+the manifests fails the build instead of being rewritten.
+
+CodeQL runs as GitHub's default setup (Rust, JavaScript/TypeScript, Actions), managed in the repository settings,
+not as a workflow file. A ruleset protects `main`: changes arrive through a pull request with squash merge only,
+the checks `test (windows-latest)`, `lint`, `deny`, `workflow-lint` and `commit-rules` must pass, the history
+stays linear, and force pushes and deletion are blocked. Another ruleset keeps `v*` tags from being moved or
+deleted.
 The Rust toolchain comes from the runner's own rustup, which installs the channel and the components that
 `rust-toolchain.toml` names, so no action is involved.
 
@@ -91,11 +97,13 @@ scripts\release.ps1                     # dist\: the zip, SHA256SUMS.txt, releas
 
 Pushing a tag `v<version>` runs the four jobs, `test` on both platforms, and `licences-macos`, which renders the
 licence page of the macOS zip on Linux; when they pass, two more: `bundle-macos` builds the macOS zip on a macOS
-runner (see [The macOS bundle](#the-macos-bundle)) and hands it over as a one-day artifact, and the `release` job installs the pinned cargo-about, runs `release.ps1`, verifies
-the macOS zip against its checksum line, appends that line to `SHA256SUMS.txt` and publishes the two zips and
-the checksum file as a GitHub release titled `mboxer <version>`, with the notes file as its text, through the
-runner's `gh` CLI. Both
-release jobs build without the Rust cache, so nothing a pull request run cached reaches a zip.
+runner (see [The macOS bundle](#the-macos-bundle)) and hands it over as a one-day artifact, and the `release`
+job checks that the tag is on `main`, installs the pinned cargo-about, runs `release.ps1`, verifies the macOS zip
+against its checksum line, appends that line to `SHA256SUMS.txt`, attests the build provenance of both zips and
+publishes them with the checksum file as a GitHub release titled `mboxer <version>`, with the notes file as its
+text, through the runner's `gh` CLI. Both release jobs build without the Rust cache, so nothing a pull request run
+cached reaches a zip. A downloaded zip is checked against its attestation with `gh attestation verify <zip> --repo
+speti4/mboxer`.
 
 ### The macOS bundle
 
@@ -115,13 +123,13 @@ The licence page is cargo-about with the `about.toml` and the template of `relea
 two darwin builds instead of the Windows one (`--target aarch64-apple-darwin --target x86_64-apple-darwin`), so
 it lists `objc2` and the other macOS-only crates and none of the `windows-*` ones. A target's dependency graph
 and the licence texts do not depend on the host, so in CI the `licences-macos` job renders the page on Linux
-(`--licences-only`, without a build), where a minute costs a tenth of
-a macOS one, and `bundle-macos` packs that page (`--licences`) instead of building cargo-about on the macOS
-runner. On a Mac without `--licences` the script renders the page itself, with cargo-about on `PATH`.
+(`--licences-only`, without a build), in parallel with the checks, and `bundle-macos` packs that page
+(`--licences`) instead of building cargo-about on the slower macOS runner. On a Mac without `--licences` the script renders the page itself, with cargo-about on `PATH`.
 
-The author has no Mac, so the script is verified by the CI job: a manual run of the workflow on a branch (`gh
-workflow run ci.yml --ref <branch>`) runs the macOS tests, `licences-macos` and `bundle-macos` without a tag and keeps the zip as the `macos-zip` artifact for a day, which is also how a Mac
-tester gets a build. A pull request that touches macOS code gets such a run before its merge, because its own
+Without a local Mac, the script is verified by the CI job: a manual run of the workflow on a branch (`gh
+workflow run ci.yml --ref <branch>`) runs the macOS tests, `licences-macos` and `bundle-macos` without a tag and
+keeps the zip as the `macos-zip` artifact for a day, which is also how a build is obtained for a manual test on a
+Mac. A pull request that touches macOS code gets such a run before its merge, because its own
 runs test on Windows only. A change to the script is linted here with `bash -n scripts/bundle-macos.sh` and
 shellcheck (`uvx --from shellcheck-py shellcheck -s bash scripts/bundle-macos.sh`).
 
@@ -193,7 +201,7 @@ The full benchmark (build time, peak memory, index size, re-open and search late
 scripts\benchmark.ps1 -Mbox <file.mbox> -Out docs\benchmarks\<date>.md
 ```
 
-The results for the author's archive are under `docs/benchmarks/`.
+Measured results are under `docs/benchmarks/`.
 
 ## The demo mbox
 

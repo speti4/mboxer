@@ -121,7 +121,7 @@ fi
 
 if [ "$skip_build" -eq 0 ]; then
     for target in "${targets[@]}"; do
-        cargo build --release -p mboxer-app --target "$target"
+        cargo build --release --locked -p mboxer-app --target "$target"
     done
 fi
 binaries=()

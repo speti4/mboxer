@@ -63,7 +63,7 @@ $notes = Join-Path $outDir "release-notes-$version.md"
 if ($LASTEXITCODE -ne 0) { throw "release notes failed ($LASTEXITCODE)" }
 
 if (-not $SkipBuild) {
-    & $cargo build --release -p mboxer-app
+    & $cargo build --release --locked -p mboxer-app
     if ($LASTEXITCODE -ne 0) { throw "cargo build failed ($LASTEXITCODE)" }
 }
 
