@@ -1,9 +1,9 @@
 ---
-size: S
+size: M
 origin: session 2026-10-18
 created: 2026-10-18
 started: 2026-10-19
-plan: none
+plan: iterative-gliding-bentley.md
 milestone: M5 Public release
 ---
 
@@ -12,39 +12,55 @@ milestone: M5 Public release
 ## Context
 
 What: a checklist done in one sitting: visibility to public; a ruleset on `main` (CI required, no force push,
-linear history); private vulnerability reporting; secret scanning with push protection; a CodeQL workflow (Rust,
-JavaScript for `ui/`, actions); build provenance attestation in the release job; topics, homepage and a social
-preview image (from a synthetic screenshot); Discussions on or off; GitHub's Community Standards page checked
-complete (023); the README badges render (026); the first release after the switch (the first end-to-end run of
-the 025 release job: notes from `CHANGELOG.md`, `SHA256SUMS.txt`, the licence page in the zip; D-012); after the
-switch, the pre-rewrite backup folder from 030 deleted (D-010).
+linear history); private vulnerability reporting; secret scanning with push protection; CodeQL (Rust, JavaScript
+for `ui/`, actions); build provenance attestation in the release job; topics, homepage and a social preview image
+(from a synthetic screenshot); Discussions on or off; GitHub's Community Standards page checked complete (023);
+the README badges render (026); the first release after the switch (the first end-to-end run of the 025 release
+job: notes from `CHANGELOG.md`, `SHA256SUMS.txt`, the licence page in the zip; D-012); after the switch, the
+pre-rewrite backup folder from 030 deleted (D-010).
 Why: these settings exist only for public repos or are free only there, so they cannot be prepared earlier than
 the switch itself.
 Done when: every item is applied or recorded in the Log with the reason it was left out.
 
-User decisions 2026-10-19:
-- 028 runs ahead of the 040 Mac round: the account is GitHub Pro and the month's Actions minutes ran out; public
-  repos run standard runners free.
-- The first public release is 0.2.0 (the workspace version in `Cargo.toml`; the bug-report template's placeholder
-  follows); the tag `v0.2.0` after the switch runs the release job.
-- The ruleset on `main` requires the full CI (test on windows-latest, lint, deny, workflow-lint, commit-rules),
-  no force push, linear history; the `paths-ignore` of `ci.yml` (042) goes away. macOS tests stay on tags and
-  manual runs.
-- Discussions off.
-- Repo description: "Viewer for large Gmail Takeout mbox archives on Windows and macOS: Rust core, sidecar
-  full-text index, Tauri 2 UI".
-- The social preview image is made from `docs/images/viewer.png` and uploaded by hand (no API).
-- HEAD is clean of home-folder paths since #75; older commits keep theirs (no new history rewrite).
-- The visibility switch is irreversible: the user gives an explicit go right before it; the backup folder is
-  deleted only after asking.
+Maintainer decisions 2026-10-19:
+- 028 runs ahead of 040 (the manual macOS test): standard runners are free for public repos.
+- The first public release is 0.2.0; the macOS zip ships as an untested preview.
+- The ruleset on `main` requires the full CI (test on windows-latest, lint, deny, workflow-lint, commit-rules), so
+  the `paths-ignore` of `ci.yml` (042) goes away; macOS tests stay on tags and manual runs.
+- CodeQL runs as GitHub's default setup, not as a workflow file. Discussions off. Homepage: the latest release.
+- Before the switch, a content pass: no other project named or judged, no personal detail in docs or task files,
+  the task files read well as public issues.
 
 ## Steps
 
-1. [ ] the plan (plan mode), then the steps here
+1. [x] Content pass before the switch: other projects, personal detail, mirror-facing task text, contributor
+   docs (git-workflow split), `.gitignore`, PR template, code of conduct; merged remote branches deleted
+2. [x] CI and release: `paths-ignore` out, `--locked`, tag-on-main check, build provenance attestation, version
+   0.2.0, CHANGELOG summary, social preview image; local checks; pull request
+3. [ ] The switch (explicit go), then the public-only settings: secret scanning + push protection, private
+   vulnerability reporting, Dependabot security updates, CodeQL default setup, description, homepage, topics
+4. [ ] CI green on the pull request; rulesets on `main` and on `v*` tags; merge
+5. [ ] 044 (macOS in the user docs) merged before the tag
+6. [ ] Tag `v0.2.0`: release with both zips, `SHA256SUMS.txt`, notes, attestations verified
+7. [ ] Community profile, badges, social preview uploaded, backup folder deleted (after asking)
+8. [ ] Follow-ups filed; changelog stamped; close
 
 ## Log
 
-- 2026-10-19 — promoted on `task/028-publication-day-repo-settings`; planned in this (main) session
+- 2026-10-19 — promoted on `task/028-publication-day-repo-settings`
+- 2026-10-19 — négy review (docs, kód, meta/CI, taskok) ~140 tétellel; a switch előtti tartalmi rész ide, a
+  macOS felhasználói doksi 044-be, a többi backlogba (045–048)
+- 2026-10-19 — tartalmi kör (három párhuzamos fork, diszjunkt fájlokon): ~35 task/decision fájl, a docs, a
+  CONTRIBUTING, a PR template, a code of conduct, a `.gitignore`; `git-workflow.md` kettévágva
+  (`maintainer-sessions.md`); a maradék grep csak az audit tárgyát (D-009, 027, 030) és a 034 hook-nevét adja.
+  A remote-on már csak `main` van (a „hét branch” elavult lokális remote-tracking ref volt, `fetch --prune`).
+- 2026-10-19 — CI/release: `paths-ignore` ki, `--locked` (CI, `release.ps1`, `bundle-macos.sh`), tag-on-main
+  lépés, `actions/attest-build-provenance` v4.2.2 `subject-checksums`-szal, a notes lábléce `gh attestation
+  verify`-jal; verzió 0.2.0 (`cargo update --workspace`: csak a három workspace crate); CHANGELOG Unreleased
+  összefoglaló; `docs/images/social-preview.png` 1280×640 a `viewer.png`-ből
+- 2026-10-19 — lokális checkek zöldek: `cargo fmt --check`, `cargo clippy --all-targets --locked -- -D
+  warnings`, `cargo test --locked` (117 teszt), `cargo deny check`, `uvx zizmor .github` (no findings),
+  `changelog.py --check`, `tasks_check` 0/0; a sync dry-run: created 5, updated 46, unchanged 9
 
 ## Deviations from the plan
 
