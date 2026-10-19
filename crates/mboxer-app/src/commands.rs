@@ -3,13 +3,10 @@
 //! The state mutex is never held across an `.await`: each command locks,
 //! copies what it needs, unlocks, then does the slow part.
 
-use std::path::{Path, PathBuf};
-use std::sync::Arc;
+use std::path::PathBuf;
 use std::sync::atomic::Ordering;
 
-use mboxer_core::{
-    Error, IndexStatus, Progress, SearchQuery, eml_bytes, parse, read_at, status, summarize,
-};
+use mboxer_core::{IndexStatus, SearchQuery, eml_bytes, parse, read_at, status, summarize};
 use tauri::ipc::{Channel, Response};
 use tauri::{AppHandle, Manager, State};
 use tauri_plugin_dialog::{DialogExt, FileDialogBuilder};
@@ -19,7 +16,7 @@ use crate::attachments::{
     eml_file_name, extension_of, open_blocked, read_attachment, read_listed_attachments,
     unique_path, write_temp, write_with_motw,
 };
-use crate::state::{AppState, OpenMbox};
+use crate::state::{AppState, BatchEnd};
 use crate::types::{
     IndexStatusInfo, ListInfo, MessageView, OpenEvent, OpenSummary, PositionInfo, QueryInput,
     RowsPage, SaveAllReport,
@@ -105,14 +102,15 @@ pub async fn open_mbox(
     {
         return Err("an open is already in progress".to_owned());
     }
-    let result = open_mbox_inner(app, &state, paths, group_threads, activate, on_event).await;
+    let result = open_mbox_inner(app, paths, group_threads, activate, on_event).await;
     state.busy.store(false, Ordering::Release);
     result
 }
 
+/// The Tauri side of an open: the paths (given, or picked in the dialog), the
+/// batch off the async runtime's threads, the closing events on the channel.
 async fn open_mbox_inner(
     app: AppHandle,
-    state: &AppState,
     paths: Option<Vec<String>>,
     group_threads: bool,
     activate: bool,
@@ -122,7 +120,7 @@ async fn open_mbox_inner(
     // first); a dialog pick comes in file-name order, as Takeout numbers its parts.
     let mut paths: Vec<PathBuf> = match paths {
         Some(paths) => paths.into_iter().map(PathBuf::from).collect(),
-        None => match pick_files(app).await? {
+        None => match pick_files(app.clone()).await? {
             Some(mut paths) => {
                 paths.sort_by_key(|path| {
                     (
@@ -136,100 +134,21 @@ async fn open_mbox_inner(
         },
     };
     paths.dedup();
-    let count = paths.len();
-    let mut activate = activate;
 
-    // Reset once per batch, not per file: a Cancel that lands between two
-    // files (after one is loaded, before the next starts) stops the next.
-    state.cancel.store(false, Ordering::Release);
-    for (at, path) in paths.into_iter().enumerate() {
-        if state.cancel.load(Ordering::Acquire) {
-            let _ = on_event.send(OpenEvent::Cancelled);
-            break;
-        }
-        let _ = on_event.send(OpenEvent::Opening {
-            path: path.display().to_string(),
-            position: at + 1,
-            count,
-        });
-        let event = match open_one(state, &path, group_threads, activate, &on_event).await {
-            Outcome::Ready(summary) => {
-                activate = false;
-                OpenEvent::Ready { summary }
-            }
-            Outcome::Cancelled => {
-                let _ = on_event.send(OpenEvent::Cancelled);
-                break;
-            }
-            Outcome::Failed(message) => OpenEvent::Failed {
-                path: path.display().to_string(),
-                message,
-            },
-        };
-        let _ = on_event.send(event);
+    let events = on_event.clone();
+    let end = tauri::async_runtime::spawn_blocking(move || {
+        app.state::<AppState>()
+            .open_batch(paths, group_threads, activate, |event| {
+                let _ = events.send(event);
+            })
+    })
+    .await
+    .map_err(|err| format!("the open task failed: {err}"))?;
+    if end == BatchEnd::Cancelled {
+        let _ = on_event.send(OpenEvent::Cancelled);
     }
     let _ = on_event.send(OpenEvent::Done);
     Ok(())
-}
-
-enum Outcome {
-    Ready(OpenSummary),
-    Cancelled,
-    Failed(String),
-}
-
-/// One file of the batch: already open → re-listed; otherwise loaded off the
-/// runtime threads and inserted. The lock is taken only around the insert.
-async fn open_one(
-    state: &AppState,
-    path: &Path,
-    group_threads: bool,
-    activate: bool,
-    on_event: &Channel<OpenEvent>,
-) -> Outcome {
-    let generation = state.generation.fetch_add(1, Ordering::AcqRel) + 1;
-    let already = state.files().id_of(path);
-    if let Some(id) = already {
-        let mut files = state.files();
-        if activate && files.activate(id, generation).is_err() {
-            return Outcome::Failed(crate::state::NOT_OPEN.to_owned());
-        }
-        return match files.summary(id) {
-            Ok(summary) => Outcome::Ready(summary),
-            Err(err) => Outcome::Failed(err),
-        };
-    }
-
-    let cancel = Arc::clone(&state.cancel);
-    let progress = on_event.clone();
-    let owned = path.to_path_buf();
-    let loaded = tauri::async_runtime::spawn_blocking(move || {
-        OpenMbox::load(&owned, &cancel, generation, group_threads, |p: Progress| {
-            let _ = progress.send(OpenEvent::Building {
-                bytes: p.bytes,
-                total_bytes: p.total_bytes,
-                messages: p.messages,
-            });
-        })
-    })
-    .await;
-
-    match loaded {
-        Ok(Ok(open)) => {
-            let mut files = state.files();
-            let id = files.insert(open);
-            if activate {
-                let _ = files.activate(id, generation);
-            }
-            match files.summary(id) {
-                Ok(summary) => Outcome::Ready(summary),
-                Err(err) => Outcome::Failed(err),
-            }
-        }
-        Ok(Err(Error::Cancelled)) => Outcome::Cancelled,
-        Ok(Err(err)) => Outcome::Failed(err.to_string()),
-        Err(err) => Outcome::Failed(format!("the open task failed: {err}")),
-    }
 }
 
 /// The native open dialog (several files allowed), off the async runtime's threads.

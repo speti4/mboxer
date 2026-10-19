@@ -1,10 +1,12 @@
 //! The application state: the open mbox files, each with its index and its
 //! own listing, and which of them is active (D-006).
 //!
-//! No Tauri types here; [`OpenMbox::load`] is the whole open-or-build flow and
-//! runs against the fixtures in the tests, as does [`OpenFiles`].
+//! No Tauri types here; [`OpenMbox::load`] is the whole open-or-build flow,
+//! [`AppState::open_batch`] the batch of files around it; both run against the
+//! fixtures in the tests, as does [`OpenFiles`].
 
 use std::fs;
+use std::panic::{self, AssertUnwindSafe};
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::{Arc, Mutex, MutexGuard, PoisonError};
@@ -18,7 +20,7 @@ use mboxer_core::{
 
 use crate::folders::label_tree;
 use crate::print::PrintJobs;
-use crate::types::{FileInfo, IndexState, LabelNode, ListInfo, OpenSummary};
+use crate::types::{FileInfo, IndexState, LabelNode, ListInfo, OpenEvent, OpenSummary};
 
 /// The error every command gets for a file id the set does not hold.
 pub const NOT_OPEN: &str = "that file is no longer open";
@@ -375,6 +377,131 @@ impl OpenMbox {
     }
 }
 
+impl AppState {
+    /// Adds the mbox files at `paths` to the set, one after the other. With
+    /// `activate` the first file of the batch becomes the active one; a file
+    /// that is already open is not loaded again, only re-listed (and
+    /// activated). Every file reports `Opening`, `Building` while its index
+    /// is built, then `Ready` or `Failed` to `on_event`; the closing events
+    /// are the caller's, told by the [`BatchEnd`] (task 070).
+    pub fn open_batch(
+        &self,
+        paths: Vec<PathBuf>,
+        group_threads: bool,
+        mut activate: bool,
+        mut on_event: impl FnMut(OpenEvent),
+    ) -> BatchEnd {
+        let count = paths.len();
+        // Reset once per batch, not per file: a Cancel that lands between two
+        // files (after one is loaded, before the next starts) stops the next.
+        self.cancel.store(false, Ordering::Release);
+        for (at, path) in paths.into_iter().enumerate() {
+            if self.cancel.load(Ordering::Acquire) {
+                return BatchEnd::Cancelled;
+            }
+            on_event(OpenEvent::Opening {
+                path: path.display().to_string(),
+                position: at + 1,
+                count,
+            });
+            let event = match self.open_one(&path, group_threads, activate, &mut on_event) {
+                Outcome::Ready(summary) => {
+                    activate = false;
+                    OpenEvent::Ready { summary }
+                }
+                Outcome::Cancelled => return BatchEnd::Cancelled,
+                Outcome::Failed(message) => OpenEvent::Failed {
+                    path: path.display().to_string(),
+                    message,
+                },
+            };
+            on_event(event);
+        }
+        BatchEnd::Finished
+    }
+
+    /// One file of the batch: already open → re-listed; otherwise loaded and
+    /// inserted. The lock is taken only around the insert; a panic in the
+    /// load fails this file, not the batch.
+    fn open_one(
+        &self,
+        path: &Path,
+        group_threads: bool,
+        activate: bool,
+        on_event: &mut impl FnMut(OpenEvent),
+    ) -> Outcome {
+        let generation = self.generation.fetch_add(1, Ordering::AcqRel) + 1;
+        let already = self.files().id_of(path);
+        if let Some(id) = already {
+            let mut files = self.files();
+            if activate && files.activate(id, generation).is_err() {
+                return Outcome::Failed(NOT_OPEN.to_owned());
+            }
+            return match files.summary(id) {
+                Ok(summary) => Outcome::Ready(summary),
+                Err(err) => Outcome::Failed(err),
+            };
+        }
+
+        let loaded = panic::catch_unwind(AssertUnwindSafe(|| {
+            OpenMbox::load(
+                path,
+                &self.cancel,
+                generation,
+                group_threads,
+                |p: Progress| {
+                    on_event(OpenEvent::Building {
+                        bytes: p.bytes,
+                        total_bytes: p.total_bytes,
+                        messages: p.messages,
+                    });
+                },
+            )
+        }));
+        match loaded {
+            Ok(Ok(open)) => {
+                let mut files = self.files();
+                let id = files.insert(open);
+                if activate {
+                    let _ = files.activate(id, generation);
+                }
+                match files.summary(id) {
+                    Ok(summary) => Outcome::Ready(summary),
+                    Err(err) => Outcome::Failed(err),
+                }
+            }
+            Ok(Err(Error::Cancelled)) => Outcome::Cancelled,
+            Ok(Err(err)) => Outcome::Failed(err.to_string()),
+            Err(panic) => {
+                let message = panic
+                    .downcast_ref::<&str>()
+                    .copied()
+                    .or_else(|| panic.downcast_ref::<String>().map(String::as_str))
+                    .unwrap_or("a panic without a message");
+                Outcome::Failed(format!("the open task failed: {message}"))
+            }
+        }
+    }
+}
+
+/// How an [`AppState::open_batch`] ended; the caller sends `Cancelled` for a
+/// cancelled one, then `Done` either way.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum BatchEnd {
+    /// Every file was opened, re-listed or reported as failed.
+    Finished,
+    /// A Cancel stopped the batch: the file being built is not added, the
+    /// files after it are not started.
+    Cancelled,
+}
+
+/// One file of an open batch.
+enum Outcome {
+    Ready(OpenSummary),
+    Cancelled,
+    Failed(String),
+}
+
 /// A fresh index is opened; a missing or stale one is rebuilt first (D-004).
 pub fn open_or_build(
     path: &Path,
@@ -607,6 +734,65 @@ mod tests {
         let (_dir, path) = fixture_copy("not-an-mbox.txt");
         let err = OpenMbox::load(&path, &AtomicBool::new(false), 1, false, |_| {}).unwrap_err();
         assert!(matches!(err, Error::NotAnMbox { offset: 0 }), "{err}");
+    }
+
+    #[test]
+    fn a_cancel_between_two_files_stops_the_batch() {
+        // Task 070, for the fix of task 061: the flag is cleared once when
+        // the batch starts and read before each file, so a Cancel that lands
+        // after the first file is ready stops the second before it starts.
+        let (_dir, first) = fixture_copy("gmail-crlf.mbox");
+        let (_dir2, second) = fixture_copy("threads.mbox");
+        let state = AppState::default();
+        // A Cancel left over from before the batch does not stop it.
+        state.cancel.store(true, Ordering::Release);
+        let mut events = Vec::new();
+        let end = state.open_batch(vec![first.clone(), second.clone()], false, true, |event| {
+            if matches!(event, OpenEvent::Ready { .. }) {
+                state.cancel.store(true, Ordering::Release);
+            }
+            events.push(event);
+        });
+        assert_eq!(end, BatchEnd::Cancelled);
+
+        // The first file: opening 1 of 2, its build, ready; nothing after it.
+        match events.first() {
+            Some(OpenEvent::Opening {
+                path,
+                position: 1,
+                count: 2,
+            }) => assert_eq!(*path, first.display().to_string()),
+            other => panic!("the batch starts with the first file: {other:?}"),
+        }
+        assert!(
+            events
+                .iter()
+                .any(|event| matches!(event, OpenEvent::Building { .. }))
+        );
+        let Some(OpenEvent::Ready { summary }) = events.last() else {
+            panic!("the first file ends ready: {events:?}");
+        };
+        assert_eq!(summary.file_name, "gmail-crlf.mbox");
+        assert_eq!(
+            events
+                .iter()
+                .filter(|event| matches!(event, OpenEvent::Opening { .. }))
+                .count(),
+            1,
+            "the second file never starts"
+        );
+
+        // The set holds the first file, active; the second is untouched.
+        let files = state.files();
+        assert_eq!(files.infos().len(), 1);
+        assert_eq!(files.active_id(), Some(summary.id));
+        assert_eq!(files.id_of(&second), None);
+        assert!(matches!(status(&first).unwrap(), IndexStatus::Fresh(_)));
+        assert!(matches!(status(&second).unwrap(), IndexStatus::Missing));
+        assert!(
+            !index_dir(&second).exists(),
+            "no sidecar for the second file"
+        );
     }
 
     fn load(mbox: &Path, generation: u64) -> OpenMbox {
