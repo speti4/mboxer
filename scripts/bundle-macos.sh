@@ -26,8 +26,9 @@
 # Needs: the Rust toolchain of rust-toolchain.toml with both darwin targets
 # (rustup target add aarch64-apple-darwin x86_64-apple-darwin), the Xcode command line tools
 # (lipo, iconutil, codesign, plutil, ditto), python3 for the guide and, unless --licences names a page,
-# cargo-about (cargo install cargo-about --version 0.9.2 --locked --features cli). --licences-only needs
-# cargo and cargo-about only.
+# cargo-about in the version scripts/cargo-about-version.txt names (cargo install cargo-about --version
+# "$(cat scripts/cargo-about-version.txt)" --locked --features cli). --licences-only needs cargo and
+# cargo-about only.
 set -euo pipefail
 
 skip_build=0
@@ -42,7 +43,7 @@ while [ $# -gt 0 ]; do
         --tag) tag="$2"; shift ;;
         --licences) licences="$2"; shift ;;
         --licences-only) licences_only="$2"; shift ;;
-        -h|--help) sed -n '2,30p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+        -h|--help) sed -n '2,31p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
         *) echo "unknown argument: $1" >&2; exit 2 ;;
     esac
     shift
@@ -72,6 +73,19 @@ render_licences() {
         "$root/scripts/third-party-licenses.hbs"
 }
 
+# The cargo-about CI installs: scripts/cargo-about-version.txt is the one place its version is written, so
+# a page rendered here is the page a release renders.
+check_cargo_about() {
+    local wanted found
+    wanted="$(tr -d '[:space:]' < "$root/scripts/cargo-about-version.txt")"
+    found="$(cargo-about --version | sed 's/^cargo-about[[:space:]]*//')"
+    if [ "$found" != "$wanted" ]; then
+        echo "cargo-about $found found, $wanted wanted:" \
+            "cargo install cargo-about --version $wanted --locked --features cli" >&2
+        exit 1
+    fi
+}
+
 # The [workspace.package] version of Cargo.toml, as release.ps1 reads it.
 version="$(sed -n '/^\[workspace\.package\]/,/^\[/{s/^version = "\(.*\)"$/\1/p;}' Cargo.toml)"
 if [ -z "$version" ]; then
@@ -92,6 +106,7 @@ if [ -n "$licences_only" ]; then
     for tool in cargo cargo-about; do
         command -v "$tool" > /dev/null || { echo "$tool not found" >&2; exit 1; }
     done
+    check_cargo_about
     mkdir -p "$(dirname "$licences_only")"
     render_licences "$licences_only"
     echo "licences: $licences_only ($(du -k "$licences_only" | cut -f1) KB)"
@@ -104,6 +119,7 @@ tools=(cargo rustup lipo iconutil codesign plutil ditto shasum python3)
 for tool in "${tools[@]}"; do
     command -v "$tool" > /dev/null || { echo "$tool not found" >&2; exit 1; }
 done
+[ -n "$licences" ] || check_cargo_about
 if [ "$skip_build" -eq 0 ]; then
     installed="$(rustup target list --installed)"
     for target in "${targets[@]}"; do

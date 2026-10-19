@@ -11,7 +11,8 @@ scripts\third-party-licenses.hbs). Next to the zip go
 SHA256SUMS.txt (the zip's SHA-256 in `sha256sum -c` format) and release-notes-<version>.md
 (scripts\changelog.py --notes, the body of the GitHub release). CI runs this script on a
 v<version> tag with -Tag set, which must match the version; by hand the tag check is skipped.
-Needs cargo, cargo-about (cargo install cargo-about --version 0.9.2 --locked --features cli),
+Needs cargo, cargo-about in the version scripts\cargo-about-version.txt names (cargo install
+cargo-about --version (Get-Content scripts\cargo-about-version.txt) --locked --features cli),
 Python 3 and git with the release tags.
 
 .EXAMPLE
@@ -54,6 +55,13 @@ function Find-Tool([string] $Name) {
 # What can fail fast runs before the build: the tools and the release notes.
 $cargo = Find-Tool "cargo"
 $cargoAbout = Find-Tool "cargo-about"
+# The cargo-about CI installs: scripts\cargo-about-version.txt is the one place its version is written, so a
+# page rendered here is the page a release renders.
+$aboutWanted = (Get-Content (Join-Path $root "scripts\cargo-about-version.txt") -Raw).Trim()
+$aboutFound = "$(& $cargoAbout --version)".Trim() -replace '^cargo-about\s+', ''
+if ($aboutFound -ne $aboutWanted) {
+    throw "cargo-about $aboutFound found, $aboutWanted wanted: cargo install cargo-about --version $aboutWanted --locked --features cli"
+}
 # Python as `python`, else through the `py` launcher, which is all some Windows installs put on PATH.
 $python = (Get-Command python -ErrorAction SilentlyContinue).Source
 $pythonArgs = @()
