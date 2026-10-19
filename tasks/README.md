@@ -13,7 +13,7 @@ file, never the issue.
 <!-- tasks:index:start -->
 _Generated 2026-10-19 — edit the files, not this section._
 
-**State:** 5 backlog (1 ready · 0 blocked · 4 waiting · 0 ideas) · 1 in progress · 37 done · 0 dropped · 12 decisions
+**State:** 5 backlog (1 ready · 0 blocked · 4 waiting · 0 ideas) · 0 in progress · 37 done · 1 dropped · 12 decisions
 
 ### Ready
 
@@ -39,7 +39,7 @@ _none_
 
 | # | Task | Waits for | Size | Created |
 |---|---|---|---|---|
-| 028 | [Publication day: visibility switch and the public-only repo settings](backlog/028-publication-day-repo-settings.md) | every other open task done first (user decision 2026-10-19) — 041, 031, 043, and 040 run by a colleague with a Mac; 029 follows 028 | S | 2026-10-18 |
+| 028 | [Publication day: visibility switch and the public-only repo settings](backlog/028-publication-day-repo-settings.md) | every other open task done first (user decision 2026-10-19) — 041, 043, and 040 run by a colleague with a Mac; 029 follows 028 | S | 2026-10-18 |
 | 029 | [Authenticode signing of the release exe](backlog/029-windows-code-signing.md) | 028 (SignPath Foundation takes public repos only; user decision 2026-10-19) | M | 2026-10-18 |
 | 043 | [Pad the decision ids to three digits before the repo goes public](backlog/043-pad-decision-ids-to-three-digits.md) | 041 merged (it edits the same docs and scripts) | M | 2026-10-19 |
 
@@ -49,15 +49,13 @@ _none_
 
 ### In progress
 
-#### (no milestone)
-
-| # | Task | Started | Plan |
-|---|---|---|---|
-| 031 | [Native title bar stays dark when the Light override runs under dark-mode Windows](wip/031-title-bar-stays-dark-under-light-override.md) | 2026-10-19 | `n-zz-k-t-a-backlogot-toasty-dove.md` |
+_none_
 
 ### Closed – do not reopen
 
-_none_
+| # | Task | Closed | Reason | Reopen when |
+|---|---|---|---|---|
+| 031 | [Native title bar stays dark when the Light override runs under dark-mode Windows](dropped/031-title-bar-stays-dark-under-light-override.md) | 2026-10-19 | rare and cosmetic; the next theme switch always draws the right title bar, so a fix is not worth its cost (user decision 2026-10-19) | a user reports it, or tao changes how set_theme repaints the Windows title bar |
 
 ### Recently done
 
