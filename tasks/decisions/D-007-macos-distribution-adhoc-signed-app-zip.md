@@ -2,10 +2,10 @@
 status: decided
 date: 2026-10-18
 cost: cheap
-sources: [backlog/018-macos-build-bundle-and-ci.md, D-02-rust-tauri2-sidecar-fulltext-index.md, m-rj-k-fel-hogy-mekkora-scalable-boole.md]
+sources: [backlog/018-macos-build-bundle-and-ci.md, D-002-rust-tauri2-sidecar-fulltext-index.md, m-rj-k-fel-hogy-mekkora-scalable-boole.md]
 ---
 
-# D-07 — macOS builds ship as an ad-hoc signed universal `.app` in a zip, without notarization
+# D-007 — macOS builds ship as an ad-hoc signed universal `.app` in a zip, without notarization
 
 ## Context
 
@@ -20,7 +20,7 @@ already goes through a SmartScreen click (task 012). The author has no Mac at th
 
 - The macOS artefact is one **`.app` bundle** (universal binary: `aarch64` + `x86_64` joined with
   `lipo`), assembled by a shell script from a plain `cargo build --release` — no Tauri CLI, no
-  `.dmg`, no installer (D-02's one-artefact rule carried over).
+  `.dmg`, no installer (D-002's one-artefact rule carried over).
 - The bundle is **ad-hoc signed** (`codesign -s -`), so it loads on Apple Silicon, and **not
   notarized**: the user allows it once under *System Settings → Privacy & Security → Open Anyway*
   after the first blocked start (macOS 15 and later no longer offer the right-click *Open* bypass).

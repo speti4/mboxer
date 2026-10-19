@@ -2,14 +2,14 @@
 status: decided
 date: 2026-10-17
 cost: medium
-sources: [wip/003-fulltext-sidecar-index-accent-folding.md, D-02-rust-tauri2-sidecar-fulltext-index.md, folytassuk-a-003-taskkal-parsed-panda.md]
+sources: [wip/003-fulltext-sidecar-index-accent-folding.md, D-002-rust-tauri2-sidecar-fulltext-index.md, folytassuk-a-003-taskkal-parsed-panda.md]
 ---
 
-# D-04 — The sidecar index lives in `.mboxer/<mbox name>/` beside the mbox and is rebuilt whole when stale
+# D-004 — The sidecar index lives in `.mboxer/<mbox name>/` beside the mbox and is rebuilt whole when stale
 
 ## Context
 
-D-02 fixed that search runs on a one-time sidecar index built next to the mbox. Task 003 had to
+D-002 fixed that search runs on a one-time sidecar index built next to the mbox. Task 003 had to
 settle where exactly the index sits, how a later open decides whether it may reuse it, and what
 happens when it may not. A 14 GB Takeout export is never edited in place; a new export is a new
 file. Users may keep several mbox files in one folder, and the index must never be mistaken for
@@ -25,7 +25,7 @@ the user's data.
   the mbox (size, mtime, FNV-1a 64 over the first and last MiB plus 16 × 64 KiB sampled blocks).
   On open, any mismatch — fingerprint, format version, unreadable metadata — makes the index
   stale, and a stale index is rebuilt from scratch. There is no incremental update.
-- Message identity inside the index is the D-03 pair (`offset`, `len`); hits are served from
+- Message identity inside the index is the D-003 pair (`offset`, `len`); hits are served from
   stored fields, the mbox is only seeked when a message is opened.
 - Tokenization: words, lower-cased, ASCII-folded (`AsciiFoldingFilter`, covers ő/ű) on both the
   index and the query side; phrase positions are kept on every text field.

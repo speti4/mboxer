@@ -5,7 +5,7 @@ cost: medium
 sources: [docs/origin.md, docs/research/2026-10-17-free-mbox-viewer-alternatives.md, olvasd-el-a-draft-md-sharded-teapot.md]
 ---
 
-# D-01 — Build our own mbox viewer instead of adopting an existing one
+# D-001 — Build our own mbox viewer instead of adopting an existing one
 
 ## Context
 

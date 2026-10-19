@@ -26,7 +26,7 @@ system browser, no separate "open message in browser" button; the sanitizer runs
 the sandbox iframe (`allow-same-origin`, without scripts) and the iframe's own meta CSP (`default-src 'none'`);
 013 (unescaping `>From ` lines in the plain text body) merges into this task.
 
-Build-time crate (D-02 justification): `tauri-plugin-opener 2` — opening http/https/mailto links
+Build-time crate (D-002 justification): `tauri-plugin-opener 2` — opening http/https/mailto links
 with the system's default application, called from the Rust side (`OpenerExt::open_url`, no capability
 needed); the 008 attachment opening (`open_path`) will use the same.
 

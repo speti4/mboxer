@@ -13,14 +13,14 @@ plan: olvasd-el-a-draft-md-sharded-teapot.md
 
 Greenfield repo; `draft.md` held the problem statement (14 GB Gmail Takeout mbox, mboxviewer slow and
 unsearchable). A planning conversation on 2026-10-17 settled the frame: personal hub kind, build
-instead of buy (D-01), Rust + Tauri 2 + sidecar full-text index (D-02). This task lays down the hub
+instead of buy (D-001), Rust + Tauri 2 + sidecar full-text index (D-002). This task lays down the hub
 card and the repo structure per the project-pal task standard; no app code.
 
 ## Steps
 
 1. [x] Hub card `hub/personal/registry/mboxer.md`, validated, hub committed
 2. [x] `docs/origin.md` (ex draft.md), `docs/research/2026-10-17-free-mbox-viewer-alternatives.md`
-3. [x] `tasks/` standard: roadmap, D-01, D-02, backlog 002–012, generated README
+3. [x] `tasks/` standard: roadmap, D-001, D-002, backlog 002–012, generated README
 4. [x] `README.md`, `CLAUDE.md`, `.gitignore`
 5. [x] `tasks_check` green, first commit on `main`
 

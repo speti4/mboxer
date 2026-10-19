@@ -36,7 +36,7 @@ Run as a task session under docs/git-workflow.md, in parallel with 025 and 032.
 - 2026-10-18 — CLAUDE.md átírva (Layout, Commands, Data, Conventions, Tasks), PR #52, CI zöld; lezárva a branchen
 - 2026-10-18 — main session a merge előtt: a záró commit csak a `git mv`-t vitte, a fájl szerkesztései (Steps,
   Log, Verification, `closed`) commitolatlanul maradtak a worktree-ben — most commitolva; a két follow-up
-  (D-10 hivatkozás, `deps:` a CONTRIBUTING-ban, plusz a várt index-hiba) → `backlog/036`; index újragenerálva.
+  (D-010 hivatkozás, `deps:` a CONTRIBUTING-ban, plusz a várt index-hiba) → `backlog/036`; index újragenerálva.
 
 ## Deviations from the plan
 
@@ -57,7 +57,7 @@ Run as a task session under docs/git-workflow.md, in parallel with 025 and 032.
   - "closing files every follow-up with /tasks add", "/tasks check before a task commit" — ellentmondott a
     docs/git-workflow.md-nek (id-t és follow-upot a main session ad); a standard a `tasks/README.md`-ben, a
     tasks_check tool leírásában
-  - megtartva: `@docs/git-workflow.md` import, Data outside the repo, D-08 (H1 + Context angol), decision
+  - megtartva: `@docs/git-workflow.md` import, Data outside the repo, D-008 (H1 + Context angol), decision
     `proposed` amíg a user meg nem erősíti (máshol nem áll kimondva, ezért CLAUDE.md-ben maradt)
 - 2026-10-18 — PR #52: CI run 39153999869 zöld (test, deny, workflow-lint, commit-rules); `scripts/check-commit.sh`
   a commit üzenetre és a PR body-ra exit 0; `tasks_check` (write nélkül) 0 hiba

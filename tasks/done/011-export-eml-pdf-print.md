@@ -12,13 +12,13 @@ plan: backlogb-l-a-task-011-jaunty-castle.md
 
 ## Context
 
-Handing the selected message on: saving as .eml (the raw bytes from the offset, D-03), print and
+Handing the selected message on: saving as .eml (the raw bytes from the offset, D-003), print and
 PDF through the WebView2 (Chromium) print path. Why: handing a found message on is the second most
 common step after the search. Done when: the saved .eml opens in Outlook / Thunderbird;
 the print preview (and the PDF saved from it) shows the same as the reader.
 
 Planning decisions 2026-10-18 (approved plan; user decision: one `Print…` button, the PDF via the print
-preview's "Save as PDF" target, no separate native PDF save, no new crate — D-02): printing goes from a hidden,
+preview's "Save as PDF" target, no separate native PDF save, no new crate — D-002): printing goes from a hidden,
 script-free `sandbox="allow-same-origin allow-modals"` iframe (`contentWindow.print()`;
 WebView2's native print APIs would all print the top-level document, which is the three-pane app); the print
 document is built from the reader's finished DOM (headers + the body of the current view, the cid images'

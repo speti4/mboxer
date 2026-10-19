@@ -20,7 +20,7 @@ the stored labels change. Why: the author's archive has no encoded label (600 MB
 another user's non-ASCII label names would show up garbled. Done when: a fixture with an encoded label lists the
 label decoded in `label_counts`, the exact and the `any_labels` filter find the decoded name, and the existing index
 is rebuilt once (format version). User decision 2026-10-17 (planning round): order 015 → 014 → 012, one
-commit per task; no new crate (D-02).
+commit per task; no new crate (D-002).
 
 ## Steps
 

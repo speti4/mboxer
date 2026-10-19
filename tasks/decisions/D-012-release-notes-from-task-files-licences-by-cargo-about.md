@@ -27,7 +27,7 @@ on 2026-10-18.
 
 ## Not chosen
 
-- GitHub's generated notes: PR titles only, and the task files stay the plan and the history (D-08).
+- GitHub's generated notes: PR titles only, and the task files stay the plan and the history (D-008).
 - Assigning tasks by the `closed` date: several tasks closed on the v0.1.0 day on both sides of the tag.
 - A mode of `scripts/sync-issues.py`: the release job would need `gh` and an issues token for an offline file job.
 - A hand-kept `CHANGELOG.md`: it drifts from the task files.

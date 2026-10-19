@@ -2,11 +2,11 @@
 status: superseded
 date: 2026-10-18
 cost: one-way
-superseded-by: D-10-publish-scrubbed-rewritten-history-in-a-recreated-repo.md
+superseded-by: D-010-publish-scrubbed-rewritten-history-in-a-recreated-repo.md
 sources: [done/027-pre-publish-history-and-content-audit.md, a-task-021-hez-kapcsol-d-an-mellow-hearth.md]
 ---
 
-# D-09 — The repo goes public with `tasks/` and `docs/` scrubbed in place and the history rewritten once before the switch
+# D-009 — The repo goes public with `tasks/` and `docs/` scrubbed in place and the history rewritten once before the switch
 
 ## Context
 
@@ -52,7 +52,7 @@ point 4 the same day.
 - Publish as is: leaves a third party's name in a public history for a private project that never needed it.
 - Edit in place without a rewrite: the name stays one `git log -p` away; the rewrite costs minutes today and is
   impossible to do cleanly once anyone has cloned.
-- Leave `tasks/` out of the public repo: the task standard, the decisions and the mirror into issues (D-08) are
+- Leave `tasks/` out of the public repo: the task standard, the decisions and the mirror into issues (D-008) are
   the project's working method and part of what it shows; the private bits are two paths and a framing, not the
   files.
 - A fresh repo from a squashed snapshot: loses the 37 issues, the milestones and the release for nothing a

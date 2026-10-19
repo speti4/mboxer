@@ -22,7 +22,7 @@ Done when: the dated benchmark table of the 14 GB mbox is in `docs/`, and the nu
 roadmap targets (reopen < 1 s, body search < 1 s, build in acceptable time).
 
 No new build-time crate: the date is parsed by the already pulled-in `mail_parser::DateTime`, the benchmark
-PowerShell script follows the pattern of `scripts/peak-memory.ps1` (the exe stays thin, D-02).
+PowerShell script follows the pattern of `scripts/peak-memory.ps1` (the exe stays thin, D-002).
 
 ## Steps
 

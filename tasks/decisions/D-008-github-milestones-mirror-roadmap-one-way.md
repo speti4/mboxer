@@ -5,7 +5,7 @@ cost: cheap
 sources: [done/021-github-milestones-and-first-release.md, done/022-sync-tasks-to-github-issues.md, local-repoban-profi-a-clever-pie.md]
 ---
 
-# D-08 — GitHub issues and milestones mirror `tasks/` one-way through a script; nothing is edited on GitHub by hand; a release tag closes the milestones it ships
+# D-008 — GitHub issues and milestones mirror `tasks/` one-way through a script; nothing is edited on GitHub by hand; a release tag closes the milestones it ships
 
 ## Context
 

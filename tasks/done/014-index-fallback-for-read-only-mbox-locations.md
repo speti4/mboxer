@@ -12,16 +12,16 @@ plan: 12-14-15-taskokat-fejlessz-k-le-keen-whale.md
 
 ## Context
 
-D-04 puts the index next to the mbox (`.mboxer/<név>/`); if that folder is not writable (DVD, read-only share,
+D-004 puts the index next to the mbox (`.mboxer/<név>/`); if that folder is not writable (DVD, read-only share,
 forbidden folder), the build stops with an error today. 014: if the primary `.building` directory cannot be created,
 the index is built under `%LOCALAPPDATA%\mboxer\index\<fájlnév>-<útvonal-hash>\`, and the open looks there too.
 Why: a user's archive may sit on a network share. Done when: `mboxer index` succeeds on an mbox in a
 read-only folder, `mboxer search` finds the fallback index, and the test covers both locations.
 Planning decision 2026-10-17: the fallback directory is keyed by the mbox's *path* (not its content fingerprint,
 as the backlog line said): one place = one directory, a new export to the same place replaces the old index, no
-orphan remains; freshness is still `mboxer.json` (D-04). The trigger is any I/O error while preparing the primary
+orphan remains; freshness is still `mboxer.json` (D-004). The trigger is any I/O error while preparing the primary
 `.building` (not a permission probe: on Windows the read-only folder attribute does not forbid creation, a deny
-ACL, a read-only share or a *file* named `.mboxer` does — the test provokes it with the latter). D-05 proposed.
+ACL, a read-only share or a *file* named `.mboxer` does — the test provokes it with the latter). D-005 proposed.
 
 ## Steps
 
@@ -31,7 +31,7 @@ ACL, a read-only share or a *file* named `.mboxer` does — the test provokes it
 4. [x] CLI: `index` kiírja a fallbacket; `--help` említi `MBOXER_INDEX_HOME`-ot
 5. [x] App: `OpenSummary.index_dir`, státuszsor tooltip
 6. [x] Tesztek: `tests/index.rs` (blokkolt sidecar → fallback; elsődleges nyer; egy index marad), `tests/cli.rs`
-7. [x] D-05 (`/tasks decide`), README
+7. [x] D-005 (`/tasks decide`), README
 8. [x] `cargo fmt`, clippy, `cargo test`; kézi: fixture-másolat blokkolt mappában CLI-vel és a viewerrel
 9. [x] `tasks_check`; commit
 
@@ -50,7 +50,7 @@ ACL, a read-only share or a *file* named `.mboxer` does — the test provokes it
   blokkolva → debug CLI `index:` `%LOCALAPPDATA%\mboxer\index\threads.mbox-40f8a8f2b62873aa (fallback: …)`,
   6 üzenet; `search --label Work --count` 2 találat, open 8,5 ms; a debug viewer ugyanazon a másolaton:
   `opened threads.mbox: 6 messages, Reused, 8 ms` (a fallback indexet újrahasználta). Mindkét mappa törölve
-- 2026-10-17 — D-05 proposed; closed
+- 2026-10-17 — D-005 proposed; closed
 
 ## Deviations from the plan
 

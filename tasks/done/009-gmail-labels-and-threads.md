@@ -24,7 +24,7 @@ conversation.
 User decisions 2026-10-17 (planning round): grouping on by default, a *Conversations* switch on the filter strip;
 a click on a parent label = parent + every sub-label (OR, `any_labels`); `Category *` → *Categories*
 node; oldest first in an expanded thread. The index format does not change (no rebuild); no new
-crate (D-02). The real archive's header sample (600 MB) has no label with `/` and none RFC 2047-encoded.
+crate (D-002). The real archive's header sample (600 MB) has no label with `/` and none RFC 2047-encoded.
 
 ## Steps
 

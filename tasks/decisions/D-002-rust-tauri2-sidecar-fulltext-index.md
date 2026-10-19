@@ -5,7 +5,7 @@ cost: medium
 sources: [docs/origin.md, olvasd-el-a-draft-md-sharded-teapot.md]
 ---
 
-# D-02 — Rust + Tauri 2 (WebView2) with a one-time sidecar full-text index
+# D-002 — Rust + Tauri 2 (WebView2) with a one-time sidecar full-text index
 
 ## Context
 

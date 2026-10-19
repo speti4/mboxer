@@ -21,7 +21,7 @@ a restart. Planning decisions 2026-10-18 (approved plan): the override goes from
 `<head>` onto `<html data-theme>` before the first paint (the CSP forbids inline scripts);
 the native title bar gets Tauri's `setTheme` (`core:window:allow-set-theme`); the HTML reader iframe stays on a
 light canvas in both themes (HTML mails are made for a light page, Thunderbird/Outlook do the same), the Text
-and Source views follow the theme. No new crate (D-02).
+and Source views follow the theme. No new crate (D-002).
 
 ## Steps
 
