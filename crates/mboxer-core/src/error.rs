@@ -1,4 +1,5 @@
 use std::fmt;
+use std::path::PathBuf;
 
 /// Errors produced by the mbox reader.
 #[derive(Debug)]
@@ -23,6 +24,8 @@ pub enum Error {
     Json(serde_json::Error),
     /// An index build was stopped through its cancel flag.
     Cancelled,
+    /// Another build of the same mbox holds the build lock at `lock`.
+    BuildLocked { lock: PathBuf },
 }
 
 pub type Result<T> = std::result::Result<T, Error>;
@@ -50,6 +53,11 @@ impl fmt::Display for Error {
             Error::IndexMeta(msg) => write!(f, "index metadata: {msg}"),
             Error::Json(err) => write!(f, "index metadata: {err}"),
             Error::Cancelled => write!(f, "index build cancelled"),
+            Error::BuildLocked { lock } => write!(
+                f,
+                "another build holds `{}`; wait for it to finish",
+                lock.display()
+            ),
         }
     }
 }

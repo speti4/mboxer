@@ -707,7 +707,8 @@
       return `Index reused (built ${fullDate(index.builtAtUnix)})`;
     }
     const unparsed = index.parseFailures === 1 ? "1 unparsed message" : `${fmt(index.parseFailures)} unparsed messages`;
-    return `Index built in ${fmt(index.buildSecs)} s, ${unparsed}`;
+    const skipped = index.skipped > 0 ? `, ${fmt(index.skipped)} too large to index` : "";
+    return `Index built in ${fmt(index.buildSecs)} s, ${unparsed}${skipped}`;
   }
 
   // ---------- query model ----------

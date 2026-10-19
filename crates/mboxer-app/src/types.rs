@@ -102,6 +102,8 @@ pub enum IndexState {
     Built {
         build_secs: u64,
         parse_failures: u64,
+        /// Messages over the size limit, left out of the index (task 052).
+        skipped: u64,
     },
 }
 

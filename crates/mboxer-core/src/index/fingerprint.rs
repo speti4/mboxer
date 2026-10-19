@@ -8,7 +8,9 @@
 //! and [`status`] looks in both places (task 014, D-005). Its `mboxer.json` records the index
 //! format version and a fingerprint of the mbox: size, modification time and a
 //! hash over a few sampled regions. Any mismatch makes the index stale; the
-//! caller rebuilds it from scratch.
+//! caller rebuilds it from scratch. Only those two directories are ever
+//! looked at: the build's `.building` and `.old` siblings (task 052) never
+//! count as an index.
 
 use std::ffi::OsString;
 use std::fs::{self, File};
@@ -187,6 +189,10 @@ pub struct IndexMeta {
     pub mbox: Fingerprint,
     pub message_count: u64,
     pub parse_failures: u64,
+    /// Messages left out of the index because they exceed the size limit
+    /// (task 052); absent in an index built before, which reads as 0.
+    #[serde(default)]
+    pub skipped: u64,
     /// Unix seconds.
     pub built_at_unix: i64,
     pub build_secs: u64,
@@ -372,6 +378,16 @@ mod tests {
         assert_eq!(user_data_dir("windows", nothing), None);
         assert_eq!(user_data_dir("macos", nothing), None);
         assert_eq!(user_data_dir("linux", nothing), None);
+    }
+
+    #[test]
+    fn metadata_without_a_skipped_count_still_reads() {
+        let json = r#"{"format_version":2,"mbox":{"len":1,"mtime_unix":2,"sample_hash":3},
+            "message_count":4,"parse_failures":0,"built_at_unix":5,"build_secs":6,
+            "tantivy_version":"x"}"#;
+        let meta: IndexMeta = serde_json::from_str(json).unwrap();
+        assert_eq!(meta.skipped, 0);
+        assert_eq!(meta.message_count, 4);
     }
 
     #[test]

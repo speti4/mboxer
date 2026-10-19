@@ -1,0 +1,56 @@
+From alice@example.com Mon Jan  5 09:00:00 2026
+From: Alice <alice@example.com>
+To: Bob <bob@example.com>
+Subject: before the large one
+Date: Mon, 5 Jan 2026 09:00:00 +0100
+Message-ID: <before@example.com>
+
+A small message ahead of the oversized one.
+
+From bob@example.com Tue Jan  6 10:00:00 +0100 2026
+From: Bob <bob@example.com>
+To: Alice <alice@example.com>
+Subject: the oversized one
+Date: Tue, 6 Jan 2026 10:00:00 +0100
+Message-ID: <oversized@example.com>
+
+Filler line 01 of the oversized message, about sixty-four bytes.
+Filler line 02 of the oversized message, about sixty-four bytes.
+Filler line 03 of the oversized message, about sixty-four bytes.
+Filler line 04 of the oversized message, about sixty-four bytes.
+Filler line 05 of the oversized message, about sixty-four bytes.
+Filler line 06 of the oversized message, about sixty-four bytes.
+Filler line 07 of the oversized message, about sixty-four bytes.
+Filler line 08 of the oversized message, about sixty-four bytes.
+Filler line 09 of the oversized message, about sixty-four bytes.
+Filler line 10 of the oversized message, about sixty-four bytes.
+Filler line 11 of the oversized message, about sixty-four bytes.
+Filler line 12 of the oversized message, about sixty-four bytes.
+Filler line 13 of the oversized message, about sixty-four bytes.
+Filler line 14 of the oversized message, about sixty-four bytes.
+Filler line 15 of the oversized message, about sixty-four bytes.
+Filler line 16 of the oversized message, about sixty-four bytes.
+Filler line 17 of the oversized message, about sixty-four bytes.
+Filler line 18 of the oversized message, about sixty-four bytes.
+Filler line 19 of the oversized message, about sixty-four bytes.
+Filler line 20 of the oversized message, about sixty-four bytes.
+Filler line 21 of the oversized message, about sixty-four bytes.
+Filler line 22 of the oversized message, about sixty-four bytes.
+Filler line 23 of the oversized message, about sixty-four bytes.
+Filler line 24 of the oversized message, about sixty-four bytes.
+Filler line 25 of the oversized message, about sixty-four bytes.
+Filler line 26 of the oversized message, about sixty-four bytes.
+Filler line 27 of the oversized message, about sixty-four bytes.
+Filler line 28 of the oversized message, about sixty-four bytes.
+Filler line 29 of the oversized message, about sixty-four bytes.
+Filler line 30 of the oversized message, about sixty-four bytes.
+From the middle of the body: a quoted line that is not an envelope.
+
+From carol@example.com Wed Jan  7 11:00:00 2026
+From: Carol <carol@example.com>
+To: Alice <alice@example.com>
+Subject: after the large one
+Date: Wed, 7 Jan 2026 11:00:00 +0100
+Message-ID: <after@example.com>
+
+A small message after the oversized one.
