@@ -63,6 +63,8 @@ start and read before each file; each file loads through `OpenMbox::load` with t
 - 2026-10-20 — follow-up, in the pull request description: `AppState::cancel` no longer needs its `Arc` (no
   clone of it leaves the state since the batch runs through `app.state()`); left as it is so the parallel
   search-cancel work on `AppState` meets no conflict.
+- 2026-10-20 — that follow-up gets no task of its own: a one-line cleanup, done by the next change that touches
+  `AppState` (task 067 or later).
 
 ## Deviations from the plan
 

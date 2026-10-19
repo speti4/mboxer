@@ -25,6 +25,7 @@ not the list. The summary under a heading is written by hand and kept by the gen
 - Index quality follow-ups: token length, completions, nested parts, limits, multi-thread order ([060](https://github.com/speti4/mboxer/blob/main/tasks/done/060-index-quality-follow-ups-from-the-review.md))
 - Free-text follow-ups: the highlight split and the tantivy exclusion assertion ([063](https://github.com/speti4/mboxer/blob/main/tasks/done/063-free-text-follow-ups-tantivy-assertion-warnings-and-highlight.md))
 - The highlight folds the same letters the index folds ([068](https://github.com/speti4/mboxer/blob/main/tasks/done/068-highlight-folds-the-letters-the-index-folds.md))
+- A test for the Cancel between two files of a batch ([070](https://github.com/speti4/mboxer/blob/main/tasks/done/070-a-test-for-the-batch-cancel.md))
 
 ### Project housekeeping
 
