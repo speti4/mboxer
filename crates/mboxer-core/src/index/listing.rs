@@ -92,7 +92,8 @@ impl Listing {
         self.layout.group_count()
     }
 
-    /// Query-syntax problems the lenient parser skipped over.
+    /// Problems with the query text for the viewer's status bar; none are
+    /// reported at present (see [`SearchResult::warnings`](crate::SearchResult::warnings)).
     pub fn warnings(&self) -> &[String] {
         &self.warnings
     }
@@ -178,7 +179,7 @@ impl MboxIndex {
     /// thread when `query.group_threads` asks for it; `limit` and `offset` are
     /// ignored, the caller pages with [`Listing::rows`].
     pub fn list(&self, query: &SearchQuery) -> Result<Listing> {
-        let (tantivy_query, warnings) = self.to_tantivy_query(query);
+        let tantivy_query = self.to_tantivy_query(query);
         let searcher = self.searcher();
         let collector = AllMatches {
             sort: query.sort,
@@ -189,7 +190,7 @@ impl MboxIndex {
         Ok(Listing {
             searcher,
             fields: *self.fields(),
-            warnings,
+            warnings: Vec::new(),
             layout: Layout::new(members.len(), starts),
             members,
         })

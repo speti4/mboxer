@@ -1,30 +1,29 @@
 //! Opening a sidecar index and querying it.
 //!
 //! Every hit is served from stored fields; the mbox itself is only touched to
-//! verify freshness on open. A free-text query goes through tantivy's parser
-//! over the folded text fields, so `szamla` and `számla` are the same query;
-//! the structured filters are added as `Must` clauses around it.
+//! verify freshness on open. The free text is turned into term and phrase
+//! queries over the folded text fields by [`free_text`](crate::index::free_text),
+//! so `szamla` and `számla` are the same query; the structured filters are
+//! added as `Must` clauses around it.
 
 use std::collections::BTreeMap;
 use std::ops::Bound;
 use std::path::{Path, PathBuf};
 
 use tantivy::collector::{Count, TopDocs};
-use tantivy::query::{
-    AllQuery, BooleanQuery, Occur, PhrasePrefixQuery, Query, QueryParser, RangeQuery, TermQuery,
-};
-use tantivy::schema::{Field, IndexRecordOption, Value};
+use tantivy::query::{AllQuery, BooleanQuery, Occur, Query, RangeQuery, TermQuery};
+use tantivy::schema::{IndexRecordOption, Value};
 use tantivy::{
     DocAddress, Index, IndexReader, Order, ReloadPolicy, Searcher, TantivyDocument, Term,
 };
 
 use crate::error::Result;
 use crate::index::fingerprint::{IndexMeta, IndexStatus, StaleReason, default_index_home, resolve};
-use crate::index::schema::{Fields, fold_analyzer, register_tokenizer};
+use crate::index::free_text::free_text_query;
+use crate::index::schema::{Fields, register_tokenizer};
 
-/// How many dictionary terms the word being typed may expand to; the terms
-/// come in dictionary order, so the shortest completions come first.
-const PREFIX_EXPANSIONS: u32 = 200;
+/// How much more a free-text word in the subject weighs than one elsewhere.
+const SUBJECT_BOOST: f32 = 2.0;
 
 /// Result of [`MboxIndex::open`].
 #[derive(Debug)]
@@ -39,7 +38,6 @@ pub struct MboxIndex {
     mbox: PathBuf,
     dir: PathBuf,
     meta: IndexMeta,
-    index: Index,
     reader: IndexReader,
     fields: Fields,
 }
@@ -120,63 +118,6 @@ impl Default for SearchQuery {
     }
 }
 
-/// Splits off the word still being typed at the end of `text`: the last
-/// whitespace-delimited word when the text does not end in whitespace, the
-/// word is plain (no quotes, operators or wildcards) and no phrase is open
-/// before it. Returns `(rest, word)`.
-pub(crate) fn typing_word(text: &str) -> Option<(&str, &str)> {
-    if text.is_empty() || text.ends_with(char::is_whitespace) {
-        return None;
-    }
-    let start = text
-        .char_indices()
-        .rev()
-        .find(|(_, c)| c.is_whitespace())
-        .map_or(0, |(i, c)| i + c.len_utf8());
-    let (rest, word) = text.split_at(start);
-    let syntax = |c: char| {
-        matches!(
-            c,
-            '"' | '\'' | ':' | '*' | '~' | '^' | '(' | ')' | '[' | ']' | '{' | '}'
-        )
-    };
-    if word.starts_with('-') || word.starts_with('+') || word.contains(syntax) {
-        return None;
-    }
-    if rest.matches('"').count() % 2 == 1 {
-        return None;
-    }
-    Some((rest, word))
-}
-
-/// `word` as a prefix on every one of `fields`: its folded tokens in order,
-/// the last one completed from the dictionary. `None` when the word folds
-/// to nothing or its last token is a single character.
-fn prefix_query(fields: &[Field], word: &str) -> Option<Box<dyn Query>> {
-    let mut analyzer = fold_analyzer();
-    let mut stream = analyzer.token_stream(word);
-    let mut tokens = Vec::new();
-    while let Some(token) = stream.next() {
-        tokens.push(token.text.clone());
-    }
-    if tokens.last()?.chars().count() < 2 {
-        return None;
-    }
-    let clauses = fields
-        .iter()
-        .map(|&field| {
-            let terms = tokens
-                .iter()
-                .map(|t| Term::from_field_text(field, t))
-                .collect();
-            let mut query = PhrasePrefixQuery::new(terms);
-            query.set_max_expansions(PREFIX_EXPANSIONS);
-            (Occur::Should, Box::new(query) as Box<dyn Query>)
-        })
-        .collect();
-    Some(Box::new(BooleanQuery::new(clauses)))
-}
-
 impl SearchQuery {
     /// A free-text query with the default limit and sort.
     pub fn text(text: impl Into<String>) -> Self {
@@ -211,7 +152,8 @@ pub struct SearchResult {
     /// Number of matching messages, independent of `limit`/`offset`.
     pub total: usize,
     pub hits: Vec<Hit>,
-    /// Query-syntax problems the lenient parser skipped over.
+    /// Problems with the query text for the viewer's status bar. The free-text
+    /// grammar takes any text as words, so none are reported at present.
     pub warnings: Vec<String>,
 }
 
@@ -241,7 +183,6 @@ impl MboxIndex {
             mbox: mbox.to_path_buf(),
             dir,
             meta,
-            index,
             reader,
             fields,
         })))
@@ -291,7 +232,8 @@ impl MboxIndex {
 
     /// Runs `query` and returns one page of hits plus the total count.
     pub fn search(&self, query: &SearchQuery) -> Result<SearchResult> {
-        let (tantivy_query, warnings) = self.to_tantivy_query(query);
+        let tantivy_query = self.to_tantivy_query(query);
+        let warnings = Vec::new();
         let searcher = self.reader.searcher();
         if query.limit == 0 {
             let total = searcher.search(&*tantivy_query, &Count)?;
@@ -350,58 +292,12 @@ impl MboxIndex {
         }
     }
 
-    /// `text` through the lenient query parser over `fields`.
-    fn parse_text(
-        &self,
-        fields: Vec<Field>,
-        text: &str,
-        boost_subject: bool,
-        warnings: &mut Vec<String>,
-    ) -> Box<dyn Query> {
-        let mut parser = QueryParser::for_index(&self.index, fields);
-        parser.set_conjunction_by_default();
-        if boost_subject {
-            parser.set_field_boost(self.fields.subject, 2.0);
-        }
-        let (parsed, errors) = parser.parse_query_lenient(text);
-        warnings.extend(errors.iter().map(|e| e.to_string()));
-        parsed
-    }
-
-    /// One free-text clause; with `prefix_last_word` the word being typed
-    /// becomes a prefix query AND-ed to the parse of the rest.
-    fn text_clause(
-        &self,
-        fields: Vec<Field>,
-        text: &str,
-        boost_subject: bool,
-        prefix_last_word: bool,
-        warnings: &mut Vec<String>,
-    ) -> Box<dyn Query> {
-        if prefix_last_word
-            && let Some((rest, word)) = typing_word(text)
-            && let Some(prefix) = prefix_query(&fields, word)
-        {
-            let rest = rest.trim();
-            if rest.is_empty() {
-                return prefix;
-            }
-            let parsed = self.parse_text(fields, rest, boost_subject, warnings);
-            return Box::new(BooleanQuery::new(vec![
-                (Occur::Must, parsed),
-                (Occur::Must, prefix),
-            ]));
-        }
-        self.parse_text(fields, text, boost_subject, warnings)
-    }
-
-    pub(crate) fn to_tantivy_query(&self, query: &SearchQuery) -> (Box<dyn Query>, Vec<String>) {
+    pub(crate) fn to_tantivy_query(&self, query: &SearchQuery) -> Box<dyn Query> {
         let mut clauses: Vec<(Occur, Box<dyn Query>)> = Vec::new();
-        let mut warnings = Vec::new();
         let f = &self.fields;
         let prefix = query.prefix_last_word;
 
-        // Trailing whitespace is meaningful to `typing_word`: only the start is trimmed.
+        // Trailing whitespace closes the word being typed: only the start is trimmed.
         if let Some(text) = query
             .text
             .as_deref()
@@ -411,7 +307,7 @@ impl MboxIndex {
             let fields = f.default_search_fields();
             clauses.push((
                 Occur::Must,
-                self.text_clause(fields, text, true, prefix, &mut warnings),
+                free_text_query(&fields, Some((f.subject, SUBJECT_BOOST)), text, prefix),
             ));
         }
         if let Some(from) = query
@@ -420,10 +316,7 @@ impl MboxIndex {
             .map(str::trim_start)
             .filter(|t| !t.trim().is_empty())
         {
-            clauses.push((
-                Occur::Must,
-                self.text_clause(vec![f.from], from, false, prefix, &mut warnings),
-            ));
+            clauses.push((Occur::Must, free_text_query(&[f.from], None, from, prefix)));
         }
         if let Some(to) = query
             .to
@@ -433,7 +326,7 @@ impl MboxIndex {
         {
             clauses.push((
                 Occur::Must,
-                self.text_clause(vec![f.to, f.cc], to, false, prefix, &mut warnings),
+                free_text_query(&[f.to, f.cc], None, to, prefix),
             ));
         }
         if let Some(subject) = query
@@ -444,7 +337,7 @@ impl MboxIndex {
         {
             clauses.push((
                 Occur::Must,
-                self.text_clause(vec![f.subject], subject, false, prefix, &mut warnings),
+                free_text_query(&[f.subject], None, subject, prefix),
             ));
         }
         if query.after.is_some() || query.before.is_some() {
@@ -489,7 +382,7 @@ impl MboxIndex {
             1 => clauses.pop().map(|(_, q)| q).expect("one clause"),
             _ => Box::new(BooleanQuery::new(clauses)),
         };
-        (combined, warnings)
+        combined
     }
 }
 
@@ -527,31 +420,4 @@ pub(crate) fn hit_from_address(
         thread_id: doc.get_first(f.thread_id).and_then(|v| v.as_u64()),
         score,
     })
-}
-
-#[cfg(test)]
-mod tests {
-    use super::typing_word;
-
-    #[test]
-    fn the_word_being_typed_is_the_plain_last_word() {
-        assert_eq!(typing_word("szaml"), Some(("", "szaml")));
-        assert_eq!(
-            typing_word("konyveles szaml"),
-            Some(("konyveles ", "szaml"))
-        );
-        assert_eq!(typing_word("  Száml"), Some(("  ", "Száml")));
-        assert_eq!(typing_word("\"big bad\" wo"), Some(("\"big bad\" ", "wo")));
-    }
-
-    #[test]
-    fn a_finished_word_or_syntax_is_left_to_the_parser() {
-        assert_eq!(typing_word(""), None);
-        assert_eq!(typing_word("szaml "), None, "a space closes the word");
-        assert_eq!(typing_word("from:ann"), None);
-        assert_eq!(typing_word("a -b"), None);
-        assert_eq!(typing_word("foo*"), None);
-        assert_eq!(typing_word("\"szamla mell"), None, "inside an open phrase");
-        assert_eq!(typing_word("x \"y\""), None);
-    }
 }

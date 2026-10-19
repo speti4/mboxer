@@ -771,6 +771,152 @@ fn the_word_being_typed_matches_as_a_prefix_when_asked() {
     assert_eq!(listing.rows(0, 1).unwrap()[0].hit.offset, 0);
 }
 
+/// The subjects of every hit of `query`, oldest first; panics on a warning.
+fn subjects(index: &MboxIndex, query: SearchQuery) -> Vec<String> {
+    let result = index
+        .search(&SearchQuery {
+            limit: 100,
+            ..query
+        })
+        .unwrap();
+    assert!(result.warnings.is_empty(), "{:?}", result.warnings);
+    let mut subjects: Vec<_> = result
+        .hits
+        .into_iter()
+        .map(|hit| hit.subject.unwrap_or_default())
+        .collect();
+    subjects.reverse();
+    subjects
+}
+
+// The five messages of `free-text-syntax.mbox`, oldest first.
+const RE_SZAMLA: &str = "Re: számla február";
+const SZAMLA_MARCIUS: &str = "Számla március";
+const RE_EBED: &str = "Re: ebéd után";
+const SPAM: &str = "Heti spam jelentés";
+const SZAMLAZAS: &str = "Számlázás";
+
+#[test]
+fn grammar_characters_in_free_text_are_plain_text() {
+    let (_dir, _mbox, index) = built("free-text-syntax.mbox");
+    let text = |text: &str| subjects(&index, SearchQuery::text(text));
+
+    // Two words: `Re` in the subject, `számla` anywhere; not a field `Re`.
+    assert_eq!(text("Re: számla"), [RE_SZAMLA, RE_EBED]);
+    assert_eq!(text("re: SZAMLA"), [RE_SZAMLA, RE_EBED]);
+    // One word with punctuation inside: its parts in order, like a phrase.
+    assert_eq!(text("re:számla"), [RE_SZAMLA]);
+    assert_eq!(text("\"Re: számla\""), [RE_SZAMLA]);
+    assert_eq!(text("10:30"), [SZAMLA_MARCIUS]);
+    assert_eq!(text("10 30"), [SZAMLA_MARCIUS, SZAMLAZAS]);
+    assert_eq!(text("https://example.com/invoice/2026"), [RE_EBED]);
+    // The rest of tantivy's grammar is punctuation too: no boost, range,
+    // group, fuzzy, quote or regex.
+    assert_eq!(text("március^2"), Vec::<String>::new());
+    assert_eq!(text("március ^2"), Vec::<String>::new());
+    assert_eq!(text("[számla TO március]"), Vec::<String>::new());
+    assert_eq!(text("(március)"), [SZAMLA_MARCIUS]);
+    assert_eq!(text("március~2"), Vec::<String>::new());
+    assert_eq!(text("'március'"), [SZAMLA_MARCIUS]);
+    assert_eq!(text("{március}"), [SZAMLA_MARCIUS]);
+    assert_eq!(text("/márc.*/"), Vec::<String>::new());
+}
+
+#[test]
+fn free_text_keeps_and_or_not_and_the_trailing_star() {
+    let (_dir, _mbox, index) = built("free-text-syntax.mbox");
+    let text = |text: &str| subjects(&index, SearchQuery::text(text));
+
+    assert_eq!(text("számla"), [RE_SZAMLA, SZAMLA_MARCIUS, RE_EBED, SPAM]);
+    assert_eq!(text("számla március"), [SZAMLA_MARCIUS]);
+    assert_eq!(text("számla AND március"), [SZAMLA_MARCIUS]);
+    assert_eq!(text("ebéd OR március"), [SZAMLA_MARCIUS, RE_EBED]);
+    assert_eq!(text("számla ebéd OR március"), [SZAMLA_MARCIUS, RE_EBED]);
+    assert_eq!(
+        text("or"),
+        Vec::<String>::new(),
+        "only upper-case OR is a keyword"
+    );
+    // An exclusion alone matches every other message.
+    assert_eq!(
+        text("-spam"),
+        [RE_SZAMLA, SZAMLA_MARCIUS, RE_EBED, SZAMLAZAS]
+    );
+    assert_eq!(text("NOT spam"), text("-spam"));
+    assert_eq!(text("számla -spam"), [RE_SZAMLA, SZAMLA_MARCIUS, RE_EBED]);
+    assert_eq!(
+        text("számla -\"spam jelentés\""),
+        [RE_SZAMLA, SZAMLA_MARCIUS, RE_EBED]
+    );
+    assert_eq!(text("-re -spam"), [SZAMLA_MARCIUS, SZAMLAZAS]);
+    // A trailing star is a prefix; one letter is not.
+    assert_eq!(
+        text("számla*"),
+        [RE_SZAMLA, SZAMLA_MARCIUS, RE_EBED, SPAM, SZAMLAZAS]
+    );
+    assert_eq!(text("re:száml*"), [RE_SZAMLA]);
+    assert_eq!(text("s*"), Vec::<String>::new());
+    // Text without a word to search is no condition.
+    assert_eq!(text("*").len(), 5);
+    assert_eq!(text(": - \"\"").len(), 5);
+
+    // Best match first: the subject counts double.
+    let scored = index
+        .search(&SearchQuery {
+            text: Some("számla".into()),
+            sort: Sort::Relevance,
+            ..SearchQuery::default()
+        })
+        .unwrap();
+    let mut best: Vec<_> = scored.hits[..2]
+        .iter()
+        .map(|hit| hit.subject.clone().unwrap_or_default())
+        .collect();
+    best.sort();
+    assert_eq!(best, [RE_SZAMLA, SZAMLA_MARCIUS], "{:?}", scored.hits);
+}
+
+#[test]
+fn the_word_being_typed_after_a_colon_is_still_a_prefix() {
+    let (_dir, _mbox, index) = built("free-text-syntax.mbox");
+    let typing = |text: &str| {
+        subjects(
+            &index,
+            SearchQuery {
+                text: Some(text.to_owned()),
+                prefix_last_word: true,
+                ..SearchQuery::default()
+            },
+        )
+    };
+
+    assert_eq!(typing("Re: száml"), [RE_SZAMLA, RE_EBED]);
+    assert_eq!(typing("re:száml"), [RE_SZAMLA]);
+    assert_eq!(typing("Re:"), [RE_SZAMLA, RE_EBED]);
+    assert_eq!(typing("ebéd OR márc"), [SZAMLA_MARCIUS, RE_EBED]);
+    assert_eq!(
+        typing("\"Re: száml"),
+        Vec::<String>::new(),
+        "an open phrase"
+    );
+    assert_eq!(
+        typing("számla -sp"),
+        [RE_SZAMLA, SZAMLA_MARCIUS, RE_EBED, SPAM]
+    );
+    assert_eq!(typing("Re: számla "), [RE_SZAMLA, RE_EBED]);
+
+    // The filters go through the same clause.
+    let subject = subjects(
+        &index,
+        SearchQuery {
+            subject: Some("Re: száml".into()),
+            prefix_last_word: true,
+            ..SearchQuery::default()
+        },
+    );
+    assert_eq!(subject, [RE_SZAMLA]);
+}
+
 #[test]
 fn an_ungrouped_listing_of_threads_is_one_row_per_message() {
     let (_dir, _mbox, index) = built("threads.mbox");
