@@ -2,7 +2,7 @@
 status: decided
 date: 2026-10-18
 cost: medium
-sources: [done/016-open-multiple-mbox-files.md, D-003-message-identity-is-envelope-byte-offset.md, task-016-glimmering-meadow.md]
+sources: [done/016-open-multiple-mbox-files.md, D-003-message-identity-is-envelope-byte-offset.md]
 ---
 
 # D-006 — Several mbox files are open side by side, one active at a time; there is no merged view

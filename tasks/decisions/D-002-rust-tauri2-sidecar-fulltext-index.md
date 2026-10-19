@@ -2,7 +2,7 @@
 status: decided
 date: 2026-10-17
 cost: medium
-sources: [docs/origin.md, olvasd-el-a-draft-md-sharded-teapot.md]
+sources: [docs/origin.md, done/001-project-scaffolding.md]
 ---
 
 # D-002 — Rust + Tauri 2 (WebView2) with a one-time sidecar full-text index

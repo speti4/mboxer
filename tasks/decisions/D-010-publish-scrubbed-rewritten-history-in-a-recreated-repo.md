@@ -3,7 +3,7 @@ status: decided
 date: 2026-10-18
 cost: one-way
 supersedes: D-009-publish-scrubbed-rewrite-history-before-switch.md
-sources: [D-009-publish-scrubbed-rewrite-history-before-switch.md, done/027-pre-publish-history-and-content-audit.md, done/030-scrub-and-rewrite-history-per-d-09.md, folytassuk-a-030-task-replicated-fairy.md]
+sources: [D-009-publish-scrubbed-rewrite-history-before-switch.md, done/027-pre-publish-history-and-content-audit.md, done/030-scrub-and-rewrite-history-per-d-09.md]
 ---
 
 # D-010 — The repo goes public scrubbed, with the history rewritten once and pushed into a recreated GitHub repo

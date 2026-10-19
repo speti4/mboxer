@@ -3,7 +3,7 @@ status: superseded
 date: 2026-10-18
 cost: one-way
 superseded-by: D-010-publish-scrubbed-rewritten-history-in-a-recreated-repo.md
-sources: [done/027-pre-publish-history-and-content-audit.md, a-task-021-hez-kapcsol-d-an-mellow-hearth.md]
+sources: [done/027-pre-publish-history-and-content-audit.md]
 ---
 
 # D-009 — The repo goes public with `tasks/` and `docs/` scrubbed in place and the history rewritten once before the switch

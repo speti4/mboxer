@@ -13,7 +13,7 @@ edit the file, never the issue. Everything here is English.
 <!-- tasks:index:start -->
 _Generated 2026-10-19 — edit the files, not this section._
 
-**State:** 13 backlog (7 ready · 0 blocked · 2 waiting · 4 ideas) · 0 in progress · 51 done · 1 dropped · 13 decisions
+**State:** 13 backlog (6 ready · 0 blocked · 2 waiting · 5 ideas) · 0 in progress · 52 done · 1 dropped · 13 decisions
 
 ### Ready
 
@@ -24,7 +24,6 @@ _Generated 2026-10-19 — edit the files, not this section._
 | 051 | [set_query takes its generation before the files lock, and the sync commands blo…](backlog/051-query-generation-race-and-sync-commands-on-the-files-lock.md) | M | 2026-10-19 |
 | 054 | [Keep the attachment copies and the index's last-resort home in separate temp fo…](backlog/054-temp-folder-split-between-attachments-and-the-index-fallback.md) | S | 2026-10-19 |
 | 055 | [The usage guide says what the viewer does](backlog/055-usage-guide-matches-the-viewer.md) | S | 2026-10-19 |
-| 058 | [Task files: dead origin paths, plan slugs, and who closes a milestone](backlog/058-dead-task-references-plan-slugs-and-milestone-closing.md) | S | 2026-10-19 |
 | 059 | [Refresh the README screenshot and the social preview over the demo mbox](backlog/059-refresh-the-screenshots-over-the-demo-mbox.md) | S | 2026-10-19 |
 | 062 | [The commit-rule wording names the scope form, the CI header gives the runner-ti…](backlog/062-commit-rule-wording-ci-header-and-lint-entry.md) | S | 2026-10-19 |
 | 064 | [Manual round over a large archive after the hardening wave: rebuild under an op…](backlog/064-manual-round-over-a-large-archive-after-the-hardening-wave.md) | S | 2026-10-19 |
@@ -57,6 +56,7 @@ _none_
 | 061 | [Small hygiene follow-ups: toolchain pin, ignores, arguments, cancel, logs, dupl…](backlog/061-small-hygiene-follow-ups-from-the-review.md) | S | 2026-10-19 |
 | 063 | [Free-text follow-ups: the tantivy exclusion assertion, the empty warnings, the …](backlog/063-free-text-follow-ups-tantivy-assertion-warnings-and-highlight.md) | S | 2026-10-19 |
 | 065 | [Show the skipped messages in the viewer, not only their count](backlog/065-show-the-skipped-messages-in-the-viewer.md) | S | 2026-10-19 |
+| 066 | [Decide what the plan: field carries and whether closed files are rewritten](backlog/066-plan-field-policy-for-prompt-derived-names.md) | S | 2026-10-19 |
 
 ### In progress
 
@@ -72,6 +72,7 @@ _none_
 
 | # | Task | Closed |
 |---|---|---|
+| 058 | [Task files: dead origin paths, plan slugs, and who closes a milestone](done/058-dead-task-references-plan-slugs-and-milestone-closing.md) | 2026-10-19 |
 | 057 | [CONTRIBUTING's pre-commit list matches CI, and the private-era wording goes](done/057-contributing-checks-match-ci-and-private-era-leftovers.md) | 2026-10-19 |
 | 056 | [The commit hook checks the type prefix, and the required checks hold after a re…](done/056-commit-hook-checks-the-type-and-ci-re-checks-edited-pull-requests.md) | 2026-10-19 |
 | 053 | [Attachment and reader hardening: blocked extensions, reserved names, referrer, …](done/053-attachment-and-reader-hardening.md) | 2026-10-19 |
@@ -81,9 +82,8 @@ _none_
 | 048 | [The usage guide in the zips in a format that opens with a double-click](done/048-usage-guide-readable-in-the-zip.md) | 2026-10-19 |
 | 047 | [Keep project housekeeping apart from user-facing changes in the changelog](done/047-housekeeping-tasks-in-the-changelog.md) | 2026-10-19 |
 | 046 | [CI extras once the minutes are free: MSRV, changelog check, fork guard](done/046-ci-extras-after-publication.md) | 2026-10-19 |
-| 045 | [Polish the code comments, UI strings and crate metadata](done/045-code-comments-and-ui-strings-polish.md) | 2026-10-19 |
 
-_41 more in `done/`._
+_42 more in `done/`._
 
 ### Decisions
 

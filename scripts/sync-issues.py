@@ -3,9 +3,9 @@
 The task files are the source of truth (tasks/README.md). Every task (backlog/ wip/ done/ dropped/)
 and every decision (decisions/D-NNN-*.md) is one issue: the id in the title, the Context prose in the
 body, the milestone from the frontmatter, labels for stage / status / size, open or closed by the
-folder. Every `## ` heading of tasks/roadmap.md is a milestone (its state is never touched here: a
-release closes a milestone). Idempotent: an issue is found by the marker in its body and only the
-fields that differ are patched; an id padded to another width since its issue was made (task 043:
+folder. Every `## ` heading of tasks/roadmap.md is a milestone (its state is never touched here: the
+maintainer closes a milestone once a release ships it, docs/development.md). Idempotent: an issue
+is found by the marker in its body and only the fields that differ are patched; an id padded to another width since its issue was made (task 043:
 two-digit decision ids became three-digit) still finds that issue, which is edited in place, marker
 included. An issue whose file is gone is reported, never closed or deleted.
 CI runs it on every push to main that touches tasks/ (.github/workflows/sync-issues.yml). By hand:

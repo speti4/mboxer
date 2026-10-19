@@ -1,7 +1,7 @@
 ---
 status: ready
 size: S
-origin: wip/052-atomic-index-swap-build-lock-and-skipped-messages.md
+origin: done/052-atomic-index-swap-build-lock-and-skipped-messages.md
 created: 2026-10-19
 milestone: M6 Hardening
 ---

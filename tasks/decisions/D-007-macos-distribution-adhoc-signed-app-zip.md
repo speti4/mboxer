@@ -2,7 +2,7 @@
 status: decided
 date: 2026-10-18
 cost: cheap
-sources: [done/018-macos-build-bundle-and-ci.md, D-002-rust-tauri2-sidecar-fulltext-index.md, m-rj-k-fel-hogy-mekkora-scalable-boole.md]
+sources: [done/018-macos-build-bundle-and-ci.md, D-002-rust-tauri2-sidecar-fulltext-index.md]
 ---
 
 # D-007 — macOS builds ship as an ad-hoc signed universal `.app` in a zip, without notarization

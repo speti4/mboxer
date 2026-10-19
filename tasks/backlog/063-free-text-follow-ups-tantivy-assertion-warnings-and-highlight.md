@@ -1,7 +1,7 @@
 ---
 status: idea
 size: S
-origin: wip/050-colon-in-free-text-reaches-the-query-parser.md
+origin: done/050-colon-in-free-text-reaches-the-query-parser.md
 created: 2026-10-19
 milestone: M6 Hardening
 ---
