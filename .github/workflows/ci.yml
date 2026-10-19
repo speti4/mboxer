@@ -96,7 +96,8 @@ jobs:
         run: cargo clippy --target aarch64-apple-darwin --all-targets --locked -- -D warnings
       # CHANGELOG.md matches tasks/done/ and the release tags (task 025), so a pull request that closes a task
       # brings its changelog line along. Not on a tag: the new tag moves the Unreleased section under its version,
-      # which only a run after the tag writes (the first pull request after a release commits that stamp).
+      # which only a run after the tag writes (the first pull request after a release commits that stamp). Until
+      # that stamp, the check reads the newest tag without a section as not there yet (task 056).
       - name: CHANGELOG.md is up to date
         if: github.ref_type != 'tag'
         run: python3 -I scripts/changelog.py --check
@@ -108,7 +109,8 @@ jobs:
   # The oldest Rust the workspace declares (`rust-version` in Cargo.toml), so a newer language or library feature
   # cannot slip in unnoticed while every other job follows the latest stable. It checks the macOS target on Linux,
   # as the lint job does: the Windows target pulls in tauri-build's resource compiler, which a Linux runner lacks,
-  # and the language features do not differ between the targets. Not a required check; no Rust cache, so the
+  # and the language features do not differ between the targets. The ruleset on `main` requires it, as it
+  # requires `test (windows-latest)`, lint, deny, workflow-lint and commit-rules. No Rust cache, so the
   # cache-poisoning ignore in .github/zizmor.yml stays limited to the two cache lines.
   msrv:
     runs-on: ubuntu-latest

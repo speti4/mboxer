@@ -1,6 +1,7 @@
-# The commit rules of docs/git-workflow.md (scripts/check-commit.sh, task 034) for every pushed or proposed
-# commit and the pull request text, which a squash merge turns into the commit message; the local hook can be
-# skipped. Its own workflow, required by the ruleset on `main` next to the ci.yml jobs (task 028). A tag or a
+# The commit rules of docs/git-workflow.md (scripts/check-commit.sh, tasks 034 and 056) for every pushed or
+# proposed commit and the pull request text, which a squash merge turns into the commit message: its first line,
+# the title, is held to the subject rule. The local hook can be skipped. Its own workflow, required by the ruleset
+# on `main` next to the ci.yml jobs (task 028). An edited title or description re-runs it (task 056). A tag or a
 # manual run has no commit range, so neither triggers it.
 # Actions are pinned by commit SHA and bumped by dependabot (task 024).
 name: commit-rules
@@ -9,6 +10,7 @@ on:
   push:
     branches: [main]
   pull_request:
+    types: [opened, synchronize, reopened, edited]
 
 permissions:
   contents: read
@@ -27,6 +29,8 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 0
+      - name: The rules reject what they should
+        run: sh scripts/check-commit.sh --self-test
       - name: Check the commits and the pull request text
         env:
           EVENT: ${{ github.event_name }}
