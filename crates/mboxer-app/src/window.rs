@@ -62,8 +62,18 @@ pub fn fit_into(window: Rect, work: Rect) -> Option<Rect> {
 /// stays where the system put it.
 pub fn fit_main_window(app: &tauri::App) {
     let Some(window) = app.get_webview_window("main") else {
+        eprintln!("fit: no main window");
         return;
     };
+    eprintln!(
+        "fit: current {:?} primary {:?} pos {:?} outer {:?} inner {:?} scale {:?}",
+        window.current_monitor().map(|m| m.map(|m| *m.work_area())),
+        window.primary_monitor().map(|m| m.map(|m| *m.work_area())),
+        window.outer_position(),
+        window.outer_size(),
+        window.inner_size(),
+        window.scale_factor(),
+    );
     let monitor = match window.current_monitor() {
         Ok(Some(monitor)) => monitor,
         _ => match window.primary_monitor() {
@@ -92,8 +102,10 @@ pub fn fit_main_window(app: &tauri::App) {
         height: outer.height,
     };
     let Some(fitted) = fit_into(now, work) else {
+        eprintln!("fit: inside {now:?} {work:?}");
         return;
     };
+    eprintln!("fit: {now:?} -> {fitted:?} in {work:?}");
     // `set_size` takes the size of the content: the title bar and the borders come off.
     let frame_width = outer.width.saturating_sub(inner.width);
     let frame_height = outer.height.saturating_sub(inner.height);
