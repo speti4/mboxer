@@ -69,10 +69,28 @@ on any macOS at all.
   (1400x900, centred); the window is shrunk to the screen's width but placed as if it were 1400 wide, so its
   left part, the title bar buttons with it, lies off the screen. The smoke test passes on it, because it asks
   for a window on the screen, not for a whole one.
+- 2026-11-16 — Decided 2026-11-16: the window's place is fixed in this task, and the smoke test asks for a
+  window that stands whole on the main display (it measures the window a second after it appears). The flaky
+  `clean_up_keeps_a_live_process_folder_and_removes_a_dead_one` gets no item of its own: one failure in five
+  macOS test runs of this branch, noted here.
+- 2026-11-16 — the stricter smoke test without a fix, run 43850387414: fails as it should, `window: 1024x674
+  at -188,31`, "a part of the window lies off the main display". -188 is (1024 - 1400) / 2: the centred
+  position is computed from the size the configuration asks for.
+- 2026-11-16 — a first fix did not work (run 43850808260, the same -188,31): a `setup` hook that moved a
+  window lying outside its monitor's work area. A run with a start-up log (43853820054) showed why: when
+  `setup` runs the window still stands at 0,31, and the centred position is applied after it.
+- 2026-11-16 — the fix: `"preventOverflow": true` on the main window in `crates/mboxer-app/tauri.conf.json`.
+  Tauri then shrinks the window to the monitor's work area before it computes the centred position. The hook
+  and its log are gone again; `lib.rs` is as on `main`. Run 43856410822: every job green, `window: 1024x674 at
+  0,31`, and the screenshot shows the whole window with its title bar. On Windows, on a screen larger than
+  the window, the viewer opens at the same place and size as before the change (1416x939 outer, centred).
+- 2026-11-16 — Open: step 4. Whether this fault is what the manual round saw on macOS 27.0.1 is not known; the
+  zip of run 43856410822 goes to the manual round, and its result decides.
 
 ## Deviations from the plan
 
-- none yet
+- The plan had the smoke test and a fix that depended on its result. The result was a second fault, the window
+  placed partly off a small screen, and its fix (one configuration line) is part of this change.
 
 ## Verification
 
