@@ -7,6 +7,8 @@ not the list. The summary under a heading is written by hand and kept by the gen
 
 ## Unreleased
 
+A patch release for small screens. On a screen smaller than 1400 × 900 the window opened partly off the screen, on a Mac without its title bar buttons; it now opens centred and as large as the screen allows. CI now starts the packed macOS app and waits for its window before the zip is published. The macOS build is still a preview: a report that it shows no window on macOS 27.0.1 is open (task 074), and it is not known whether this release changes that.
+
 <!-- The summary above is written by hand; the list below is generated from tasks/done/ by scripts/changelog.py. -->
 
 ### M4 macOS
