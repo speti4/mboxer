@@ -59,7 +59,7 @@ jobs:
       # zizmor's cache-poisoning finding is accepted on this step by the comment on its name line (not on the
       # `uses:` line, whose version comment dependabot rewrites), so a cache added anywhere else is flagged.
       - name: Rust cache # zizmor: ignore[cache-poisoning]
-        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+        uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
       - run: cargo clippy --all-targets --locked -- -D warnings
       - run: cargo test --locked
 
@@ -82,7 +82,7 @@ jobs:
           targets: aarch64-apple-darwin
       # As in the test job: only speeds up the checks, the cache-poisoning finding accepted on this step.
       - name: Rust cache # zizmor: ignore[cache-poisoning]
-        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+        uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
       - run: cargo fmt --check
       - name: clippy for aarch64-apple-darwin
         env:
@@ -157,7 +157,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: zizmorcore/zizmor-action@85b2b9fb8e3325e7a23d7d0a9d7ba5ae0f999e3e # v0.7.1
+      - uses: zizmorcore/zizmor-action@53290badfa369cb0bf7ad16342cb62c2fa47ac7b # v0.8.0
         with:
           advanced-security: false
 
