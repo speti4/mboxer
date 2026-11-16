@@ -11,9 +11,9 @@ the section. Every file here is mirrored one-way into a GitHub issue by `scripts
 edit the file, never the issue. Everything here is English.
 
 <!-- tasks:index:start -->
-_Generated 2026-10-20 — edit the files, not this section._
+_Generated 2026-11-16 — edit the files, not this section._
 
-**State:** 2 backlog (0 ready · 0 blocked · 2 waiting · 0 ideas) · 0 in progress · 66 done · 2 dropped · 13 decisions
+**State:** 3 backlog (0 ready · 0 blocked · 3 waiting · 0 ideas) · 0 in progress · 67 done · 2 dropped · 13 decisions
 
 ### Ready
 
@@ -30,6 +30,7 @@ _none_
 | # | Task | Waits for | Size | Created |
 |---|---|---|---|---|
 | 040 | [Manual round on a Mac: the bundle starts, the 019 runtime paths and the 020 pri…](backlog/040-manual-round-on-a-mac.md) | macOS manual test pending (the zip of a `bundle-macos` run on main) | S | 2026-10-19 |
+| 074 | [No window at start on macOS 27.0.1: the app runs with its Dock icon only](backlog/074-no-window-at-start-on-macos-27.md) | the manual round on macOS 27 with a build that holds task 073, and the output of a start from Terminal | S | 2026-11-16 |
 
 #### M5 Public release
 
@@ -56,6 +57,7 @@ _none_
 
 | # | Task | Closed |
 |---|---|---|
+| 073 | [The main window fits a smaller screen, and a start-up smoke test for the macOS …](done/073-macos-bundle-start-up-smoke-test.md) | 2026-11-16 |
 | 070 | [A test for the Cancel between two files of a batch](done/070-a-test-for-the-batch-cancel.md) | 2026-10-20 |
 | 069 | [The viewer reads a message through the index's limit, and the CLI's paging brea…](done/069-viewer-reads-through-the-index-and-cli-ties-by-offset.md) | 2026-10-20 |
 | 068 | [The highlight folds the same letters the index folds](done/068-highlight-folds-the-letters-the-index-folds.md) | 2026-10-20 |
@@ -65,9 +67,8 @@ _none_
 | 066 | [The plan: field is none in every task file, the rule is written down](done/066-plan-field-policy-for-prompt-derived-names.md) | 2026-10-19 |
 | 063 | [Free-text follow-ups: the highlight split and the tantivy exclusion assertion](done/063-free-text-follow-ups-tantivy-assertion-warnings-and-highlight.md) | 2026-10-19 |
 | 062 | [The commit-rule wording names the scope form, the CI header gives the runner-ti…](done/062-commit-rule-wording-ci-header-and-lint-entry.md) | 2026-10-19 |
-| 060 | [Index quality follow-ups: token length, completions, nested parts, limits, mult…](done/060-index-quality-follow-ups-from-the-review.md) | 2026-10-19 |
 
-_56 more in `done/`._
+_57 more in `done/`._
 
 ### Decisions
 

@@ -9,7 +9,9 @@ not the list. The summary under a heading is written by hand and kept by the gen
 
 <!-- The summary above is written by hand; the list below is generated from tasks/done/ by scripts/changelog.py. -->
 
-No task closed yet.
+### M4 macOS
+
+- The main window fits a smaller screen, and a start-up smoke test for the macOS bundle ([073](https://github.com/speti4/mboxer/blob/main/tasks/done/073-macos-bundle-start-up-smoke-test.md))
 
 ## 0.3.0 — 2026-10-20
 

@@ -167,12 +167,20 @@ Mac. A pull request that touches macOS code gets such a run before its merge, be
 runs test on Windows only. A change to the script is linted here with `bash -n scripts/bundle-macos.sh` and
 shellcheck (`uvx --from shellcheck-py shellcheck -s bash scripts/bundle-macos.sh`).
 
+`scripts/smoke-macos.sh` is the start-up smoke test of the bundle: it opens `mboxer.app` through `open`, as a
+double click does, waits up to 30 seconds for a window of the app's process on the screen and stops the app. The
+window has to stand whole on the main display; what the webview renders is not checked. `bundle-macos` runs it on the app unpacked from the
+zip, so a zip whose app shows no window, or one that lies partly off the screen, fails the job; the `macos-smoke` artifact keeps the app's output, a
+screenshot and, when no window came, a `sample` of the process for a week. On a Mac it runs against any copy of
+the app, and needs `swift` from the Xcode command line tools.
+
 ```bash
 rustup target add aarch64-apple-darwin x86_64-apple-darwin   # once
 cargo install cargo-about --version "$(cat scripts/cargo-about-version.txt)" --locked --features cli   # once
 scripts/bundle-macos.sh                 # dist/: the zip and SHA256SUMS.txt
 scripts/bundle-macos.sh --skip-build    # pack what target/<target>/release already holds
 scripts/bundle-macos.sh --licences-only page.html   # the macOS licence page alone, on any OS (Git Bash too)
+scripts/smoke-macos.sh /Applications/mboxer.app --out smoke   # does the app show its window?
 ```
 
 On Windows the darwin targets compile as far as `cargo check` goes, which catches a `cfg(windows)` gap before
