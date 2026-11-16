@@ -213,6 +213,19 @@ jobs:
         env:
           TAG: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
         run: scripts/bundle-macos.sh --licences dist/licences/THIRD-PARTY-LICENSES.html ${TAG:+--tag "$TAG"}
+      # The start-up smoke test (task 073): the app as the zip carries it has to show its window, or no zip
+      # leaves this job. Its output, a screenshot and, without a window, a sample of the process are kept.
+      - name: Start the packed app
+        run: |
+          ditto -x -k dist/mboxer-*-macos.zip dist/unpacked
+          scripts/smoke-macos.sh dist/unpacked/mboxer.app --out dist/smoke
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: macos-smoke
+          path: dist/smoke
+          if-no-files-found: ignore
+          retention-days: 7
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: macos-zip
