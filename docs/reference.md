@@ -43,7 +43,7 @@ The viewer keeps its settings in the web view's local storage (under `%LOCALAPPD
 on Windows, the `io.github.speti4.mboxer` folders under `~/Library/` on a Mac): the remembered files and the
 active one, the theme, the widths of the folder pane and the list (drag the splitters between the panes), *HTML*
 or *Text*, the *Conversations* view and whether the filter panel is open. The window's size and position are not
-saved: it opens centred at 1400 × 900.
+saved: it opens centred at 1400 × 900, or as large as a smaller screen allows.
 
 ### Labels
 

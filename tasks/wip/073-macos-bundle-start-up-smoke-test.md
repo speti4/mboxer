@@ -30,6 +30,7 @@ on any macOS at all.
 ## Docs that move
 
 - `docs/development.md`: the smoke script next to the macOS bundle script, and the CI step.
+- `docs/reference.md`: the window opens as large as a smaller screen allows.
 - `CHANGELOG.md`: regenerated at the close.
 
 ## Not in this change
