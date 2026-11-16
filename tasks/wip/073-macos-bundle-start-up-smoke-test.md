@@ -40,19 +40,35 @@ on any macOS at all.
 
 ## Steps
 
-1. [ ] `scripts/smoke-macos.sh <mboxer.app> [--out <folder>]`: start `Contents/MacOS/mboxer`, keep its stderr,
+1. [x] `scripts/smoke-macos.sh <mboxer.app> [--out <folder>]`: start `Contents/MacOS/mboxer`, keep its stderr,
    wait up to 30 s for an on-screen window of the process (layer 0, not empty), take a screenshot, stop the
    app; fail when the process ends early or no window appears
-2. [ ] `.github/workflows/ci.yml`, `bundle-macos`: unpack the zip with `ditto`, run the smoke script on the
+2. [x] `.github/workflows/ci.yml`, `bundle-macos`: unpack the zip with `ditto`, run the smoke script on the
    unpacked app, upload its stderr and screenshot whatever the result
-3. [ ] manual dispatch on this branch; the result of the smoke step on macOS 26 in the Log
+3. [x] manual dispatch on this branch; the result of the smoke step on macOS 26 in the Log
 4. [ ] the missing window on macOS 27: the cause fixed here, or an item of its own with what is known
-5. [ ] `docs/development.md`
+5. [x] `docs/development.md`
 6. [ ] the checks of CONTRIBUTING.md, "Checks before a commit"
 
 ## Log
 
 - 2026-11-16 — filed and promoted in the main session, from the first point of the manual round (040).
+- 2026-11-16 — steps 1, 2 and 5: `scripts/smoke-macos.sh`, the "Start the packed app" step of `bundle-macos`
+  with the `macos-smoke` artifact, and `docs/development.md`. `bash -n`, shellcheck and zizmor are clean. The
+  app starts through `open`, not by running the binary, so LaunchServices launches it as a double click does.
+- 2026-11-16 — step 3, three manual runs on the branch. Run 43844726106: the step ended with "Permission
+  denied", the script was committed without its executable bit; fixed in the next commit. Run 43847629898,
+  first attempt: `test (macos-latest)` failed in
+  `attachments::tests::clean_up_keeps_a_live_process_folder_and_removes_a_dead_one` (`assertion failed:
+  !dead_copy.exists()`), a test that passed on the same Rust code in the run before; `bundle-macos` was
+  skipped. Second attempt of the same run: every job green, and the smoke step printed `system: 26.7.2
+  (arm64)` and `window: 1024x674`; stdout and stderr of the app are empty.
+- 2026-11-16 — what the run shows. On macOS 26.7.2 the packed app opens its window, so the bundle itself works
+  and the missing window of the manual round is specific to macOS 27 or to that machine. The screenshot shows
+  a second fault: the runner's screen is 1024x768, smaller than the window the configuration asks for
+  (1400x900, centred); the window is shrunk to the screen's width but placed as if it were 1400 wide, so its
+  left part, the title bar buttons with it, lies off the screen. The smoke test passes on it, because it asks
+  for a window on the screen, not for a whole one.
 
 ## Deviations from the plan
 
