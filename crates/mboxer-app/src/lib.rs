@@ -12,10 +12,8 @@ pub mod print;
 pub mod state;
 pub mod types;
 pub mod view;
-pub mod window;
 
-/// Builds the window and runs the event loop until it closes. A main window
-/// that does not fit the screen is moved into it first (task 073). On macOS the
+/// Builds the window and runs the event loop until it closes. On macOS the
 /// files the system asks the app to open (Finder "Open with", a Dock drop)
 /// arrive as `RunEvent::Opened` and go the way of a command-line path; the
 /// other platforms pass such a file as the first argument and have no event.
@@ -32,10 +30,6 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
         .manage(state::AppState::default())
-        .setup(|app| {
-            window::fit_main_window(app);
-            Ok(())
-        })
         .on_window_event(on_window_event)
         .invoke_handler(tauri::generate_handler![
             commands::initial_paths,
