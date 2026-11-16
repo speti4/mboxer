@@ -3,11 +3,12 @@ size: S
 origin: backlog/040-manual-round-on-a-mac.md
 created: 2026-11-16
 started: 2026-11-16
+closed: 2026-11-16
 plan: none
 milestone: M4 macOS
 ---
 
-# 073 — Start-up smoke test for the macOS bundle: the packed app opens a window
+# 073 — The main window fits a smaller screen, and a start-up smoke test for the macOS bundle
 
 ## Context
 
@@ -47,9 +48,9 @@ on any macOS at all.
 2. [x] `.github/workflows/ci.yml`, `bundle-macos`: unpack the zip with `ditto`, run the smoke script on the
    unpacked app, upload its stderr and screenshot whatever the result
 3. [x] manual dispatch on this branch; the result of the smoke step on macOS 26 in the Log
-4. [ ] the missing window on macOS 27: the cause fixed here, or an item of its own with what is known
+4. [x] the missing window on macOS 27: the cause fixed here, or an item of its own with what is known (074)
 5. [x] `docs/development.md`
-6. [ ] the checks of CONTRIBUTING.md, "Checks before a commit"
+6. [x] the checks of CONTRIBUTING.md, "Checks before a commit"
 
 ## Log
 
@@ -85,8 +86,9 @@ on any macOS at all.
   and its log are gone again; `lib.rs` is as on `main`. Run 43856410822: every job green, `window: 1024x674 at
   0,31`, and the screenshot shows the whole window with its title bar. On Windows, on a screen larger than
   the window, the viewer opens at the same place and size as before the change (1416x939 outer, centred).
-- 2026-11-16 — Open: step 4. Whether this fault is what the manual round saw on macOS 27.0.1 is not known; the
-  zip of run 43856410822 goes to the manual round, and its result decides.
+- 2026-11-16 — step 4. Decided 2026-11-16: this task closes with the smoke test and the window fix, and the
+  missing window on macOS 27.0.1 is an item of its own (074): whether the fault fixed here is what the manual
+  round saw is not known, and only that Mac can tell. The zip of run 43856410822 goes to the manual round.
 
 ## Deviations from the plan
 
@@ -95,12 +97,21 @@ on any macOS at all.
 
 ## Verification
 
-- pending
+- 2026-11-16 — manual run 43856410822 of the workflow on the branch (macOS 26.7.2, arm64, a 1024x768 screen):
+  every job green; the smoke step prints `window: 1024x674 at 0,31`, and the screenshot of the `macos-smoke`
+  artifact shows the whole window with its title bar and the empty start page. Before the fix, run 43850387414
+  with the same smoke test: `window: 1024x674 at -188,31` and the step fails, which is also the negative test
+  of the script.
+- 2026-11-16 — on Windows: `cargo fmt --check`, `cargo clippy --all-targets --locked -- -D warnings`, `cargo
+  test --locked`, the macOS-target clippy, the `rust-version` check, `python -I scripts/changelog.py --check`,
+  `uvx zizmor .github`, `python -I scripts/render-usage-guide.py --check`, `bash -n` and shellcheck on the
+  script: all pass. The viewer started on a screen larger than the window opens at the same place and size as
+  before the change. Not checked: a Windows screen smaller than 1400x900, and macOS 27.
 
 ## Closing checklist
 
-- [ ] every follow-up is a `backlog/` file (`/tasks add`, approved by the owner) or deleted with a reason in the Log
-- [ ] every doc under *Docs that move* changed in this change
-- [ ] Verification written, dated
-- [ ] `tasks_check` green, README index regenerated
-- [ ] moved to `done/` with `closed: YYYY-MM-DD`
+- [x] every follow-up is a `backlog/` file (`/tasks add`, approved by the owner) or deleted with a reason in the Log
+- [x] every doc under *Docs that move* changed in this change
+- [x] Verification written, dated
+- [x] `tasks_check` green, README index regenerated
+- [x] moved to `done/` with `closed: 2026-11-16`
