@@ -11,9 +11,9 @@ the section. Every file here is mirrored one-way into a GitHub issue by `scripts
 edit the file, never the issue. Everything here is English.
 
 <!-- tasks:index:start -->
-_Generated 2026-10-20 — edit the files, not this section._
+_Generated 2026-11-16 — edit the files, not this section._
 
-**State:** 2 backlog (0 ready · 0 blocked · 2 waiting · 0 ideas) · 0 in progress · 66 done · 2 dropped · 13 decisions
+**State:** 2 backlog (0 ready · 0 blocked · 2 waiting · 0 ideas) · 1 in progress · 66 done · 2 dropped · 13 decisions
 
 ### Ready
 
@@ -43,7 +43,11 @@ _none_
 
 ### In progress
 
-_none_
+#### M4 macOS
+
+| # | Task | Started | Plan |
+|---|---|---|---|
+| 073 | [Start-up smoke test for the macOS bundle: the packed app opens a window](wip/073-macos-bundle-start-up-smoke-test.md) | 2026-11-16 | `none` |
 
 ### Closed – do not reopen
 
