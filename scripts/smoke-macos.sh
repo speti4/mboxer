@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
 # Start-up smoke test of the macOS bundle (task 073): opens mboxer.app the way the Finder does, waits for
 # a window of its process on the screen, and stops the app. It answers one question, whether the packed
-# app shows its window; what the webview renders is not checked. It runs on a Mac or on the macos-latest
-# runner, in a logged-in session (the window server has to be there), never on Windows.
+# app shows its window, whole and on the screen; what the webview renders is not checked. It runs on a
+# Mac or on the macos-latest runner, in a logged-in session (the window server has to be there), never
+# on Windows.
 #
 # The app starts through `open`, so LaunchServices launches it as a double click does, with a fresh
 # instance and its output in files. A window counts when it belongs to the app's process, is on the
-# screen, sits on the normal window layer and is at least 100 points wide and high: the list comes from
+# screen, sits on the normal window layer and is at least 100 points wide and high, and it has to stand
+# whole on the main display, as a window placed for a larger screen does not: the list comes from
 # CGWindowListCopyWindowInfo, which gives the owner and the bounds of a window without the screen
 # recording permission. The out folder keeps stdout.log, stderr.log, system.txt, a screenshot when the
 # session allows one and, when no window came, a `sample` of the process, which shows where its main
@@ -16,8 +18,9 @@
 #   scripts/smoke-macos.sh dist/unpacked/mboxer.app --out dist/smoke   # where the evidence goes
 #   scripts/smoke-macos.sh mboxer.app --timeout 60                     # seconds to wait for the window
 #
-# Exit code: 0 a window appeared, 1 none did within the timeout or the app ended first, 2 a usage or
-# set-up error. Needs: the Xcode command line tools (swift), open, pgrep, sample, screencapture, sw_vers.
+# Exit code: 0 a whole window appeared, 1 none did within the timeout, the app ended first or a part of
+# the window lies off the display, 2 a usage or set-up error. Needs: the Xcode command line tools
+# (swift), open, pgrep, sample, screencapture, sw_vers.
 set -euo pipefail
 
 app=""
@@ -27,7 +30,7 @@ while [ $# -gt 0 ]; do
     case "$1" in
         --out) out="$2"; shift ;;
         --timeout) timeout="$2"; shift ;;
-        -h|--help) sed -n '2,20p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+        -h|--help) sed -n '2,23p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
         -*) echo "unknown argument: $1" >&2; exit 2 ;;
         *) [ -z "$app" ] || { echo "one app only: $1" >&2; exit 2; }; app="$1" ;;
     esac
@@ -67,32 +70,45 @@ trap cleanup EXIT
     uname -m
 } > "$out/system.txt"
 
-# Waits for a window of the process: prints "<window id> <width>x<height>" and exits 0 when one is on the
-# screen, exits 1 at the timeout and 2 when the process is gone.
+# Waits for a window of the process: prints "<window id> <width>x<height> at <x>,<y>" and exits 0 when one
+# stands whole on the main display, 3 when a part of it lies off the display, 1 at the timeout and 2 when the
+# process is gone. The window is measured a second after it appeared, once the app has placed it.
 cat > "$work/windows.swift" <<'SWIFT'
 import CoreGraphics
 import Foundation
 
 let pid = Int32(CommandLine.arguments[1])!
 let deadline = Date().addingTimeInterval(Double(CommandLine.arguments[2])!)
-while true {
+
+func mainWindow() -> (id: Int, frame: CGRect)? {
     let options: CGWindowListOption = [.optionOnScreenOnly, .excludeDesktopElements]
     let windows = CGWindowListCopyWindowInfo(options, kCGNullWindowID) as? [[String: Any]] ?? []
     for window in windows {
         guard let owner = window[kCGWindowOwnerPID as String] as? Int, owner == Int(pid),
               let layer = window[kCGWindowLayer as String] as? Int, layer == 0,
               let bounds = window[kCGWindowBounds as String] as? [String: Any],
+              let x = bounds["X"] as? Double, let y = bounds["Y"] as? Double,
               let width = bounds["Width"] as? Double, let height = bounds["Height"] as? Double,
               width >= 100, height >= 100
         else { continue }
         let id = window[kCGWindowNumber as String] as? Int ?? 0
-        print("\(id) \(Int(width))x\(Int(height))")
-        exit(0)
+        return (id, CGRect(x: x, y: y, width: width, height: height))
     }
+    return nil
+}
+
+while mainWindow() == nil {
     if kill(pid, 0) != 0 { exit(2) }
     if Date() >= deadline { exit(1) }
     Thread.sleep(forTimeInterval: 0.5)
 }
+Thread.sleep(forTimeInterval: 1.0)
+guard let window = mainWindow() else { exit(kill(pid, 0) != 0 ? 2 : 1) }
+let frame = window.frame
+print("\(window.id) \(Int(frame.width))x\(Int(frame.height)) at \(Int(frame.minX)),\(Int(frame.minY))")
+// Window bounds and display bounds share one space: points, the origin at the main display's top left.
+let display = CGDisplayBounds(CGMainDisplayID())
+exit(display.contains(frame) ? 0 : 3)
 SWIFT
 
 # -n: a fresh instance even if one runs; the output files are what a Finder start throws away.
@@ -121,6 +137,10 @@ echo "out:     $out"
 case "$status" in
     0)
         echo "window:  ${found#* } (id ${found%% *}, pid $pid)"
+        ;;
+    3)
+        echo "window:  ${found#* } (id ${found%% *}, pid $pid)"
+        echo "smoke: a part of the window lies off the main display" >&2
         ;;
     1)
         # Where the main thread stands when the app runs without a window.

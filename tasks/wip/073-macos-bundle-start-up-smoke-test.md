@@ -56,7 +56,7 @@ on any macOS at all.
 - 2026-11-16 — steps 1, 2 and 5: `scripts/smoke-macos.sh`, the "Start the packed app" step of `bundle-macos`
   with the `macos-smoke` artifact, and `docs/development.md`. `bash -n`, shellcheck and zizmor are clean. The
   app starts through `open`, not by running the binary, so LaunchServices launches it as a double click does.
-- 2026-11-16 — step 3, three manual runs on the branch. Run 43844726106: the step ended with "Permission
+- 2026-11-16 — step 3, two manual runs on the branch, three attempts. Run 43844726106: the step ended with "Permission
   denied", the script was committed without its executable bit; fixed in the next commit. Run 43847629898,
   first attempt: `test (macos-latest)` failed in
   `attachments::tests::clean_up_keeps_a_live_process_folder_and_removes_a_dead_one` (`assertion failed:
